@@ -42,11 +42,9 @@ const safeDecode = (token: string | undefined): DecodedToken | null => {
 };
 
 /**
- * Validates a refresh-token cookie value and returns a typed Session, or null
- * if the token is missing, malformed, expired, or carries an unknown role.
- *
- * Note: signature verification is intentionally NOT performed here — the API is
- * the security boundary. This client-readable check only powers routing & UI.
+ * Decodes the JWT string from the **request’s** `refreshToken` cookie (server/RSC
+ * only). The browser never sees httpOnly cookies in JS — this is not client storage.
+ * Tokens are issued/cleared only by the backend (`setAuthCookie` / `clearAuthCookies`).
  */
 export function validateSession(
   refreshToken: string | undefined,

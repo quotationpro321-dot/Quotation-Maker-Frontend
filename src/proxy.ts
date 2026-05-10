@@ -1,68 +1,48 @@
-import { jwtDecode } from "jwt-decode";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-interface DecodedToken {
-  userId: string;
-  email: string;
-  role: string;
-  iat?: number;
-  exp?: number;
-}
+import {
+  LAST_DASHBOARD_PATH_COOKIE,
+  resolveCrossRoleRedirect,
+  setLastDashboardPathCookie,
+} from "@/lib/dashboard-proxy";
+import { ROLE_HOME_PATH, validateSession } from "@/lib/session";
 
 const LOGIN_PATH = "/auth/login";
+const REFRESH_TOKEN_COOKIE = "refreshToken";
+const ACCESS_TOKEN_COOKIE = "accessToken";
 
-/**
- * Single source of truth for role-based dashboard access.
- * Each role is mapped to the path prefix it is allowed to enter.
- * Add a new entry here to grant a role its own dashboard area.
- */
-const ROLE_HOME_PATH = {
-  admin: "/dashboard/admin",
-  employee: "/dashboard/employee",
-} as const;
-
-type AuthorizedRole = keyof typeof ROLE_HOME_PATH;
-
-const isAuthorizedRole = (role: string): role is AuthorizedRole =>
-  role in ROLE_HOME_PATH;
-
-const isExpired = ({ exp }: DecodedToken): boolean =>
-  typeof exp === "number" && exp * 1000 <= Date.now();
-
-const safeDecode = (token: string): DecodedToken | null => {
-  try {
-    return jwtDecode<DecodedToken>(token);
-  } catch {
-    return null;
-  }
-};
-
-const redirectTo = (req: NextRequest, path: string) =>
+const redirect = (req: NextRequest, path: string) =>
   NextResponse.redirect(new URL(path, req.url));
+
+function clearAuthCookies(res: NextResponse) {
+  res.cookies.set(ACCESS_TOKEN_COOKIE, "", { maxAge: 0, path: "/" });
+  res.cookies.set(REFRESH_TOKEN_COOKIE, "", { maxAge: 0, path: "/" });
+}
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const accessToken = req.cookies.get("accessToken")?.value;
+  const session = validateSession(req.cookies.get(REFRESH_TOKEN_COOKIE)?.value);
 
-  if (!accessToken) {
-    return redirectTo(req, LOGIN_PATH);
+  if (!session) {
+    const res = redirect(req, LOGIN_PATH);
+    clearAuthCookies(res);
+    return res;
   }
 
-  const decoded = safeDecode(accessToken);
+  const homePath = ROLE_HOME_PATH[session.role];
 
-  if (!decoded || isExpired(decoded) || !isAuthorizedRole(decoded.role)) {
-    return redirectTo(req, LOGIN_PATH);
-  }
-
-  const homePath = ROLE_HOME_PATH[decoded.role];
-
-  // Authenticated, but trying to enter another role's area — bounce to their own.
   if (!pathname.startsWith(homePath)) {
-    return redirectTo(req, homePath);
+    const target = resolveCrossRoleRedirect(
+      homePath,
+      req.cookies.get(LAST_DASHBOARD_PATH_COOKIE)?.value,
+    );
+    return redirect(req, target);
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+  setLastDashboardPathCookie(res, pathname);
+  return res;
 }
 
 export const config = {

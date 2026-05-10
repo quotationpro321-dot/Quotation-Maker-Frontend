@@ -4,13 +4,20 @@ import { ILogin } from "@/types/auth.type";
 
 const AUTH_URL = "/auth";
 
+/**
+ * Backend sets `accessToken` + `refreshToken` as httpOnly cookies (`setAuthCookie`).
+ * The client must never store or attach those tokens — only `withCredentials` so
+ * cookies flow on API calls. Use `user` (and role) from the JSON body for UI state.
+ */
 type ILoginResponseData = {
-  accessToken?: string;
-  token?: string;
-  refreshToken?: string;
   role?: string;
   user?: {
+    _id?: string;
+    id?: string;
+    email?: string;
     role?: string;
+    name?: string;
+    profilePhotoUrl?: string;
   } | null;
 };
 

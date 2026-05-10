@@ -4,16 +4,17 @@ import axios, { AxiosRequestConfig } from "axios";
 const baseUrl =
   process.env.NODE_ENV === "production" ? "/api/v1" : env.NEXT_PUBLIC_API_BASE;
 
+/**
+ * Auth: httpOnly cookies only (backend `setAuthCookie`). Do not read/write tokens
+ * in JS or localStorage — `withCredentials` sends cookies on each request.
+ */
 export const axiosInstance = axios.create({
   baseURL: baseUrl,
   withCredentials: true,
 });
 
-// Add a request interceptor
 axiosInstance.interceptors.request.use(
   function (config) {
-    // Do something before request is sent
-
     return config;
   },
   function (error) {
@@ -53,13 +54,18 @@ axiosInstance.interceptors.response.use(
       _retry: boolean;
     };
 
+    const message =
+      error.response?.data &&
+      typeof error.response.data === "object" &&
+      "message" in error.response.data
+        ? String((error.response.data as { message?: unknown }).message)
+        : "";
+
     if (
-      error.response.status === 500 &&
-      error.response.data.message === "jwt expired" &&
+      error.response?.status === 500 &&
+      message === "jwt expired" &&
       !originalRequest._retry
     ) {
-      console.log("Your token is expired");
-
       originalRequest._retry = true;
 
       if (isRefreshing) {
@@ -67,26 +73,23 @@ axiosInstance.interceptors.response.use(
           pendingQueue.push({ resolve, reject });
         })
           .then(() => axiosInstance(originalRequest))
-          .catch((error) => Promise.reject(error));
+          .catch((err) => Promise.reject(err));
       }
 
       isRefreshing = true;
       try {
-        const res = await axiosInstance.post("/auth/refresh-token");
-        console.log("New Token arrived", res);
-
+        // Refresh uses httpOnly `refreshToken` cookie; response sets new cookies.
+        await axiosInstance.post("/auth/refresh-token");
         processQueue(null);
-
         return axiosInstance(originalRequest);
-      } catch (error) {
-        processQueue(error);
-        return Promise.reject(error);
+      } catch (refreshError) {
+        processQueue(refreshError);
+        return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
 
-    //* For Everything
     return Promise.reject(error);
   },
 );

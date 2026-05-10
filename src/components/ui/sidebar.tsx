@@ -22,10 +22,22 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+  SIDEBAR_STATE_COOKIE_NAME,
+  SIDEBAR_STATE_MAX_AGE,
+  SIDEBAR_STATE_STORAGE_KEY,
+} from "@/constants/sidebar-state"
 import { PanelLeftIcon } from "lucide-react"
 
-const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+function persistSidebarOpenState(openState: boolean) {
+  if (typeof document === "undefined") return
+  document.cookie = `${SIDEBAR_STATE_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_STATE_MAX_AGE}; SameSite=Lax`
+  try {
+    localStorage.setItem(SIDEBAR_STATE_STORAGE_KEY, String(openState))
+  } catch {
+    /* private mode / quota */
+  }
+}
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
@@ -81,8 +93,7 @@ function SidebarProvider({
         _setOpen(openState)
       }
 
-      // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      persistSidebarOpenState(openState)
     },
     [setOpenProp, open]
   )
@@ -532,6 +543,7 @@ function SidebarMenuButton({
         align="center"
         hidden={state !== "collapsed" || isMobile}
         {...tooltip}
+        variant="brand"
       />
     </Tooltip>
   )

@@ -7,6 +7,7 @@ import { FaKaaba } from "react-icons/fa";
 
 import { Button } from "@/components/ui/button";
 import { InputField } from "@/components/ui/input-field";
+import { persistCachedProfile } from "@/lib/auth-profile-storage";
 import { cn } from "@/lib/utils";
 import { useLoginMutation } from "@/redux/api/auth.api";
 import { setUser } from "@/redux/features/authSlice";
@@ -18,16 +19,16 @@ type AdminLoginFormProps = {
   className?: string;
 };
 
+/** Tokens live in httpOnly cookies from the backend — not in this shape for client use. */
 type LoginResponseData = {
-  accessToken?: string;
-  token?: string;
-  refreshToken?: string;
   role?: string;
   user?: {
     _id?: string;
     id?: string;
     email?: string;
     role?: string;
+    name?: string;
+    profilePhotoUrl?: string;
   } | null;
 };
 
@@ -97,21 +98,33 @@ export function AdminLoginForm({ className }: AdminLoginFormProps) {
         password,
       }).unwrap()) as IResponse<LoginResponseData>;
 
-      const token = response?.data?.accessToken ?? response?.data?.token;
-      if (token) {
-        localStorage.setItem("accessToken", token);
+      const u = response?.data?.user;
+      const userId = u?._id ?? u?.id;
+      if (!userId) {
+        setErrors({ password: "Login response did not include a user id." });
+        return;
       }
-      const role = response?.data?.role ?? response?.data?.user?.role;
+
+      const role = response?.data?.role ?? u?.role;
       const normalizedRole = getNormalizedRole(role);
+      const displayName = u?.name?.trim();
+      const photo = u?.profilePhotoUrl?.trim();
 
       dispatch(
         setUser({
-          _id:
-            response?.data?.user?._id ?? response?.data?.user?.id ?? "USR001",
-          email: response?.data?.user?.email ?? email.trim(),
+          _id: userId,
+          email: u?.email ?? email.trim(),
           role: normalizedRole,
+          ...(displayName ? { name: displayName } : {}),
+          ...(photo ? { photo } : {}),
         }),
       );
+
+      persistCachedProfile(userId, {
+        name: displayName,
+        photo,
+      });
+
       router.push(getDashboardPathByRole(role));
     } catch (error) {
       setErrors({ password: getErrorMessage(error) });

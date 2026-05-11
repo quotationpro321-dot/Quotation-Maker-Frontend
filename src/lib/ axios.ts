@@ -4,6 +4,8 @@ import axios, { AxiosRequestConfig } from "axios";
 const baseUrl =
   process.env.NODE_ENV === "production" ? "/api/v1" : env.NEXT_PUBLIC_API_BASE;
 
+console.log({ baseUrl });
+
 /**
  * Auth: httpOnly cookies only (backend `setAuthCookie`). Do not read/write tokens
  * in JS or localStorage — `withCredentials` sends cookies on each request.

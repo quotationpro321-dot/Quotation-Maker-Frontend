@@ -12,10 +12,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/useUser";
-import { AnimatedThemeToggler } from "@/registry/magicui/animated-theme-toggler";
 import { authApi, useLogoutMutation } from "@/redux/api/auth.api";
 import { clearUser } from "@/redux/features/authSlice";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useAppDispatch } from "@/redux/hooks";
+import { clearCachedProfile } from "@/lib/auth-profile-storage";
+import { AnimatedThemeToggler } from "@/registry/magicui/animated-theme-toggler";
 import getInitialsName from "@/utils/getInitialsName";
 import { LogOut, Settings } from "lucide-react";
 import Link from "next/link";
@@ -24,8 +25,7 @@ import { memo, startTransition, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 export const DashboardHeader = memo(() => {
-  const { user, isLoggedIn } = useAppSelector((state) => state.auth);
-  const { role } = useUser();
+  const { role, email, name, photo, isLoggedIn, userId } = useUser();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const dispatch = useAppDispatch();
   const navigate = useRouter();
@@ -38,14 +38,15 @@ export const DashboardHeader = memo(() => {
     [role],
   );
 
-  const displayLabel = user?.name?.trim() || user?.email || "Account";
-  const photoUrl = user?.photo?.trim();
+  const displayLabel = name?.trim() || email || "Account";
+  const photoUrl = photo?.trim();
   const avatarInitials =
-    getInitialsName(user?.name?.trim()) || getInitialsName(user?.email) || "?";
+    getInitialsName(name?.trim()) || getInitialsName(email) || "?";
 
   const handleLogout = useCallback(async () => {
     try {
       await logout(undefined).unwrap();
+      if (userId) clearCachedProfile(userId);
       dispatch(clearUser());
       dispatch(authApi.util.resetApiState());
       startTransition(() => {
@@ -55,7 +56,7 @@ export const DashboardHeader = memo(() => {
     } catch {
       toast.error("Logout failed! Try again.");
     }
-  }, [dispatch, logout, navigate]);
+  }, [dispatch, logout, navigate, userId]);
 
   return (
     <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center gap-2 border-b border-border bg-background/95 backdrop-blur transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

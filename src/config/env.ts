@@ -2,9 +2,6 @@ import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
 export const env = createEnv({
-  server: {
-    BACKEND_URL: z.url(),
-  },
   client: {
     NEXT_PUBLIC_API_BASE: z.url(),
     NEXT_PUBLIC_SITE_URL: z.url(),
@@ -12,7 +9,6 @@ export const env = createEnv({
     NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: z.string().min(1),
   },
   runtimeEnv: {
-    BACKEND_URL: process.env.BACKEND_URL,
     NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:

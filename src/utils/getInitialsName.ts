@@ -1,13 +1,7 @@
-export default function getInitialsName(name?: unknown): string {
-  if (typeof name !== "string") return "";
-
-  const words = name.trim().split(/\s+/).filter(Boolean);
-
-  if (words.length === 0) return "";
-
-  if (words.length === 1) {
-    return words[0].slice(0, 2).toUpperCase();
-  }
-
-  return `${words[0][0]}${words[1][0]}`.toUpperCase();
+/** First two characters of the trimmed string — no case or word formatting. */
+export default function getInitialsName(value?: unknown): string {
+  if (typeof value !== "string") return "";
+  const s = value.trim();
+  if (s.length === 0) return "";
+  return s.slice(0, 2);
 }

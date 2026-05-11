@@ -24,6 +24,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { useSidebarMenus } from "@/hooks/useSidebarMenus";
 import { useUser } from "@/hooks/useUser";
+import { clearCachedProfile } from "@/lib/auth-profile-storage";
 import { authApi, useLogoutMutation } from "@/redux/api/auth.api";
 import { clearUser } from "@/redux/features/authSlice";
 import { useAppDispatch } from "@/redux/hooks";
@@ -46,6 +47,7 @@ export const DashboardSidebar = memo(() => {
   const handleLogout = async () => {
     try {
       await logout(undefined).unwrap();
+      if (userId) clearCachedProfile(userId);
       dispatch(clearUser());
       dispatch(authApi.util.resetApiState());
 

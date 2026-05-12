@@ -1,6 +1,7 @@
 "use client";
 
 import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState, type FormEvent } from "react";
 import { FaKaaba } from "react-icons/fa";
@@ -187,6 +188,15 @@ export function AdminLoginForm({ className }: AdminLoginFormProps) {
           </button>
         }
       />
+
+      <div className="-mt-3 flex justify-end">
+        <Link
+          href="/auth/forgot-password"
+          className="text-xs font-medium text-brand-secondary underline-offset-4 transition-colors duration-(--motion-instant) hover:text-brand-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary/40"
+        >
+          Forgot password?
+        </Link>
+      </div>
 
       <Button
         type="submit"

@@ -21,6 +21,16 @@ type ILoginResponseData = {
   } | null;
 };
 
+type IForgotPasswordPayload = {
+  email: string;
+};
+
+type IResetPasswordPayload = {
+  code: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<IResponse<ILoginResponseData>, ILogin>({
@@ -37,7 +47,26 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    forgotPassword: builder.mutation<IResponse<null>, IForgotPasswordPayload>({
+      query: (payload) => ({
+        url: `${AUTH_URL}/forgot-password`,
+        method: "POST",
+        data: payload,
+      }),
+    }),
+    resetPassword: builder.mutation<IResponse<null>, IResetPasswordPayload>({
+      query: (payload) => ({
+        url: `${AUTH_URL}/reset-password`,
+        method: "POST",
+        data: payload,
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useLogoutMutation } = authApi;
+export const {
+  useForgotPasswordMutation,
+  useLoginMutation,
+  useLogoutMutation,
+  useResetPasswordMutation,
+} = authApi;

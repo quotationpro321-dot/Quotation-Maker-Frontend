@@ -2,6 +2,10 @@ import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
 export const env = createEnv({
+  server: {
+    /** Origin of the real API (used in `next.config.ts` rewrites). Never import on the client. */
+    API_UPSTREAM_ORIGIN: z.string().url().optional(),
+  },
   client: {
     NEXT_PUBLIC_API_BASE: z.url(),
     NEXT_PUBLIC_SITE_URL: z.url(),
@@ -9,6 +13,7 @@ export const env = createEnv({
     NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: z.string().min(1),
   },
   runtimeEnv: {
+    API_UPSTREAM_ORIGIN: process.env.API_UPSTREAM_ORIGIN,
     NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:

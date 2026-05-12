@@ -1,10 +1,11 @@
 import { env } from "@/config/env";
+import { PUBLIC_API_V1_BASE_PATH } from "@/config/public-api";
 import axios, { AxiosRequestConfig } from "axios";
 
 const baseUrl =
-  process.env.NODE_ENV === "production" ? "/api/v1" : env.NEXT_PUBLIC_API_BASE;
-
-console.log({ baseUrl });
+  process.env.NODE_ENV === "production"
+    ? PUBLIC_API_V1_BASE_PATH
+    : env.NEXT_PUBLIC_API_BASE;
 
 /**
  * Auth: httpOnly cookies only (backend `setAuthCookie`). Do not read/write tokens

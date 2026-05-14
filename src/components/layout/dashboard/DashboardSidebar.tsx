@@ -36,7 +36,7 @@ import { toast } from "sonner";
 import { SidebarNavItem } from "./SidebarNavItem";
 
 export const DashboardSidebar = memo(() => {
-  const { role, userId } = useUser();
+  const { user, role, userId } = useUser();
   const menus = useSidebarMenus(role);
   const [logout, { isLoading }] = useLogoutMutation();
   const dispatch = useAppDispatch();
@@ -47,7 +47,10 @@ export const DashboardSidebar = memo(() => {
   const handleLogout = async () => {
     try {
       await logout(undefined).unwrap();
-      if (userId) clearCachedProfile(userId);
+      if (user?._id) clearCachedProfile(user._id);
+      if (user?.accountCode && user.accountCode !== user._id) {
+        clearCachedProfile(user.accountCode);
+      }
       dispatch(clearUser());
       dispatch(authApi.util.resetApiState());
 

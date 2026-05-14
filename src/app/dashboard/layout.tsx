@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { AuthStateSync } from "@/components/auth/AuthStateSync";
+import { AuthStateSync } from "@/features/auth";
 import { DashboardHeader } from "@/components/layout/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/layout/dashboard/DashboardSidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";

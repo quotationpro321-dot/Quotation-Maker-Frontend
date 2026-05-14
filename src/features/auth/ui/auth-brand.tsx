@@ -1,17 +1,17 @@
 import { cn } from "@/lib/utils";
 
-type AuthBrandProps = {
+type TAuthBrandProps = {
   className?: string;
   label?: string;
 };
 
-export function AuthBrand({ className, label = "ALSAMA" }: AuthBrandProps) {
+export function AuthBrand({ className, label = "ALSAMA" }: TAuthBrandProps) {
   return (
     <div className={cn("flex items-center gap-3", className)}>
       <span className="relative grid size-9 place-items-center rounded-full bg-secondary text-secondary-foreground">
         <span
           aria-hidden
-          className="absolute inset-0 rounded-full border border-primary/40 animate-auth-pulse-ring"
+          className="absolute inset-0 animate-auth-pulse-ring rounded-full border border-primary/40"
         />
         <svg
           aria-hidden

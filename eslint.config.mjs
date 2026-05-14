@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Editor local history (often partial / invalid files)
+    ".history/**",
   ]),
 ]);
 

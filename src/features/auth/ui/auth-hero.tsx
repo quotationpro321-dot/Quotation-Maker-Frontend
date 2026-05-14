@@ -12,13 +12,18 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 
-type AuthHeroProps = {
+type TAuthHeroImage = {
+  src: string;
+  alt?: string;
+};
+
+type TAuthHeroProps = {
   className?: string;
-  images?: { src: string; alt?: string }[];
+  images?: TAuthHeroImage[];
   intervalMs?: number;
 };
 
-const DEFAULT_IMAGES: { src: string; alt: string }[] = [
+const DEFAULT_IMAGES: TAuthHeroImage[] = [
   {
     src: "/auth/01-mecca-grand-mosque.jpg",
     alt: "Aerial view of the Grand Mosque and Mecca, Saudi Arabia",
@@ -41,11 +46,14 @@ const DEFAULT_IMAGES: { src: string; alt: string }[] = [
   },
 ];
 
+const navBtn =
+  "top-1/2 h-8 w-8 -translate-y-1/2 border-brand-primary/70 bg-brand-primary text-white hover:bg-brand-primary-700 hover:text-white disabled:border-brand-primary/30 disabled:bg-brand-primary/40 disabled:text-white/70 dark:border-brand-primary/70 dark:bg-brand-primary dark:hover:bg-brand-primary-700 dark:hover:text-white dark:disabled:border-brand-primary/30 dark:disabled:bg-brand-primary/40 dark:disabled:text-white/70";
+
 export function AuthHero({
   className,
   images = DEFAULT_IMAGES,
   intervalMs = 5000,
-}: AuthHeroProps) {
+}: TAuthHeroProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -72,11 +80,8 @@ export function AuthHero({
     if (prefersReducedMotion) return;
 
     const id = window.setInterval(() => {
-      if (api.canScrollNext()) {
-        api.scrollNext();
-      } else {
-        api.scrollTo(0);
-      }
+      if (api.canScrollNext()) api.scrollNext();
+      else api.scrollTo(0);
     }, intervalMs);
 
     return () => window.clearInterval(id);
@@ -86,7 +91,7 @@ export function AuthHero({
     <div
       className={cn(
         "relative h-full w-full overflow-hidden rounded-l-lg",
-        className
+        className,
       )}
       aria-hidden
     >
@@ -99,7 +104,10 @@ export function AuthHero({
           >
             <CarouselContent className="ml-0 h-full">
               {images.map((image, index) => (
-                <CarouselItem key={image.src} className="h-full basis-full pl-0">
+                <CarouselItem
+                  key={image.src}
+                  className="h-full basis-full pl-0"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={image.src}
@@ -108,7 +116,7 @@ export function AuthHero({
                     decoding="async"
                     className={cn(
                       "h-full w-full object-cover transition-transform duration-700",
-                      index === activeIndex ? "animate-auth-ken-burns" : ""
+                      index === activeIndex ? "animate-auth-ken-burns" : "",
                     )}
                   />
                 </CarouselItem>
@@ -118,12 +126,12 @@ export function AuthHero({
             <CarouselPrevious
               variant="outline"
               size="icon-sm"
-              className="left-4 top-1/2 h-8 w-8 -translate-y-1/2 border-brand-primary/70 bg-brand-primary text-white hover:bg-brand-primary-700 hover:text-white disabled:border-brand-primary/30 disabled:bg-brand-primary/40 disabled:text-white/70 dark:border-brand-primary/70 dark:bg-brand-primary dark:hover:bg-brand-primary-700 dark:hover:text-white dark:disabled:border-brand-primary/30 dark:disabled:bg-brand-primary/40 dark:disabled:text-white/70"
+              className={cn("left-4", navBtn)}
             />
             <CarouselNext
               variant="outline"
               size="icon-sm"
-              className="right-4 top-1/2 h-8 w-8 -translate-y-1/2 border-brand-primary/70 bg-brand-primary text-white hover:bg-brand-primary-700 hover:text-white disabled:border-brand-primary/30 disabled:bg-brand-primary/40 disabled:text-white/70 dark:border-brand-primary/70 dark:bg-brand-primary dark:hover:bg-brand-primary-700 dark:hover:text-white dark:disabled:border-brand-primary/30 dark:disabled:bg-brand-primary/40 dark:disabled:text-white/70"
+              className={cn("right-4", navBtn)}
             />
           </Carousel>
 
@@ -134,7 +142,7 @@ export function AuthHero({
                 key={`${image.src}-dot`}
                 className={cn(
                   "h-1.5 rounded-full bg-white transition-all duration-(--motion-fast)",
-                  index === activeIndex ? "w-5" : "w-1.5 opacity-60"
+                  index === activeIndex ? "w-5" : "w-1.5 opacity-60",
                 )}
               />
             ))}

@@ -1,12 +1,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { AuthStateSync } from "@/components/auth/AuthStateSync";
 import { DashboardHeader } from "@/components/layout/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/layout/dashboard/DashboardSidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SIDEBAR_STATE_COOKIE_NAME } from "@/constants/sidebar-state";
 import { SessionProvider } from "@/contexts/SessionContext";
+import { AuthStateSync } from "@/features/auth";
 import { validateSession } from "@/lib/session";
 import { IChildren } from "@/types/common.type";
 
@@ -29,7 +29,7 @@ export default async function DashboardLayout({ children }: IChildren) {
         <DashboardSidebar />
         <SidebarInset>
           <DashboardHeader />
-          <main className="p-4 md:p-8">{children}</main>
+          <div className="min-h-0 min-w-0 flex-1 p-4 md:p-8">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </SessionProvider>

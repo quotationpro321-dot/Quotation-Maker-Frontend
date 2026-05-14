@@ -1,5 +1,5 @@
-const SettingsPage = () => {
-  return <div>Settings Admin Page</div>;
-};
+import { DashboardSettingsView } from "@/features/settings/ui/dashboard-settings-view";
 
-export default SettingsPage;
+export default function AdminSettingsPage() {
+  return <DashboardSettingsView />;
+}

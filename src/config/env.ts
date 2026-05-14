@@ -7,8 +7,8 @@ export const env = createEnv({
     API_UPSTREAM_ORIGIN: z.string().url().optional(),
   },
   client: {
-    NEXT_PUBLIC_API_BASE: z.url(),
-    NEXT_PUBLIC_SITE_URL: z.url(),
+    NEXT_PUBLIC_API_BASE: z.string().url(),
+    NEXT_PUBLIC_SITE_URL: z.string().url(),
     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().min(1),
     NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: z.string().min(1),
   },

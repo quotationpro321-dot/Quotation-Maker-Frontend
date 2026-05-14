@@ -1,3 +1,4 @@
+import { UserRole } from "@/types/user.type";
 import {
   BarChart3,
   Calculator,
@@ -9,7 +10,6 @@ import {
   UserCog,
   Users,
 } from "lucide-react";
-import { UserRole } from "@/types/user.type";
 
 export interface SidebarMenuItem {
   title: string;

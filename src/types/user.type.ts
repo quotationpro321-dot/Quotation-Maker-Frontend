@@ -6,4 +6,6 @@ export interface IUser {
   role: UserRole;
   name?: string;
   photo?: string;
+  /** Business `userId` from Mongo (e.g. seeded admin string), shown read-only in settings. */
+  accountCode?: string;
 }

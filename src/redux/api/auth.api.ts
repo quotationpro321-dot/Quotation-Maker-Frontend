@@ -1,5 +1,6 @@
 import { baseApi } from "@/redux/baseApi";
 import { IResponse } from "@/types";
+import type { ILoginResponseData } from "@/types/auth-login-response.type";
 import { ILogin } from "@/types/auth.type";
 
 const AUTH_URL = "/auth";
@@ -9,27 +10,17 @@ const AUTH_URL = "/auth";
  * The client must never store or attach those tokens — only `withCredentials` so
  * cookies flow on API calls. Use `user` (and role) from the JSON body for UI state.
  */
-type ILoginResponseData = {
-  role?: string;
-  user?: {
-    _id?: string;
-    id?: string;
-    email?: string;
-    role?: string;
-    name?: string;
-    profilePhotoUrl?: string;
-  } | null;
-};
-
-type IForgotPasswordPayload = {
+interface IForgotPasswordPayload {
   email: string;
-};
+}
 
-type IResetPasswordPayload = {
+interface IResetPasswordPayload {
   code: string;
   newPassword: string;
   confirmPassword: string;
-};
+}
+
+type TValidateResetCodeResponse = IResponse<{ valid: boolean }>;
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -61,6 +52,14 @@ export const authApi = baseApi.injectEndpoints({
         data: payload,
       }),
     }),
+    /** GET — read-only; does not consume the reset token. Used on reset-password page load. */
+    validateResetCode: builder.query<TValidateResetCodeResponse, string>({
+      query: (code) => ({
+        url: `${AUTH_URL}/validate-reset-code`,
+        method: "GET",
+        params: { code },
+      }),
+    }),
   }),
 });
 
@@ -69,4 +68,5 @@ export const {
   useLoginMutation,
   useLogoutMutation,
   useResetPasswordMutation,
+  useValidateResetCodeQuery,
 } = authApi;

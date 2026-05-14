@@ -16,12 +16,21 @@ const axiosBaseQuery =
   > =>
   async ({ url, method, data, params, headers }) => {
     try {
+      const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+      let requestHeaders: AxiosRequestConfig["headers"] | undefined = headers;
+
+      if (isFormData && headers && typeof headers === "object" && !Array.isArray(headers)) {
+        const copy = { ...(headers as Record<string, unknown>) };
+        delete copy["Content-Type"];
+        requestHeaders = copy as AxiosRequestConfig["headers"];
+      }
+
       const result = await axiosInstance({
         url: url,
         method,
         data,
         params,
-        headers,
+        headers: requestHeaders,
       });
       return { data: result.data };
     } catch (axiosError) {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import { AppToaster } from "@/components/common/AppToaster";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ReduxProvider from "@/providers/redux.provider";
 import { ThemeProvider } from "@/providers/theme.provider";
@@ -39,6 +39,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               {children}
+              <Toaster />
             </ThemeProvider>
           </TooltipProvider>
         </ReduxProvider>

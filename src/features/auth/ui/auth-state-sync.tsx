@@ -10,8 +10,7 @@ import type { UserRole } from "@/types/user.type";
 
 /**
  * After a full reload Redux is empty, but the server session (JWT) is not.
- * Re-hydrate the auth slice from session + the local profile cache written on
- * login so name/photo stay available without an extra API round-trip.
+ * Re-hydrate the auth slice from session + local profile cache from login.
  */
 export function AuthStateSync() {
   const session = useSession();
@@ -20,13 +19,20 @@ export function AuthStateSync() {
 
   useLayoutEffect(() => {
     const cached = loadCachedProfile(session.userId);
-    const sameUser = reduxUser?._id === session.userId;
+    const reduxMatchesSession =
+      reduxUser != null &&
+      (reduxUser._id === session.userId ||
+        reduxUser.accountCode === session.userId);
     const next = {
       _id: session.userId,
       email: session.email,
       role: session.role as UserRole,
-      name: sameUser ? reduxUser?.name ?? cached?.name : cached?.name,
-      photo: sameUser ? reduxUser?.photo ?? cached?.photo : cached?.photo,
+      name: reduxMatchesSession
+        ? (reduxUser.name ?? cached?.name)
+        : (cached?.name ?? reduxUser?.name),
+      photo: reduxMatchesSession
+        ? (reduxUser.photo ?? cached?.photo)
+        : (cached?.photo ?? reduxUser?.photo),
     };
 
     if (

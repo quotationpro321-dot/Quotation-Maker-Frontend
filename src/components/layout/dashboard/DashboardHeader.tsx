@@ -12,10 +12,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/useUser";
+import { clearCachedProfile } from "@/lib/auth-profile-storage";
 import { authApi, useLogoutMutation } from "@/redux/api/auth.api";
 import { clearUser } from "@/redux/features/authSlice";
 import { useAppDispatch } from "@/redux/hooks";
-import { clearCachedProfile } from "@/lib/auth-profile-storage";
 import { AnimatedThemeToggler } from "@/registry/magicui/animated-theme-toggler";
 import getInitialsName from "@/utils/getInitialsName";
 import { LogOut, Settings } from "lucide-react";
@@ -25,7 +25,7 @@ import { memo, startTransition, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 export const DashboardHeader = memo(() => {
-  const { role, email, name, photo, isLoggedIn, userId } = useUser();
+  const { user, role, email, name, photo, isLoggedIn } = useUser();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const dispatch = useAppDispatch();
   const navigate = useRouter();
@@ -46,7 +46,10 @@ export const DashboardHeader = memo(() => {
   const handleLogout = useCallback(async () => {
     try {
       await logout(undefined).unwrap();
-      if (userId) clearCachedProfile(userId);
+      if (user?._id) clearCachedProfile(user._id);
+      if (user?.accountCode && user.accountCode !== user._id) {
+        clearCachedProfile(user.accountCode);
+      }
       dispatch(clearUser());
       dispatch(authApi.util.resetApiState());
       startTransition(() => {
@@ -56,10 +59,10 @@ export const DashboardHeader = memo(() => {
     } catch {
       toast.error("Logout failed! Try again.");
     }
-  }, [dispatch, logout, navigate, userId]);
+  }, [dispatch, logout, navigate, user]);
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center gap-2 border-b border-border bg-background/95 backdrop-blur transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+    <header className="sticky top-0 z-50 flex h-16 w-full min-w-0 shrink-0 items-center gap-2 border-b border-border bg-background/95 backdrop-blur transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
       <div className="flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1 text-foreground" />
         <Separator orientation="vertical" className="mr-2 bg-border" />

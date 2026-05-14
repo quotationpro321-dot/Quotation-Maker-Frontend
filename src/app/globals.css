@@ -225,6 +225,7 @@
   }
   html {
     @apply font-sans antialiased;
+    overflow-x: clip;
   }
   input::placeholder,
   textarea::placeholder {
@@ -334,4 +335,9 @@
 
 html[data-magicui-theme-vt="active"]::view-transition-group(root) {
   animation-duration: var(--magicui-theme-toggle-vt-duration);
+}
+
+/* Sonner: sit above dashboard chrome / dialogs */
+[data-sonner-toaster] {
+  z-index: 200;
 }

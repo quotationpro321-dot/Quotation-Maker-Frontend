@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^5.0.1
+        version: 5.2.2(react-hook-form@7.75.0(react@19.2.4))
       '@radix-ui/react-dropdown-menu':
         specifier: ^2.1.16
         version: 2.1.16(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -16,7 +19,7 @@ importers:
         version: 2.11.2(react-redux@9.2.0(@types/react@19.2.14)(react@19.2.4)(redux@5.0.1))(react@19.2.4)
       '@t3-oss/env-nextjs':
         specifier: ^0.13.11
-        version: 0.13.11(typescript@5.9.3)(zod@4.4.3)
+        version: 0.13.11(typescript@5.9.3)(zod@3.25.76)
       axios:
         specifier: ^1.16.0
         version: 1.16.0
@@ -50,6 +53,9 @@ importers:
       react-dom:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
+      react-hook-form:
+        specifier: ^7.75.0
+        version: 7.75.0(react@19.2.4)
       react-icons:
         specifier: ^5.6.0
         version: 5.6.0(react@19.2.4)
@@ -69,8 +75,8 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       zod:
-        specifier: ^4.4.3
-        version: 4.4.3
+        specifier: ^3.24.2
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -309,6 +315,11 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
+
+  '@hookform/resolvers@5.2.2':
+    resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3331,6 +3342,12 @@ packages:
     peerDependencies:
       react: ^19.2.4
 
+  react-hook-form@7.75.0:
+    resolution: {integrity: sha512-Ovv94H+0p3sJ7B9B5QxPuCP1u8V/cHuVGyH55cSwodYDtoJwK+fqk3vjfIgSX59I2U/bU4z0nRJ9HMLpNiWEmw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+
   react-icons@5.6.0:
     resolution: {integrity: sha512-RH93p5ki6LfOiIt0UtDyNg/cee+HLVR6cHHtW3wALfo+eOHTp8RnU2kRkI6E+H19zMIs03DyxUG/GfZMOGvmiA==}
     peerDependencies:
@@ -3915,9 +3932,6 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
-
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
@@ -4207,6 +4221,11 @@ snapshots:
   '@hono/node-server@1.19.14(hono@4.12.18)':
     dependencies:
       hono: 4.12.18
+
+  '@hookform/resolvers@5.2.2(react-hook-form@7.75.0(react@19.2.4))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.75.0(react@19.2.4)
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -5241,17 +5260,17 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@t3-oss/env-core@0.13.11(typescript@5.9.3)(zod@4.4.3)':
+  '@t3-oss/env-core@0.13.11(typescript@5.9.3)(zod@3.25.76)':
     optionalDependencies:
       typescript: 5.9.3
-      zod: 4.4.3
+      zod: 3.25.76
 
-  '@t3-oss/env-nextjs@0.13.11(typescript@5.9.3)(zod@4.4.3)':
+  '@t3-oss/env-nextjs@0.13.11(typescript@5.9.3)(zod@3.25.76)':
     dependencies:
-      '@t3-oss/env-core': 0.13.11(typescript@5.9.3)(zod@4.4.3)
+      '@t3-oss/env-core': 0.13.11(typescript@5.9.3)(zod@3.25.76)
     optionalDependencies:
       typescript: 5.9.3
-      zod: 4.4.3
+      zod: 3.25.76
 
   '@tailwindcss/node@4.2.4':
     dependencies:
@@ -6138,8 +6157,8 @@ snapshots:
       '@babel/parser': 7.29.3
       eslint: 9.39.4(jiti@2.6.1)
       hermes-parser: 0.25.1
-      zod: 4.4.3
-      zod-validation-error: 4.0.2(zod@4.4.3)
+      zod: 3.25.76
+      zod-validation-error: 4.0.2(zod@3.25.76)
     transitivePeerDependencies:
       - supports-color
 
@@ -7299,6 +7318,10 @@ snapshots:
       react: 19.2.4
       scheduler: 0.27.0
 
+  react-hook-form@7.75.0(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+
   react-icons@5.6.0(react@19.2.4):
     dependencies:
       react: 19.2.4
@@ -8020,10 +8043,8 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
-  zod-validation-error@4.0.2(zod@4.4.3):
+  zod-validation-error@4.0.2(zod@3.25.76):
     dependencies:
-      zod: 4.4.3
+      zod: 3.25.76
 
   zod@3.25.76: {}
-
-  zod@4.4.3: {}

@@ -102,7 +102,7 @@ export function SettingsProfileIdentityForm({
               <FieldDescription>User ID cannot be changed.</FieldDescription>
             </Field>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2">
               <Controller
                 name="name"
                 control={form.control}

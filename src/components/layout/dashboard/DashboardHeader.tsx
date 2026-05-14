@@ -12,10 +12,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/useUser";
+import { clearCachedProfile } from "@/lib/auth-profile-storage";
 import { authApi, useLogoutMutation } from "@/redux/api/auth.api";
 import { clearUser } from "@/redux/features/authSlice";
 import { useAppDispatch } from "@/redux/hooks";
-import { clearCachedProfile } from "@/lib/auth-profile-storage";
 import { AnimatedThemeToggler } from "@/registry/magicui/animated-theme-toggler";
 import getInitialsName from "@/utils/getInitialsName";
 import { LogOut, Settings } from "lucide-react";
@@ -62,7 +62,7 @@ export const DashboardHeader = memo(() => {
   }, [dispatch, logout, navigate, user]);
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center gap-2 border-b border-border bg-background/95 backdrop-blur transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+    <header className="sticky top-0 z-50 flex h-16 w-full min-w-0 shrink-0 items-center gap-2 border-b border-border bg-background/95 backdrop-blur transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
       <div className="flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1 text-foreground" />
         <Separator orientation="vertical" className="mr-2 bg-border" />

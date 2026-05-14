@@ -39,7 +39,7 @@ export function SettingsProfilePanel({
   const avatar = useProfileAvatarUpload(onAvatarUploadSuccess);
 
   return (
-    <Card className="border-border shadow-sm">
+    <Card className="min-w-0 max-w-full border-border shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg text-brand-primary">
           <User className="size-5" aria-hidden />

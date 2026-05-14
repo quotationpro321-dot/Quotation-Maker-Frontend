@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const brandInputShellClasses =
-  "relative flex h-12 w-full overflow-hidden rounded-xs border border-brand-primary/40 bg-background transition-[border-color,box-shadow] duration-(--motion-fast) hover:border-brand-primary/65 focus-within:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary/35";
+  "relative flex h-12 w-full min-w-0 max-w-full overflow-hidden rounded-xs border border-brand-primary/40 bg-background transition-[border-color,box-shadow] duration-(--motion-fast) hover:border-brand-primary/65 focus-within:border-brand-primary focus-within:ring-2 focus-within:ring-inset focus-within:ring-brand-primary/35";
 
 const brandInputShellInvalidClasses =
   "border-destructive hover:border-destructive/90 focus-within:border-destructive focus-within:ring-destructive/30";

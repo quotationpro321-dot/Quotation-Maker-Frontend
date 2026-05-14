@@ -225,6 +225,7 @@
   }
   html {
     @apply font-sans antialiased;
+    overflow-x: clip;
   }
   input::placeholder,
   textarea::placeholder {

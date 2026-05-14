@@ -50,7 +50,7 @@ export function ReusableTabs({
   const initial = defaultValue ?? tabs[0]?.value ?? "tab";
 
   return (
-    <Tabs defaultValue={initial} className={cn("w-full space-y-4", tabsClassName, className)}>
+    <Tabs defaultValue={initial} className={cn("w-full min-w-0 space-y-4", tabsClassName, className)}>
       <TabsList
         variant={tabsListVariant}
         className={cn(

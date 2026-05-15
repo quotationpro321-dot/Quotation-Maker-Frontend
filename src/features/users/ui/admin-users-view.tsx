@@ -1,5 +1,6 @@
 "use client";
 
+import { Info } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +13,7 @@ import { useUser } from "@/hooks/useUser";
 import { useAdminUsersTable } from "@/features/users/hooks/use-admin-users-table";
 import { DeleteUserDialog } from "@/features/users/ui/delete-user-dialog";
 import { DeleteUsersBulkDialog } from "@/features/users/ui/delete-users-bulk-dialog";
+import { RestoreUserDialog } from "@/features/users/ui/restore-user-dialog";
 import { UserFormDialog } from "@/features/users/ui/user-form-dialog";
 import { UsersTableToolbar } from "@/features/users/ui/users-table-toolbar";
 
@@ -35,6 +37,7 @@ export function AdminUsersView() {
   const [deleteTarget, setDeleteTarget] = useState<TAdminUser | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteUsers, setBulkDeleteUsers] = useState<TAdminUser[]>([]);
+  const [restoreTarget, setRestoreTarget] = useState<TAdminUser | null>(null);
   const { userId: currentUserId } = useUser();
 
   const handleEdit = useCallback((user: TAdminUser) => {
@@ -45,6 +48,12 @@ export function AdminUsersView() {
   const handleDelete = useCallback((user: TAdminUser) => {
     setDeleteTarget(user);
   }, []);
+
+  const handleRestore = useCallback((user: TAdminUser) => {
+    setRestoreTarget(user);
+  }, []);
+
+  const showRemovedOnly = statusFilter === "deleted";
 
   const {
     table,
@@ -62,6 +71,7 @@ export function AdminUsersView() {
       statusFilter: statusFilter === "all" ? undefined : statusFilter,
       onEdit: handleEdit,
       onDelete: handleDelete,
+      onRestore: handleRestore,
     });
 
   useEffect(() => {
@@ -118,7 +128,12 @@ export function AdminUsersView() {
         onAddUser={handleAddUser}
         selectedCount={selectedCount}
         onDeleteSelected={handleDeleteSelected}
+        showRemovedOnly={showRemovedOnly}
       />
+
+      {showRemovedOnly ? (
+        <RemovedUsersAlert totalRows={totalRows} isLoading={isLoading} />
+      ) : null}
 
       {isError ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-6 text-center text-sm text-destructive">
@@ -140,7 +155,11 @@ export function AdminUsersView() {
           <DataTable
             table={table}
             className="rounded-none border-0 shadow-none"
-            emptyMessage="No users match your filters."
+            emptyMessage={
+              showRemovedOnly
+                ? "No removed users. Deleted accounts appear here."
+                : "No users match your filters."
+            }
           />
           <DataTablePagination table={table} totalRows={totalRows} />
         </div>
@@ -156,6 +175,15 @@ export function AdminUsersView() {
         }}
       />
 
+      <RestoreUserDialog
+        user={restoreTarget}
+        open={Boolean(restoreTarget)}
+        onOpenChange={(open) => {
+          if (!open) setRestoreTarget(null);
+        }}
+        onRestored={() => void refetch()}
+      />
+
       <DeleteUsersBulkDialog
         users={bulkDeleteUsers}
         open={bulkDeleteOpen}
@@ -169,6 +197,37 @@ export function AdminUsersView() {
           void refetch();
         }}
       />
+    </div>
+  );
+}
+
+const REMOVED_RETENTION_DAYS = 60;
+
+type TRemovedUsersAlertProps = {
+  totalRows: number;
+  isLoading: boolean;
+};
+
+function RemovedUsersAlert({ totalRows, isLoading }: TRemovedUsersAlertProps) {
+  const countLabel =
+    isLoading ? "Loading removed users…" : `${totalRows} removed account${totalRows === 1 ? "" : "s"}`;
+
+  return (
+    <div
+      role="alert"
+      className="flex gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-950 dark:text-amber-100"
+    >
+      <Info className="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden />
+      <div className="min-w-0 space-y-1">
+        <p className="font-medium">{countLabel}</p>
+        <p className="text-amber-900/90 dark:text-amber-100/90">
+          These users cannot sign in. Use <strong>Restore</strong> within{" "}
+          {REMOVED_RETENTION_DAYS} days to reactivate the same account and password, or{" "}
+          <strong>Add user</strong> with the same email to set new details. After{" "}
+          {REMOVED_RETENTION_DAYS} days, personal data is anonymized automatically and restore
+          is no longer available.
+        </p>
+      </div>
     </div>
   );
 }

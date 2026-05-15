@@ -3,6 +3,7 @@ import type { IResponse } from "@/types";
 import type { TBulkDeleteUsersResult } from "@/types/admin-user-bulk-delete.type";
 import type {
   TAdminUser,
+  TAdminUserCreateData,
   TAdminUsersListData,
   TCreateAdminUserPayload,
   TListAdminUsersParams,
@@ -34,7 +35,17 @@ export const usersApi = baseApi.injectEndpoints({
       }),
       providesTags: (_result, _err, id) => [{ type: "AdminUsers", id }],
     }),
-    createAdminUser: builder.mutation<IResponse<TAdminUser>, TCreateAdminUserPayload>({
+    restoreAdminUser: builder.mutation<IResponse<TAdminUser>, string>({
+      query: (id) => ({
+        url: `${USERS_URL}/${id}/restore`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _err, id) => [
+        { type: "AdminUsers", id: "LIST" },
+        { type: "AdminUsers", id },
+      ],
+    }),
+    createAdminUser: builder.mutation<IResponse<TAdminUserCreateData>, TCreateAdminUserPayload>({
       query: (body) => ({
         url: USERS_URL,
         method: "POST",
@@ -99,6 +110,7 @@ export const {
   useListAdminUsersQuery,
   useGetAdminUserQuery,
   useCreateAdminUserMutation,
+  useRestoreAdminUserMutation,
   useUpdateAdminUserMutation,
   useDeleteAdminUserMutation,
   useBulkDeleteAdminUsersMutation,

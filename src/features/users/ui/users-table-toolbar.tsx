@@ -26,6 +26,7 @@ type TUsersTableToolbarProps = {
   selectedCount: number;
   onDeleteSelected?: () => void;
   isDeletingSelected?: boolean;
+  showRemovedOnly?: boolean;
 };
 
 /** Shared height + surface for search and filter controls in the toolbar row. */
@@ -49,6 +50,7 @@ export function UsersTableToolbar({
   selectedCount,
   onDeleteSelected,
   isDeletingSelected = false,
+  showRemovedOnly = false,
 }: TUsersTableToolbarProps) {
   const hasSelection = selectedCount > 0;
   return (
@@ -92,12 +94,13 @@ export function UsersTableToolbar({
             <SelectItem value="inactive">Inactive</SelectItem>
             <SelectItem value="blocked">Blocked</SelectItem>
             <SelectItem value="banned">Banned</SelectItem>
+            <SelectItem value="deleted">Removed</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3">
-        {hasSelection ? (
+        {hasSelection && !showRemovedOnly ? (
           <>
             <p className="text-sm text-muted-foreground">
               {selectedCount} selected

@@ -42,6 +42,7 @@ type TUseAdminUsersTableOptions = {
   statusFilter?: TUserStatus;
   onEdit: (user: TAdminUser) => void;
   onDelete: (user: TAdminUser) => void;
+  onRestore: (user: TAdminUser) => void;
 };
 
 export function useAdminUsersTable({
@@ -50,6 +51,7 @@ export function useAdminUsersTable({
   statusFilter,
   onEdit,
   onDelete,
+  onRestore,
 }: TUseAdminUsersTableOptions) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -77,8 +79,8 @@ export function useAdminUsersTable({
   const pageCount = data?.data.pagination.totalPages ?? 1;
 
   const meta = useMemo<TUsersTableMeta>(
-    () => ({ onEdit, onDelete }),
-    [onEdit, onDelete],
+    () => ({ onEdit, onDelete, onRestore }),
+    [onEdit, onDelete, onRestore],
   );
 
   const table = useReactTable({

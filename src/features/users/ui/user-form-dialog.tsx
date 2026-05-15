@@ -146,16 +146,24 @@ export function UserFormDialog({ open, onOpenChange, user }: TUserFormDialogProp
           status: values.status,
         }).unwrap();
 
+        const userId = created.data._id;
+
         if (avatar.hasPendingFile()) {
           setIsUploadingAfterCreate(true);
           try {
-            await avatar.uploadPendingForUser(created.data._id);
+            await avatar.uploadPendingForUser(userId);
           } finally {
             setIsUploadingAfterCreate(false);
           }
         }
 
-        toast.success("User created", { description: `${values.name} can now sign in.` });
+        if (created.data.restored) {
+          toast.success("User restored", {
+            description: `${values.name} was reactivated with the new password you set.`,
+          });
+        } else {
+          toast.success("User created", { description: `${values.name} can now sign in.` });
+        }
       }
       onOpenChange(false);
     } catch (err) {
@@ -190,7 +198,7 @@ export function UserFormDialog({ open, onOpenChange, user }: TUserFormDialogProp
                 <DialogDescription>
                   {isEdit
                     ? "Update account details, role, and status."
-                    : "Create a new team member with login credentials."}
+                    : "Create a new team member. Reuses a removed account if the email matches."}
                 </DialogDescription>
               </DialogHeader>
             </div>

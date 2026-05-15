@@ -6,6 +6,7 @@ import {
   Calendar,
   CircleUserRound,
   Pencil,
+  RotateCcw,
   Target,
   Trash2,
   UserRound,
@@ -27,6 +28,7 @@ import {
 export type TUsersTableMeta = {
   onEdit: (user: TAdminUser) => void;
   onDelete: (user: TAdminUser) => void;
+  onRestore: (user: TAdminUser) => void;
 };
 
 export const usersTableColumns: ColumnDef<TAdminUser>[] = [
@@ -139,6 +141,24 @@ export const usersTableColumns: ColumnDef<TAdminUser>[] = [
     cell: ({ row, table }) => {
       const meta = table.options.meta as TUsersTableMeta | undefined;
       const user = row.original;
+      const isRemoved = user.status === "deleted";
+
+      if (isRemoved) {
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 rounded-xs"
+              onClick={() => meta?.onRestore(user)}
+            >
+              <RotateCcw className="size-3.5" aria-hidden />
+              Restore
+            </Button>
+          </div>
+        );
+      }
 
       return (
         <div className="flex items-center justify-end gap-2">

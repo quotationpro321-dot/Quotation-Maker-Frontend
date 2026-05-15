@@ -1,5 +1,5 @@
-const UsersPage = () => {
-  return <div>Users Admin Page</div>;
-};
+import { AdminUsersView } from "@/features/users/ui/admin-users-view";
 
-export default UsersPage;
+export default function AdminUsersPage() {
+  return <AdminUsersView />;
+}

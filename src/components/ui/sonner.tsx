@@ -23,11 +23,23 @@ const Toaster = ({ ...props }: ToasterProps) => {
       closeButton
       duration={4500}
       icons={{
-        success: <CircleCheckIcon className="size-4 text-brand-primary" aria-hidden />,
+        success: (
+          <CircleCheckIcon className="size-4 text-brand-primary" aria-hidden />
+        ),
         info: <InfoIcon className="size-4 text-brand-primary" aria-hidden />,
-        warning: <TriangleAlertIcon className="size-4 text-brand-secondary" aria-hidden />,
+        warning: (
+          <TriangleAlertIcon
+            className="size-4 text-brand-secondary"
+            aria-hidden
+          />
+        ),
         error: <OctagonXIcon className="size-4 text-destructive" aria-hidden />,
-        loading: <Loader2Icon className="size-4 animate-spin text-brand-primary" aria-hidden />,
+        loading: (
+          <Loader2Icon
+            className="size-4 animate-spin text-brand-primary"
+            aria-hidden
+          />
+        ),
       }}
       toastOptions={{
         classNames: {
@@ -55,7 +67,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "border-brand-primary/25 bg-brand-primary/5 dark:bg-brand-primary/10",
             "[&_[data-icon]]:text-brand-primary",
           ),
-          loading: "border-brand-primary/30 bg-muted/80 [&_[data-icon]]:text-brand-primary",
+          loading:
+            "border-brand-primary/30 bg-muted/80 [&_[data-icon]]:text-brand-primary",
         },
       }}
       {...props}

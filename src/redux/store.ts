@@ -1,5 +1,6 @@
 // src/redux/store.ts
 import "@/redux/api/dashboard.api";
+import "@/redux/api/users.api";
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { baseApi } from "./baseApi";

@@ -23,47 +23,50 @@ type BrandInputShellProps = Omit<React.ComponentProps<"input">, "className"> & {
  * Login-style control: leading brand strip, tinted field body, optional trailing slot (e.g. password eye).
  * Use with {@link Field} + {@link FieldLabel} + {@link FieldError}, or standalone with {@link InputField}.
  */
-const BrandInputShell = React.forwardRef<HTMLInputElement, BrandInputShellProps>(
-  function BrandInputShell(
-    { id, leading, trailing, invalid, className, inputClassName, ...inputProps },
-    ref,
-  ) {
-    return (
+const BrandInputShell = React.forwardRef<
+  HTMLInputElement,
+  BrandInputShellProps
+>(function BrandInputShell(
+  { id, leading, trailing, invalid, className, inputClassName, ...inputProps },
+  ref,
+) {
+  return (
+    <div
+      className={cn(
+        brandInputShellClasses,
+        invalid && brandInputShellInvalidClasses,
+        className,
+      )}
+    >
       <div
-        className={cn(
-          brandInputShellClasses,
-          invalid && brandInputShellInvalidClasses,
-          className,
-        )}
+        className="flex h-full w-10 shrink-0 items-center justify-center bg-brand-primary text-white [&_svg]:pointer-events-none [&_svg]:size-4"
+        aria-hidden
       >
-        <div
-          className="flex h-full w-10 shrink-0 items-center justify-center bg-brand-primary text-white [&_svg]:pointer-events-none [&_svg]:size-4"
-          aria-hidden
-        >
-          {leading}
-        </div>
-        <div className="relative min-w-0 flex-1 bg-brand-primary/10 dark:bg-muted/40">
-          <Input
-            ref={ref}
-            id={id}
-            aria-invalid={invalid || undefined}
-            className={cn(
-              "h-12 w-full rounded-none border-0 bg-transparent px-3 shadow-none",
-              "placeholder:text-muted-foreground/80",
-              "focus-visible:ring-0 focus-visible:ring-offset-0",
-              trailing && "pr-12",
-              inputClassName,
-            )}
-            {...inputProps}
-          />
-          {trailing ? (
-            <div className="absolute inset-y-0 right-2 z-10 flex items-center">{trailing}</div>
-          ) : null}
-        </div>
+        {leading}
       </div>
-    );
-  },
-);
+      <div className="relative min-w-0 flex-1 bg-brand-primary/10 dark:bg-muted/40">
+        <Input
+          ref={ref}
+          id={id}
+          aria-invalid={invalid || undefined}
+          className={cn(
+            "h-12 w-full rounded-none border-0 bg-transparent px-3 shadow-none",
+            "placeholder:text-muted-foreground/80",
+            "focus-visible:ring-0 focus-visible:ring-offset-0",
+            trailing && "pr-12",
+            inputClassName,
+          )}
+          {...inputProps}
+        />
+        {trailing ? (
+          <div className="absolute inset-y-0 right-2 z-10 flex items-center">
+            {trailing}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+});
 
 BrandInputShell.displayName = "BrandInputShell";
 
@@ -83,7 +86,8 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
   ) {
     const hintId = hint ? `${id}-hint` : undefined;
     const errorId = error ? `${id}-error` : undefined;
-    const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+    const describedBy =
+      [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
     if (leading) {
       return (
@@ -105,7 +109,11 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
             </p>
           ) : null}
           {error ? (
-            <p id={errorId} role="alert" className="text-xs font-medium text-destructive">
+            <p
+              id={errorId}
+              role="alert"
+              className="text-xs font-medium text-destructive"
+            >
               {error}
             </p>
           ) : null}
@@ -126,7 +134,9 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
             {...props}
           />
           {trailing ? (
-            <div className="absolute inset-y-0 right-2 flex items-center">{trailing}</div>
+            <div className="absolute inset-y-0 right-2 flex items-center">
+              {trailing}
+            </div>
           ) : null}
         </div>
         {hint && !error ? (
@@ -135,7 +145,11 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
           </p>
         ) : null}
         {error ? (
-          <p id={errorId} role="alert" className="text-xs font-medium text-destructive">
+          <p
+            id={errorId}
+            role="alert"
+            className="text-xs font-medium text-destructive"
+          >
             {error}
           </p>
         ) : null}

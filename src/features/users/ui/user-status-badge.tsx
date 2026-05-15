@@ -9,6 +9,7 @@ const statusStyles: Partial<Record<TUserStatus, string>> = {
   inactive: "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400",
   blocked: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
   banned: "border-destructive/30 bg-destructive/10 text-destructive",
+  deleted: "border-muted-foreground/30 bg-muted/50 text-muted-foreground",
 };
 
 type TUserStatusBadgeProps = {

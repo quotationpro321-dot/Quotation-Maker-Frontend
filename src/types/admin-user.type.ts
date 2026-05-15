@@ -44,6 +44,11 @@ export type TCreateAdminUserPayload = {
   status: TUserStatus;
 };
 
+/** Create response when email belonged to a previously removed user. */
+export type TAdminUserCreateData = TAdminUser & {
+  restored?: boolean;
+};
+
 export type TUpdateAdminUserPayload = {
   name?: string;
   email?: string;

@@ -7,15 +7,19 @@ import { toast } from "sonner";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTable } from "@/components/ui/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { TAdminUser, TUserRole, TUserStatus } from "@/types/admin-user.type";
+import type {
+  TAdminUser,
+  TUserRole,
+  TUserStatus,
+} from "@/types/admin-user.type";
 
-import { useUser } from "@/hooks/useUser";
 import { useAdminUsersTable } from "@/features/users/hooks/use-admin-users-table";
 import { DeleteUserDialog } from "@/features/users/ui/delete-user-dialog";
 import { DeleteUsersBulkDialog } from "@/features/users/ui/delete-users-bulk-dialog";
 import { RestoreUserDialog } from "@/features/users/ui/restore-user-dialog";
 import { UserFormDialog } from "@/features/users/ui/user-form-dialog";
 import { UsersTableToolbar } from "@/features/users/ui/users-table-toolbar";
+import { useUser } from "@/hooks/useUser";
 
 function useDebouncedValue<T>(value: T, delayMs = 350): T {
   const [debounced, setDebounced] = useState(value);
@@ -66,13 +70,13 @@ export function AdminUsersView() {
     rowSelection,
     clearSelection,
   } = useAdminUsersTable({
-      search: debouncedSearch,
-      roleFilter: roleFilter === "all" ? undefined : roleFilter,
-      statusFilter: statusFilter === "all" ? undefined : statusFilter,
-      onEdit: handleEdit,
-      onDelete: handleDelete,
-      onRestore: handleRestore,
-    });
+    search: debouncedSearch,
+    roleFilter: roleFilter === "all" ? undefined : roleFilter,
+    statusFilter: statusFilter === "all" ? undefined : statusFilter,
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+    onRestore: handleRestore,
+  });
 
   useEffect(() => {
     resetPage();
@@ -110,9 +114,11 @@ export function AdminUsersView() {
   };
 
   return (
-    <div className="min-w-0 space-y-6 py-6">
+    <div className="space-y-6 py-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Users</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Users
+        </h1>
         <p className="text-sm text-muted-foreground">
           Create, update, and manage team accounts, roles, and access status.
         </p>
@@ -138,7 +144,11 @@ export function AdminUsersView() {
       {isError ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-6 text-center text-sm text-destructive">
           Could not load users.{" "}
-          <button type="button" className="underline" onClick={() => void refetch()}>
+          <button
+            type="button"
+            className="underline"
+            onClick={() => void refetch()}
+          >
             Try again
           </button>
         </div>
@@ -165,7 +175,11 @@ export function AdminUsersView() {
         </div>
       )}
 
-      <UserFormDialog open={formOpen} onOpenChange={handleFormOpenChange} user={editingUser} />
+      <UserFormDialog
+        open={formOpen}
+        onOpenChange={handleFormOpenChange}
+        user={editingUser}
+      />
 
       <DeleteUserDialog
         user={deleteTarget}
@@ -209,23 +223,27 @@ type TRemovedUsersAlertProps = {
 };
 
 function RemovedUsersAlert({ totalRows, isLoading }: TRemovedUsersAlertProps) {
-  const countLabel =
-    isLoading ? "Loading removed users…" : `${totalRows} removed account${totalRows === 1 ? "" : "s"}`;
+  const countLabel = isLoading
+    ? "Loading removed users…"
+    : `${totalRows} removed account${totalRows === 1 ? "" : "s"}`;
 
   return (
     <div
       role="alert"
       className="flex gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-950 dark:text-amber-100"
     >
-      <Info className="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden />
+      <Info
+        className="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-400"
+        aria-hidden
+      />
       <div className="min-w-0 space-y-1">
         <p className="font-medium">{countLabel}</p>
         <p className="text-amber-900/90 dark:text-amber-100/90">
           These users cannot sign in. Use <strong>Restore</strong> within{" "}
-          {REMOVED_RETENTION_DAYS} days to reactivate the same account and password, or{" "}
-          <strong>Add user</strong> with the same email to set new details. After{" "}
-          {REMOVED_RETENTION_DAYS} days, personal data is anonymized automatically and restore
-          is no longer available.
+          {REMOVED_RETENTION_DAYS} days to reactivate the same account and
+          password, or <strong>Add user</strong> with the same email to set new
+          details. After {REMOVED_RETENTION_DAYS} days, personal data is
+          anonymized automatically and restore is no longer available.
         </p>
       </div>
     </div>

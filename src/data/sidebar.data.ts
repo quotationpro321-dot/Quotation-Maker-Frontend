@@ -55,9 +55,9 @@ export const sidebarMenus: SidebarItem[] = [
     href: "/dashboard/employee/dashboard",
   },
   {
-    title: "Flight Maker",
+    title: "Flight Converter",
     icon: Plane,
-    href: "/dashboard/employee/flight-maker",
+    href: "/dashboard/employee/flight-converter",
   },
   {
     title: "My Quotation",

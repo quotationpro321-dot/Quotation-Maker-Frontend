@@ -23,7 +23,7 @@ export function DashboardSettingsView() {
   }
 
   return (
-    <div className="min-w-0 space-y-6 py-6">
+    <div className="space-y-6 py-6">
       <SettingsPageHeader />
       <ReusableTabs
         defaultValue="profile"

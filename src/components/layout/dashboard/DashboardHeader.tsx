@@ -80,7 +80,7 @@ export const DashboardHeader = memo(() => {
               variant="ghost"
               size="icon"
               disabled={isLoggingOut}
-              className="size-9 shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-ring/60"
+              className="size-9 shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-brand-primary/55"
               aria-label={`Open account menu for ${displayLabel}`}
               aria-haspopup="menu"
             >

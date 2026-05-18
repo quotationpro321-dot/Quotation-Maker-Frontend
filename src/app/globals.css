@@ -207,7 +207,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-brand-primary/40;
   }
   button,
   [role="button"],
@@ -235,8 +235,8 @@
     outline-offset: 2px;
   }
   ::selection {
-    background-color: var(--accent);
-    color: var(--accent-foreground);
+    background-color: var(--brand-primary);
+    color: #ffffff;
   }
 }
 

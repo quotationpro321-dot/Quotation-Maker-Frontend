@@ -11,12 +11,12 @@ export function AuthBrand({ className, label = "ALSAMA" }: TAuthBrandProps) {
       <span className="relative grid size-9 place-items-center rounded-full bg-secondary text-secondary-foreground">
         <span
           aria-hidden
-          className="absolute inset-0 animate-auth-pulse-ring rounded-full border border-primary/40"
+          className="absolute inset-0 animate-auth-pulse-ring rounded-full border border-brand-primary/40"
         />
         <svg
           aria-hidden
           viewBox="0 0 24 24"
-          className="size-4 text-primary"
+          className="size-4 text-brand-primary"
           fill="none"
           stroke="currentColor"
           strokeWidth="1.6"

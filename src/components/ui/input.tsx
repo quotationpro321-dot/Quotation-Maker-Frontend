@@ -13,7 +13,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           "transition-[color,background-color,border-color,box-shadow] duration-(--motion-fast)",
           "placeholder:text-muted-foreground/80",
           "hover:border-input/80",
-          "focus-visible:border-ring focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none",
+          "focus-visible:border-brand-primary focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-brand-primary/40 focus-visible:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-60",
           "aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/30",
           className,

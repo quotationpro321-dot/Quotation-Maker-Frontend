@@ -42,9 +42,9 @@ export const sidebarMenus: Record<UserRole, SidebarMenuItem[]> = {
       href: "/dashboard/admin/calculator",
     },
     {
-      title: "Flight Maker",
+      title: "Flight Converter",
       icon: Plane,
-      href: "/dashboard/admin/flight-maker",
+      href: "/dashboard/admin/flight-converter",
     },
     {
       title: "My Quotation",
@@ -75,9 +75,9 @@ export const sidebarMenus: Record<UserRole, SidebarMenuItem[]> = {
       href: "/dashboard/employee/calculator",
     },
     {
-      title: "Flight Maker",
+      title: "Flight Converter",
       icon: Plane,
-      href: "/dashboard/employee/flight-maker",
+      href: "/dashboard/employee/flight-converter",
     },
     {
       title: "My Quotation",

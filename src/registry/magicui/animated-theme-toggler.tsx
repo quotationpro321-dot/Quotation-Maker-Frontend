@@ -239,7 +239,7 @@ export function AnimatedThemeToggler({
       ref={buttonRef}
       onClick={toggleTheme}
       className={cn(
-        "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/80 text-foreground backdrop-blur-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/50",
         className
       )}
       {...props}

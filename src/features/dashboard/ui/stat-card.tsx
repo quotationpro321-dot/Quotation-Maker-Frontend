@@ -13,6 +13,7 @@ type TStatCardProps = {
   icon: LucideIcon;
   accentClassName?: string;
   featured?: boolean;
+  formattedValue?: string;
 };
 
 export function StatCard({
@@ -20,6 +21,7 @@ export function StatCard({
   icon: Icon,
   accentClassName,
   featured = false,
+  formattedValue,
 }: TStatCardProps) {
   const trendUp = (stat.trendPercent ?? 0) >= 0;
   const TrendIcon = trendUp ? TrendingUp : TrendingDown;
@@ -70,7 +72,7 @@ export function StatCard({
             {stat.label}
           </p>
           <p className="text-3xl font-bold tracking-tight">
-            {stat.value.toLocaleString()}
+            {formattedValue ?? stat.value.toLocaleString()}
           </p>
           {stat.trendLabel && (
             <p

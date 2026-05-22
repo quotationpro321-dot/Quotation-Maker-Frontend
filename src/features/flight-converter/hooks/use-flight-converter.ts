@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import { extractApiErrorMessage } from "@/features/auth/lib/extract-api-error-message";
 import {
   EXAMPLE_BG_ITINERARY,
+  EXAMPLE_EK_ITINERARY,
   EXAMPLE_QR_ITINERARY,
+  EXAMPLE_SV_ITINERARY,
 } from "@/features/flight-converter/lib/examples";
 import {
   copyElementHtml,
@@ -81,8 +83,14 @@ export function useFlightConverter() {
     setValidationError(null);
   }, []);
 
-  const loadExample = useCallback((example: "qr" | "bg") => {
-    setRawText(example === "qr" ? EXAMPLE_QR_ITINERARY : EXAMPLE_BG_ITINERARY);
+  const loadExample = useCallback((example: "qr" | "bg" | "ek" | "sv") => {
+    const textByExample = {
+      qr: EXAMPLE_QR_ITINERARY,
+      bg: EXAMPLE_BG_ITINERARY,
+      ek: EXAMPLE_EK_ITINERARY,
+      sv: EXAMPLE_SV_ITINERARY,
+    } as const;
+    setRawText(textByExample[example]);
     setParseResult(null);
     setEditableSegments([]);
     setValidationError(null);

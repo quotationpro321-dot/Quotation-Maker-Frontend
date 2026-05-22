@@ -1,3 +1,5 @@
+import { MyQuotationsView } from "@/features/quotations";
+
 export default function Page() {
-  return <div>My Quotation</div>;
+  return <MyQuotationsView expectedRole="employee" />;
 }

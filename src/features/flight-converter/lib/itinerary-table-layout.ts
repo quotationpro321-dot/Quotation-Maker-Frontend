@@ -18,6 +18,13 @@ export const ITINERARY_TABLE_MIN_WIDTH = Object.values(
 
 export type ItineraryTableColumn = keyof typeof ITINERARY_TABLE_COLUMNS;
 
+export const ITINERARY_TABLE_COLUMN_KEYS = Object.keys(
+  ITINERARY_TABLE_COLUMNS,
+) as ItineraryTableColumn[];
+
+/** Cell padding (px) — matches `px-3` in preview table cells. */
+export const ITINERARY_TABLE_CELL_PADDING_X = 24;
+
 /** Proportional column width for full-width preview (export uses fixed px). */
 export function itineraryColumnWidthPercent(
   column: ItineraryTableColumn,

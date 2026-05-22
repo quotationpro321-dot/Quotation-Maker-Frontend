@@ -1,5 +1,6 @@
 import { baseApi } from "@/redux/baseApi";
 import type { IResponse } from "@/types";
+import type { TAnalyticsOverview, TAnalyticsPeriod } from "@/types/analytics-overview.type";
 import type { TDashboardOverview } from "@/types/dashboard-overview.type";
 import type {
   IDashboardProfile,
@@ -62,6 +63,22 @@ export const dashboardApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Dashboard"],
     }),
+
+    /**
+     * Future backend contract — wire in `useAnalyticsOverview` when ready.
+     * GET /dashboard/analytics?period=30d
+     */
+    getAnalyticsOverview: builder.query<
+      IResponse<TAnalyticsOverview>,
+      { period: TAnalyticsPeriod }
+    >({
+      query: ({ period }) => ({
+        url: `${DASHBOARD_URL}/analytics`,
+        method: "GET",
+        params: { period },
+      }),
+      providesTags: ["Dashboard"],
+    }),
   }),
 });
 
@@ -72,4 +89,5 @@ export const {
   useUploadMyProfileAvatarMutation,
   useChangeMyPasswordMutation,
   useGetDashboardOverviewQuery,
+  useGetAnalyticsOverviewQuery,
 } = dashboardApi;

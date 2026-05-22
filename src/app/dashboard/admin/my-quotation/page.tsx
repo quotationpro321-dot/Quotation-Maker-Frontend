@@ -1,5 +1,5 @@
-const MyQuotationPage = () => {
-  return <div>My Quotation Admin Page</div>;
-};
+import { MyQuotationsView } from "@/features/quotations";
 
-export default MyQuotationPage;
+export default function MyQuotationPage() {
+  return <MyQuotationsView expectedRole="admin" />;
+}

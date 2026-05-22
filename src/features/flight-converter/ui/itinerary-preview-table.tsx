@@ -68,7 +68,7 @@ export const ItineraryPreviewTable = forwardRef<
       ref={ref}
       {...{ [EXPORT_ROOT_ATTR]: "" }}
       data-export-theme={exportTheme}
-      className="min-h-[120px] w-full bg-card p-3 text-card-foreground"
+      className="w-full bg-card text-card-foreground"
     >
       <div data-export-scroll className="w-full overflow-x-auto">
         <table
@@ -171,7 +171,7 @@ export const ItineraryPreviewTable = forwardRef<
                 >
                   <td
                     data-logo-cell
-                    className={`${tdClass} text-center`}
+                    className={`${tdClass} overflow-hidden text-center`}
                     style={{ minHeight: ITINERARY_LOGO_CELL_MIN_HEIGHT }}
                   >
                     <AirlineLogo segment={seg} />

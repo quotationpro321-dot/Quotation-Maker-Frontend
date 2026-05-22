@@ -1,5 +1,5 @@
-const AllQuotationPage = () => {
-  return <div>All Quotation Admin Page</div>;
-};
+import { AdminAllQuotationsView } from "@/features/quotations";
 
-export default AllQuotationPage;
+export default function AllQuotationPage() {
+  return <AdminAllQuotationsView />;
+}

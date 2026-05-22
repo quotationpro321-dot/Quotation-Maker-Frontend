@@ -99,7 +99,7 @@ export function FlightConverterView() {
             </div>
 
             <Card className="overflow-x-auto overflow-y-visible rounded!">
-              <CardContent className="p-0">
+              <CardContent className="p-3">
                 <ItineraryPreviewTable
                   ref={previewRef}
                   segments={editableSegments}

@@ -1,5 +1,5 @@
-const page = () => {
-  return <div>employee dashboard</div>;
-};
+import { DashboardView } from "@/features/dashboard";
 
-export default page;
+export default function EmployeeHomePage() {
+  return <DashboardView expectedRole="employee" />;
+}

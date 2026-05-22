@@ -18,7 +18,9 @@ export function AirlineLogo({ segment }: AirlineLogoProps) {
         <span className="mb-0.5 block text-[9px] font-bold uppercase leading-tight tracking-tighter text-muted-foreground">
           {segment.airlineName}
         </span>
-        <span className="text-base font-black leading-none">{segment.airlineCode}</span>
+        <span className="text-base font-black leading-none">
+          {segment.airlineCode}
+        </span>
       </div>
     );
   }
@@ -31,7 +33,7 @@ export function AirlineLogo({ segment }: AirlineLogoProps) {
         alt={segment.airlineName}
         crossOrigin="anonymous"
         data-export-airline-logo
-        className="export-airline-logo block h-auto max-h-[48px] w-auto max-w-full object-contain"
+        className="export-airline-logo block h-auto w-auto max-w-full object-contain"
         style={{
           maxHeight: AIRLINE_LOGO_MAX_HEIGHT,
           maxWidth: "100%",

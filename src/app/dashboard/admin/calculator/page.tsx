@@ -1,5 +1,5 @@
-const CalculatorPage = () => {
-  return <div>Calculator Admin Page</div>;
-};
+import { QuotationCalculatorView } from "@/features/quotations";
 
-export default CalculatorPage;
+export default function CalculatorPage() {
+  return <QuotationCalculatorView expectedRole="admin" />;
+}

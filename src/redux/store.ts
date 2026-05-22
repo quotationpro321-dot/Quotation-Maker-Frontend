@@ -1,6 +1,7 @@
 // src/redux/store.ts
 import "@/redux/api/dashboard.api";
 import "@/redux/api/flight-converter.api";
+import "@/redux/api/quotations.api";
 import "@/redux/api/users.api";
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";

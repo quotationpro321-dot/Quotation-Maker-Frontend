@@ -5,11 +5,16 @@ import { toast } from "sonner";
 
 import { extractApiErrorMessage } from "@/features/auth/lib/extract-api-error-message";
 import {
+  EXAMPLE_BG_ITINERARY,
+  EXAMPLE_EK_ITINERARY,
+  EXAMPLE_QR_ITINERARY,
+  EXAMPLE_SV_ITINERARY,
+} from "@/features/flight-converter/lib/examples";
+import {
   copyElementHtml,
   exportElementAsImage,
   exportElementAsPdf,
 } from "@/features/flight-converter/lib/export-itinerary";
-import { EXAMPLE_BG_ITINERARY, EXAMPLE_QR_ITINERARY } from "@/features/flight-converter/lib/examples";
 import type {
   NormalizedSegment,
   ParseItineraryResponse,
@@ -24,8 +29,12 @@ function cloneSegments(segments: NormalizedSegment[]): NormalizedSegment[] {
 
 export function useFlightConverter() {
   const [rawText, setRawText] = useState("");
-  const [parseResult, setParseResult] = useState<ParseItineraryResponse | null>(null);
-  const [editableSegments, setEditableSegments] = useState<NormalizedSegment[]>([]);
+  const [parseResult, setParseResult] = useState<ParseItineraryResponse | null>(
+    null,
+  );
+  const [editableSegments, setEditableSegments] = useState<NormalizedSegment[]>(
+    [],
+  );
   const [timeFormat, setTimeFormat] = useState<TimeFormat>("24h");
   const [validationError, setValidationError] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -74,8 +83,14 @@ export function useFlightConverter() {
     setValidationError(null);
   }, []);
 
-  const loadExample = useCallback((example: "qr" | "bg") => {
-    setRawText(example === "qr" ? EXAMPLE_QR_ITINERARY : EXAMPLE_BG_ITINERARY);
+  const loadExample = useCallback((example: "qr" | "bg" | "ek" | "sv") => {
+    const textByExample = {
+      qr: EXAMPLE_QR_ITINERARY,
+      bg: EXAMPLE_BG_ITINERARY,
+      ek: EXAMPLE_EK_ITINERARY,
+      sv: EXAMPLE_SV_ITINERARY,
+    } as const;
+    setRawText(textByExample[example]);
     setParseResult(null);
     setEditableSegments([]);
     setValidationError(null);
@@ -108,7 +123,9 @@ export function useFlightConverter() {
     } catch (err) {
       console.error("Export image failed:", err);
       toast.error(
-        err instanceof Error ? err.message : "Could not export image. Try again.",
+        err instanceof Error
+          ? err.message
+          : "Could not export image. Try again.",
       );
     }
   }, []);

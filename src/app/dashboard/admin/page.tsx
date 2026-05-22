@@ -1,5 +1,5 @@
-const AdminHomePage = () => {
-  return <div>Admin Dashboard Admin Page</div>;
-};
+import { DashboardView } from "@/features/dashboard";
 
-export default AdminHomePage;
+export default function AdminHomePage() {
+  return <DashboardView expectedRole="admin" />;
+}

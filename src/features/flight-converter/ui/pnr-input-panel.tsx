@@ -23,7 +23,7 @@ type PnrInputPanelProps = {
   isLoading: boolean;
   onConvert: () => void;
   onClear: () => void;
-  onLoadExample: (example: "qr" | "bg") => void;
+  onLoadExample: (example: "qr" | "bg" | "ek" | "sv") => void;
 };
 
 export function PnrInputPanel({
@@ -68,6 +68,26 @@ export function PnrInputPanel({
           >
             <Info className="size-4" />
             BG Example
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded!"
+            onClick={() => onLoadExample("ek")}
+          >
+            <Info className="size-4" />
+            EK Example
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded!"
+            onClick={() => onLoadExample("sv")}
+          >
+            <Info className="size-4" />
+            SV Example
           </Button>
           <Button
             type="button"

@@ -2,6 +2,8 @@ import { baseApi } from "@/redux/baseApi";
 import type { IResponse } from "@/types";
 import type {
   TListQuotationsParams,
+  TQuotationDetail,
+  TQuotationDraft,
   TQuotationListItem,
   TQuotationsListData,
 } from "@/types/quotation.type";
@@ -39,6 +41,37 @@ export const quotationsApi = baseApi.injectEndpoints({
       }),
       providesTags: (_result, _error, id) => [{ type: "Quotations", id }],
     }),
+    getQuotationDetail: builder.query<IResponse<TQuotationDetail>, string>({
+      query: (id) => ({
+        url: `${QUOTATIONS_URL}/${id}/full`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, id) => [{ type: "Quotations", id }],
+    }),
+    createQuotation: builder.mutation<IResponse<TQuotationDetail>, TQuotationDraft>(
+      {
+        query: (body) => ({
+          url: QUOTATIONS_URL,
+          method: "POST",
+          data: body,
+        }),
+        invalidatesTags: ["Quotations"],
+      },
+    ),
+    updateQuotation: builder.mutation<
+      IResponse<TQuotationDetail>,
+      { id: string; body: TQuotationDraft }
+    >({
+      query: ({ id, body }) => ({
+        url: `${QUOTATIONS_URL}/${id}`,
+        method: "PUT",
+        data: body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        "Quotations",
+        { type: "Quotations", id },
+      ],
+    }),
     deleteQuotation: builder.mutation<IResponse<null>, string>({
       query: (id) => ({
         url: `${QUOTATIONS_URL}/${id}`,
@@ -53,5 +86,8 @@ export const {
   useListQuotationsQuery,
   useListMyQuotationsQuery,
   useGetQuotationQuery,
+  useGetQuotationDetailQuery,
+  useCreateQuotationMutation,
+  useUpdateQuotationMutation,
   useDeleteQuotationMutation,
 } = quotationsApi;

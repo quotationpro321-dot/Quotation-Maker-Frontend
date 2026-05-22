@@ -64,8 +64,8 @@ export function QuotationVelocityChart({
               className={cn(
                 "rounded! px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors",
                 period === value
-                  ? "bg-card text-brand-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "bg-brand-primary text-white shadow-sm dark:bg-brand-primary-500 dark:text-white"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-muted/40",
               )}
             >
               {value}

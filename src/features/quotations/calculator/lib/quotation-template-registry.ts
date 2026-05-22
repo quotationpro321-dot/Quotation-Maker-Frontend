@@ -1,0 +1,41 @@
+import type { ComponentType } from "react";
+
+import type { TQuotationTemplateId } from "@/types/quotation.type";
+
+import { StubClassicTemplate } from "@/features/quotations/calculator/ui/templates/stub-classic-template";
+import { StubCompactTemplate } from "@/features/quotations/calculator/ui/templates/stub-compact-template";
+import { StubModernTemplate } from "@/features/quotations/calculator/ui/templates/stub-modern-template";
+
+import type { TQuotationTemplateProps } from "./quotation-template.types";
+
+export type TQuotationTemplateMeta = {
+  id: TQuotationTemplateId;
+  name: string;
+  description: string;
+  component: ComponentType<TQuotationTemplateProps>;
+};
+
+export const QUOTATION_TEMPLATES: TQuotationTemplateMeta[] = [
+  {
+    id: "classic",
+    name: "Classic",
+    description: "White document layout with clear section blocks.",
+    component: StubClassicTemplate,
+  },
+  {
+    id: "modern",
+    name: "Modern",
+    description: "ALSAMA brand header with structured sections.",
+    component: StubModernTemplate,
+  },
+  {
+    id: "compact",
+    name: "Compact",
+    description: "Dense table-focused summary for quick review.",
+    component: StubCompactTemplate,
+  },
+];
+
+export function getQuotationTemplate(id: TQuotationTemplateId) {
+  return QUOTATION_TEMPLATES.find((template) => template.id === id);
+}

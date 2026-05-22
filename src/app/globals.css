@@ -124,6 +124,11 @@
   --border: #d7dde2;
   --input: #c7ced5;
   --ring: var(--brand-primary);
+  --chart-1: var(--brand-primary);
+  --chart-2: var(--brand-secondary);
+  --chart-3: #6f959b;
+  --chart-4: #c8d4b3;
+  --chart-5: #e6eeee;
 
   --surface-base: #000000;
   --surface-muted: var(--brand-primary);
@@ -186,6 +191,11 @@
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.12);
   --ring: #c8d6ad;
+  --chart-1: #c8d6ad;
+  --chart-2: var(--brand-secondary);
+  --chart-3: #6f959b;
+  --chart-4: #24595f;
+  --chart-5: #1b4347;
 
   --surface-base: #07090a;
   --surface-muted: var(--brand-primary);

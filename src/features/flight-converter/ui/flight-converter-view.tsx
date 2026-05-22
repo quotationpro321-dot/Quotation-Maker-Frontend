@@ -61,7 +61,9 @@ export function FlightConverterView() {
           <section className="space-y-6">
             <div className="space-y-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-lg font-semibold">Professional Itinerary Output</h2>
+                <h2 className="text-lg font-semibold">
+                  Professional Itinerary Output
+                </h2>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
@@ -97,8 +99,11 @@ export function FlightConverterView() {
             </div>
 
             <Card className="overflow-x-auto overflow-y-visible rounded!">
-              <CardContent className="flex justify-center p-0">
-                <ItineraryPreviewTable ref={previewRef} segments={editableSegments} />
+              <CardContent className="p-3">
+                <ItineraryPreviewTable
+                  ref={previewRef}
+                  segments={editableSegments}
+                />
               </CardContent>
             </Card>
 
@@ -120,8 +125,12 @@ export function FlightConverterView() {
 
             {parseResult && parseResult.meta.segmentCount > 0 && (
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Check className="size-3.5 shrink-0 text-brand-secondary" aria-hidden />
-                Parsed {parseResult.meta.segmentCount} segment(s) as {parseResult.format}
+                <Check
+                  className="size-3.5 shrink-0 text-brand-secondary"
+                  aria-hidden
+                />
+                Parsed {parseResult.meta.segmentCount} segment(s) as{" "}
+                {parseResult.format}
                 {parseResult.meta.skippedLineCount > 0 &&
                   ` · ${parseResult.meta.skippedLineCount} line(s) skipped`}
               </p>

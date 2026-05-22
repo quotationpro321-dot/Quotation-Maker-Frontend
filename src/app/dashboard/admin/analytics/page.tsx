@@ -1,5 +1,5 @@
-const AnalyticsPage = () => {
-  return <div>Analytics Admin Page</div>;
-};
+import { AdminAnalyticsView } from "@/features/analytics";
 
-export default AnalyticsPage;
+export default function AdminAnalyticsPage() {
+  return <AdminAnalyticsView />;
+}

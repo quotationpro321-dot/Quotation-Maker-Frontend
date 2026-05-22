@@ -2,14 +2,18 @@ import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
 
 import {
+  AIRLINE_LOGO_MAX_HEIGHT,
+  ITINERARY_EXPORT_CANVAS_SCALE,
+  ITINERARY_EXPORT_PADDING,
   ITINERARY_EXPORT_THEME,
-  type ItineraryExportTheme,
   ITINERARY_TABLE_MIN_WIDTH,
+  type ItineraryExportTheme,
 } from "./itinerary-table-layout";
 
 const EXPORT_ROOT_ATTR = "data-export-root";
 
-const EXPORT_ROOT_MIN_WIDTH_PX = ITINERARY_TABLE_MIN_WIDTH + 32;
+const EXPORT_ROOT_MIN_WIDTH_PX =
+  ITINERARY_TABLE_MIN_WIDTH + ITINERARY_EXPORT_PADDING * 2;
 
 /**
  * Active dashboard theme for exports — read from `<html class="dark">` (`ThemeProvider`
@@ -24,7 +28,10 @@ function rowIsZebraRow(tr: Element | null | undefined): boolean {
   return tr instanceof HTMLElement && tr.classList.contains("export-row-alt");
 }
 
-function sanitizeCloneForCanvas(root: HTMLElement, theme: ItineraryExportTheme) {
+function sanitizeCloneForCanvas(
+  root: HTMLElement,
+  theme: ItineraryExportTheme,
+) {
   const p = ITINERARY_EXPORT_THEME[theme];
 
   root.style.setProperty("background-color", p.bg, "important");
@@ -33,9 +40,17 @@ function sanitizeCloneForCanvas(root: HTMLElement, theme: ItineraryExportTheme) 
   root.style.setProperty("box-sizing", "border-box", "important");
   root.style.setProperty("width", "fit-content", "important");
   root.style.setProperty("max-width", "none", "important");
-  root.style.setProperty("min-width", `${EXPORT_ROOT_MIN_WIDTH_PX}px`, "important");
-  root.style.setProperty("margin-left", "0", "important");
-  root.style.setProperty("margin-right", "0", "important");
+  root.style.setProperty(
+    "min-width",
+    `${EXPORT_ROOT_MIN_WIDTH_PX}px`,
+    "important",
+  );
+  root.style.setProperty("margin", "0", "important");
+  root.style.setProperty(
+    "padding",
+    `${ITINERARY_EXPORT_PADDING}px`,
+    "important",
+  );
 
   const scrollWrap = root.querySelector("[data-export-scroll]");
   if (scrollWrap instanceof HTMLElement) {
@@ -46,8 +61,16 @@ function sanitizeCloneForCanvas(root: HTMLElement, theme: ItineraryExportTheme) 
 
   const table = root.querySelector("table");
   if (table instanceof HTMLElement) {
-    table.style.setProperty("width", `${ITINERARY_TABLE_MIN_WIDTH}px`, "important");
-    table.style.setProperty("min-width", `${ITINERARY_TABLE_MIN_WIDTH}px`, "important");
+    table.style.setProperty(
+      "width",
+      `${ITINERARY_TABLE_MIN_WIDTH}px`,
+      "important",
+    );
+    table.style.setProperty(
+      "min-width",
+      `${ITINERARY_TABLE_MIN_WIDTH}px`,
+      "important",
+    );
     table.style.setProperty("table-layout", "fixed", "important");
     table.style.setProperty("border-collapse", "collapse", "important");
   }
@@ -61,7 +84,11 @@ function sanitizeCloneForCanvas(root: HTMLElement, theme: ItineraryExportTheme) 
       el.crossOrigin = "anonymous";
       if (el.hasAttribute("data-export-airline-logo")) {
         el.style.setProperty("max-width", "100%", "important");
-        el.style.setProperty("max-height", "48px", "important");
+        el.style.setProperty(
+          "max-height",
+          `${AIRLINE_LOGO_MAX_HEIGHT}px`,
+          "important",
+        );
         el.style.setProperty("width", "auto", "important");
         el.style.setProperty("height", "auto", "important");
         el.style.setProperty("object-fit", "contain", "important");
@@ -92,7 +119,11 @@ function sanitizeCloneForCanvas(root: HTMLElement, theme: ItineraryExportTheme) 
         el.style.setProperty("background-color", p.headerBg, "important");
       } else if (tag === "td") {
         const zebra = rowIsZebraRow(el.closest("tr"));
-        el.style.setProperty("background-color", zebra ? p.rowAltBg : p.bg, "important");
+        el.style.setProperty(
+          "background-color",
+          zebra ? p.rowAltBg : p.bg,
+          "important",
+        );
       }
       el.style.setProperty("box-shadow", "none", "important");
       el.style.setProperty("outline", "none", "important");
@@ -114,7 +145,11 @@ function sanitizeCloneForCanvas(root: HTMLElement, theme: ItineraryExportTheme) 
       el.style.setProperty("background-color", p.headerBg, "important");
     } else if (tag === "td") {
       const zebra = rowIsZebraRow(el.closest("tr"));
-      el.style.setProperty("background-color", zebra ? p.rowAltBg : p.bg, "important");
+      el.style.setProperty(
+        "background-color",
+        zebra ? p.rowAltBg : p.bg,
+        "important",
+      );
     } else if (el.closest("td, th")) {
       el.style.setProperty("background-color", "transparent", "important");
     } else {
@@ -154,21 +189,24 @@ async function preloadImages(root: HTMLElement): Promise<void> {
   });
 }
 
-async function captureElementCanvas(element: HTMLElement): Promise<HTMLCanvasElement> {
+async function captureElementCanvas(
+  element: HTMLElement,
+): Promise<HTMLCanvasElement> {
   await preloadImages(element);
 
   const theme = getActiveExportTheme();
   const palette = ITINERARY_EXPORT_THEME[theme];
 
-  const captureWidth = Math.max(
-    element.scrollWidth,
-    element.offsetWidth,
-    ITINERARY_TABLE_MIN_WIDTH,
-  );
-  const captureHeight = Math.max(element.scrollHeight, element.offsetHeight);
+  const table = element.querySelector("table");
+  const tableHeight =
+    table instanceof HTMLElement
+      ? Math.max(table.scrollHeight, table.offsetHeight)
+      : Math.max(element.scrollHeight, element.offsetHeight);
+  const captureWidth = EXPORT_ROOT_MIN_WIDTH_PX;
+  const captureHeight = tableHeight + ITINERARY_EXPORT_PADDING * 2;
 
   return html2canvas(element, {
-    scale: 2,
+    scale: ITINERARY_EXPORT_CANVAS_SCALE,
     backgroundColor: palette.canvasBg,
     useCORS: true,
     allowTaint: true,
@@ -221,19 +259,32 @@ function addImageToPdfPaginated(
   let remaining = imgHeight;
 
   while (remaining > 0) {
-    pdf.addImage(imgData, "PNG", margin, margin - offsetY, contentWidth, imgHeight);
+    pdf.addImage(
+      imgData,
+      "PNG",
+      margin,
+      margin - offsetY,
+      contentWidth,
+      imgHeight,
+    );
     remaining -= printableHeight;
     offsetY += printableHeight;
     if (remaining > 0) pdf.addPage();
   }
 }
 
-export async function exportElementAsImage(element: HTMLElement, filename: string) {
+export async function exportElementAsImage(
+  element: HTMLElement,
+  filename: string,
+) {
   const canvas = await captureElementCanvas(element);
   downloadDataUrl(canvas.toDataURL("image/png"), filename);
 }
 
-export async function exportElementAsPdf(element: HTMLElement, filename: string) {
+export async function exportElementAsPdf(
+  element: HTMLElement,
+  filename: string,
+) {
   const canvas = await captureElementCanvas(element);
   const imgData = canvas.toDataURL("image/png", 1.0);
 
@@ -244,7 +295,7 @@ export async function exportElementAsPdf(element: HTMLElement, filename: string)
     format: "a4",
   });
 
-  addImageToPdfPaginated(pdf, imgData, canvas, 8);
+  addImageToPdfPaginated(pdf, imgData, canvas, 3);
   pdf.save(filename);
 }
 
@@ -252,7 +303,10 @@ export async function copyElementHtml(element: HTMLElement): Promise<void> {
   const theme = getActiveExportTheme();
   let html = element.outerHTML;
   if (/data-export-theme="(?:light|dark)"/.test(html)) {
-    html = html.replace(/data-export-theme="(?:light|dark)"/, `data-export-theme="${theme}"`);
+    html = html.replace(
+      /data-export-theme="(?:light|dark)"/,
+      `data-export-theme="${theme}"`,
+    );
   }
   const plain = element.innerText;
 

@@ -1,24 +1,42 @@
 /** Fixed column widths (px) — logo column must fit widest airline marks (e.g. QR). */
 export const ITINERARY_TABLE_COLUMNS = {
-  logo: 148,
-  date: 100,
-  flightNo: 80,
-  operatedBy: 132,
-  depart: 68,
-  from: 204,
-  arrive: 112,
-  at: 204,
-  duration: 76,
-  transit: 84,
+  logo: 168,
+  date: 118,
+  flightNo: 92,
+  operatedBy: 152,
+  depart: 78,
+  from: 236,
+  arrive: 128,
+  at: 236,
+  duration: 88,
+  transit: 96,
 } as const;
 
-export const ITINERARY_TABLE_MIN_WIDTH = Object.values(ITINERARY_TABLE_COLUMNS).reduce(
-  (sum, w) => sum + w,
-  0,
-);
+export const ITINERARY_TABLE_MIN_WIDTH = Object.values(
+  ITINERARY_TABLE_COLUMNS,
+).reduce((sum, w) => sum + w, 0);
+
+export type ItineraryTableColumn = keyof typeof ITINERARY_TABLE_COLUMNS;
+
+/** Proportional column width for full-width preview (export uses fixed px). */
+export function itineraryColumnWidthPercent(
+  column: ItineraryTableColumn,
+): string {
+  const width = ITINERARY_TABLE_COLUMNS[column];
+  return `${((width / ITINERARY_TABLE_MIN_WIDTH) * 100).toFixed(4)}%`;
+}
 
 /** Max logo height inside the first column (px) — matches cell padding + row height. */
-export const AIRLINE_LOGO_MAX_HEIGHT = 48;
+export const AIRLINE_LOGO_MAX_HEIGHT = 56;
+
+/** Minimum logo cell height (px) for readable preview rows. */
+export const ITINERARY_LOGO_CELL_MIN_HEIGHT = 62;
+
+/** Tight edge padding applied only during PNG/PDF capture (px). */
+export const ITINERARY_EXPORT_PADDING = 3;
+
+/** html2canvas scale — 3× gives crisp PNG/PDF on retina and print. */
+export const ITINERARY_EXPORT_CANVAS_SCALE = 3;
 
 export type ItineraryExportTheme = "light" | "dark";
 
@@ -53,7 +71,7 @@ export const ITINERARY_EXPORT_THEME: Record<
 };
 
 export const EXPORT_TABLE_FONT = {
-  header: "11px",
-  cell: "12px",
-  cellSmall: "11px",
+  header: "13px",
+  cell: "14px",
+  cellSmall: "12px",
 } as const;

@@ -5,8 +5,8 @@ import { forwardRef, useLayoutEffect, useState } from "react";
 import { EXPORT_ROOT_ATTR } from "@/features/flight-converter/lib/export-itinerary";
 import {
   EXPORT_TABLE_FONT,
+  EXPORT_TABLE_FONT_FAMILY,
   ITINERARY_LOGO_CELL_MIN_HEIGHT,
-  ITINERARY_TABLE_MIN_WIDTH,
   itineraryColumnWidthPercent,
 } from "@/features/flight-converter/lib/itinerary-table-layout";
 import type { NormalizedSegment } from "@/features/flight-converter/types/flight-converter.types";
@@ -17,9 +17,9 @@ type ItineraryPreviewTableProps = {
 };
 
 const thClass =
-  "border border-border px-3 py-3 text-left font-bold uppercase text-foreground bg-muted";
+  "border border-border px-3 py-3 text-left align-middle font-bold text-foreground whitespace-nowrap";
 const tdClass =
-  "border border-border px-3 py-3 align-middle text-foreground break-words";
+  "border border-border px-3 py-3 align-middle text-foreground break-words font-normal";
 
 function splitArrivalDisplay(display: string) {
   const idx = display.indexOf(" (");
@@ -70,14 +70,19 @@ export const ItineraryPreviewTable = forwardRef<
       data-export-theme={exportTheme}
       className="w-full bg-card text-card-foreground"
     >
-      <div data-export-scroll className="w-full overflow-x-auto">
+      <div data-export-scroll className="w-full overflow-x-hidden">
         <table
           className="w-full border-collapse border border-border"
           style={{
             tableLayout: "fixed",
             width: "100%",
-            minWidth: `${ITINERARY_TABLE_MIN_WIDTH}px`,
             fontSize: EXPORT_TABLE_FONT.cell,
+            fontFamily: EXPORT_TABLE_FONT_FAMILY,
+            fontWeight: 400,
+            lineHeight: 1.45,
+            letterSpacing: "0.01em",
+            textRendering: "geometricPrecision",
+            WebkitFontSmoothing: "antialiased",
           }}
         >
           <colgroup>
@@ -93,63 +98,63 @@ export const ItineraryPreviewTable = forwardRef<
             <col style={{ width: itineraryColumnWidthPercent("transit") }} />
           </colgroup>
           <thead>
-            <tr className="bg-muted">
+            <tr>
               <th
                 className={thClass}
                 data-logo-cell
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               />
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 Date
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 Flight No
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 Operated By
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 Depart
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 From
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 Arrive
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 At
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 Duration
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header }}
+                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
               >
                 Transit
               </th>
@@ -163,11 +168,7 @@ export const ItineraryPreviewTable = forwardRef<
               return (
                 <tr
                   key={`${seg.segmentOrder}-${idx}`}
-                  className={
-                    rowAlt
-                      ? "export-row-alt bg-muted/30 dark:bg-muted/25"
-                      : "bg-card"
-                  }
+                  className={rowAlt ? "export-row-alt bg-[#F5F5F5]" : "bg-card"}
                 >
                   <td
                     data-logo-cell
@@ -176,29 +177,23 @@ export const ItineraryPreviewTable = forwardRef<
                   >
                     <AirlineLogo segment={seg} />
                   </td>
-                  <td className={`${tdClass} whitespace-nowrap font-semibold`}>
-                    {seg.departureDateDisplay}
-                  </td>
-                  <td className={`${tdClass} whitespace-nowrap font-semibold`}>
-                    {seg.flightNumber}
-                  </td>
+                  <td className={tdClass}>{seg.departureDateDisplay}</td>
+                  <td className={tdClass}>{seg.flightNumber}</td>
                   <td
                     className={tdClass}
                     style={{ fontSize: EXPORT_TABLE_FONT.cellSmall }}
                   >
                     {seg.airlineName}
                   </td>
-                  <td className={`${tdClass} whitespace-nowrap font-semibold`}>
-                    {seg.departureTime}
-                  </td>
+                  <td className={tdClass}>{seg.departureTime}</td>
                   <td className={tdClass}>
                     {seg.fromName} ({seg.fromCode})
                   </td>
-                  <td className={`${tdClass} whitespace-nowrap font-semibold`}>
+                  <td className={tdClass}>
                     <span>{arrival.time}</span>
                     {arrival.note && (
                       <span
-                        className="mt-0.5 block text-xs italic font-semibold text-muted-foreground"
+                        className="mt-0.5 block text-xs italic font-medium text-muted-foreground"
                         style={{ fontSize: EXPORT_TABLE_FONT.cellSmall }}
                       >
                         ({arrival.note})
@@ -208,12 +203,8 @@ export const ItineraryPreviewTable = forwardRef<
                   <td className={tdClass}>
                     {seg.toName} ({seg.toCode})
                   </td>
-                  <td className={`${tdClass} whitespace-nowrap`}>
-                    {seg.durationDisplay}
-                  </td>
-                  <td className={`${tdClass} whitespace-nowrap font-semibold`}>
-                    {seg.transitDisplay}
-                  </td>
+                  <td className={tdClass}>{seg.durationDisplay}</td>
+                  <td className={tdClass}>{seg.transitDisplay}</td>
                 </tr>
               );
             })}

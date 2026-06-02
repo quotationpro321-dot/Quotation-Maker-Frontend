@@ -23,6 +23,7 @@ import {
   exportQuotationAsPdf,
 } from "@/features/quotations/calculator/lib/export-quotation";
 import type {
+  TQuotationCalculatorType,
   TQuotationDraft,
   TQuotationOption,
   TQuotationRoute,
@@ -38,6 +39,21 @@ type TUseQuotationCalculatorOptions = {
 
 function cloneDraft(draft: TQuotationDraft): TQuotationDraft {
   return JSON.parse(JSON.stringify(draft)) as TQuotationDraft;
+}
+
+function withSequentialOptionTitles(options: TQuotationOption[]): TQuotationOption[] {
+  return options.map((option, index) => ({
+    ...option,
+    title: `Option ${index + 1}`,
+  }));
+}
+
+function normalizeDraft(draft: TQuotationDraft): TQuotationDraft {
+  return {
+    ...draft,
+    calculatorType: draft.calculatorType ?? "umrah",
+    options: withSequentialOptionTitles(draft.options),
+  };
 }
 
 export function useQuotationCalculator({
@@ -59,7 +75,7 @@ export function useQuotationCalculator({
   useEffect(() => {
     const fromMock = editId ? loadMockQuotationDetail(editId) : null;
     const fromStorage = loadDraftFromStorage(storageKey);
-    const initial = fromMock ?? fromStorage ?? createEmptyDraft();
+    const initial = normalizeDraft(fromMock ?? fromStorage ?? createEmptyDraft());
     if (fromMock?.id) initial.id = fromMock.id;
     setDraft(initial);
     setIsInitialized(true);
@@ -98,11 +114,12 @@ export function useQuotationCalculator({
 
   const addOption = useCallback(() => {
     setDraft((prev) => {
-      const next = createInitialOption(`Option ${prev.options.length + 1}`);
+      const next = createInitialOption();
+      const options = withSequentialOptionTitles([...prev.options, next]);
       return {
         ...prev,
-        options: [...prev.options, next],
-        activeOptionIndex: prev.options.length,
+        options,
+        activeOptionIndex: options.length - 1,
       };
     });
   }, []);
@@ -110,7 +127,9 @@ export function useQuotationCalculator({
   const removeOption = useCallback((index: number) => {
     setDraft((prev) => {
       if (prev.options.length <= 1) return prev;
-      const options = prev.options.filter((_, i) => i !== index);
+      const options = withSequentialOptionTitles(
+        prev.options.filter((_, i) => i !== index),
+      );
       return {
         ...prev,
         options,
@@ -126,9 +145,8 @@ export function useQuotationCalculator({
       const copy = {
         ...cloneDraft({ ...createEmptyDraft(), options: [source] }).options[0],
         id: crypto.randomUUID(),
-        title: `${source.title} Copy`,
       };
-      const options = [...prev.options, copy];
+      const options = withSequentialOptionTitles([...prev.options, copy]);
       return {
         ...prev,
         options,
@@ -195,6 +213,13 @@ export function useQuotationCalculator({
     updateDraft({ templateId });
   }, [updateDraft]);
 
+  const setCalculatorType = useCallback(
+    (calculatorType: TQuotationCalculatorType) => {
+      updateDraft({ calculatorType });
+    },
+    [updateDraft],
+  );
+
   const saveQuotation = useCallback(() => {
     const parsed = quotationCalculatorSaveSchema.safeParse({
       customerName: draft.customerName,
@@ -260,6 +285,7 @@ export function useQuotationCalculator({
     updateRoute,
     parseFlightItinerary,
     setTemplateId,
+    setCalculatorType,
     saveQuotation,
     openPreview: () => setIsPreviewOpen(true),
     closePreview: () => setIsPreviewOpen(false),

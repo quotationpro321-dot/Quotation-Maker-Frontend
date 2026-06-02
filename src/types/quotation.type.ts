@@ -1,6 +1,7 @@
 export type TQuotationStatus = "draft" | "pending" | "confirmed" | "cancelled";
 
 export type TQuotationTemplateId = "classic" | "modern" | "compact";
+export type TQuotationCalculatorType = "umrah" | "holiday" | "flights";
 
 export type TQuotationCreator = {
   id: string;
@@ -85,6 +86,7 @@ export type TQuotationDraft = {
   referenceNumber?: number;
   customerName: string;
   customerNumber: string;
+  calculatorType: TQuotationCalculatorType;
   quotationDate: string;
   status: TQuotationStatus;
   currency: string;
@@ -95,6 +97,7 @@ export type TQuotationDraft = {
 
 export type TQuotationDetail = TQuotationListItem & {
   customerNumber?: string;
+  calculatorType?: TQuotationCalculatorType;
   templateId: TQuotationTemplateId;
   options: TQuotationOption[];
 };

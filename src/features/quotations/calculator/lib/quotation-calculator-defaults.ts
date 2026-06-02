@@ -74,6 +74,7 @@ export function createEmptyDraft(): TQuotationDraft {
   return {
     customerName: "",
     customerNumber: "",
+    calculatorType: "umrah",
     quotationDate: new Date().toISOString(),
     status: "draft",
     currency: "GBP",

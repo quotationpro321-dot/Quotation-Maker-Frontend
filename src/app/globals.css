@@ -237,6 +237,10 @@
     @apply font-sans antialiased;
     overflow-x: clip;
   }
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+  }
   input::placeholder,
   textarea::placeholder {
     color: var(--placeholder-color);

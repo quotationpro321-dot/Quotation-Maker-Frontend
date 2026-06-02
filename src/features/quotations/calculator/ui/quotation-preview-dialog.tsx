@@ -15,15 +15,12 @@ import { calculateOptionTotals } from "@/features/quotations/calculator/lib/calc
 import { getQuotationTemplate } from "@/features/quotations/calculator/lib/quotation-template-registry";
 import type { TQuotationDraft } from "@/types/quotation.type";
 
-import { QuotationTemplatePicker } from "./quotation-template-picker";
-
 type TQuotationPreviewDialogProps = {
   open: boolean;
   draft: TQuotationDraft;
   activeOptionIndex: number;
   previewRef: React.RefObject<HTMLDivElement | null>;
   onOpenChange: (open: boolean) => void;
-  onTemplateChange: (templateId: TQuotationDraft["templateId"]) => void;
   onExportImage: () => void;
   onExportPdf: () => void;
 };
@@ -34,7 +31,6 @@ export function QuotationPreviewDialog({
   activeOptionIndex,
   previewRef,
   onOpenChange,
-  onTemplateChange,
   onExportImage,
   onExportPdf,
 }: TQuotationPreviewDialogProps) {
@@ -49,16 +45,11 @@ export function QuotationPreviewDialog({
         <DialogHeader>
           <DialogTitle>Quotation preview</DialogTitle>
           <DialogDescription>
-            Select a template, review filled data, then download as image or PDF.
+            Review filled data, then download as image or PDF.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 overflow-y-auto pr-1">
-          <QuotationTemplatePicker
-            selectedTemplateId={draft.templateId}
-            onSelect={onTemplateChange}
-          />
-
           <div ref={previewRef} className="rounded! border border-border bg-muted/20 p-4">
             {TemplateComponent ? (
               <TemplateComponent

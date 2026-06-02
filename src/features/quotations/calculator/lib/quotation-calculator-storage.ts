@@ -79,6 +79,7 @@ export function loadMockQuotationDetail(id: string): TQuotationDraft | null {
     referenceNumber: detail.referenceNumber,
     customerName: detail.customerName,
     customerNumber: detail.customerNumber ?? detail.customerPhone ?? "",
+    calculatorType: detail.calculatorType ?? "umrah",
     quotationDate: detail.quotationDate,
     status: detail.status,
     currency: detail.currency,

@@ -1,3 +1,4 @@
+import { createEmptyCalculatorStates } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
 import type {
   TQuotationDraft,
   TQuotationOption,
@@ -67,6 +68,12 @@ export function createInitialOption(title = "Option 1"): TQuotationOption {
     flightSegments: [],
     holdLuggage: "",
     cabinLuggage: "",
+    flightSectionEnabled: true,
+    hotelSectionEnabled: true,
+    visaSectionEnabled: true,
+    transferSectionEnabled: true,
+    officeNoteSectionEnabled: true,
+    customerNoteSectionEnabled: true,
   };
 }
 
@@ -79,8 +86,7 @@ export function createEmptyDraft(): TQuotationDraft {
     status: "draft",
     currency: "GBP",
     templateId: "classic",
-    options: [createInitialOption()],
-    activeOptionIndex: 0,
+    calculatorStates: createEmptyCalculatorStates(),
   };
 }
 

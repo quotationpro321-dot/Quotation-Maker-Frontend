@@ -8,18 +8,18 @@ import {
   EXPORT_TABLE_FONT_FAMILY,
   ITINERARY_LOGO_CELL_MIN_HEIGHT,
   itineraryColumnWidthPercent,
+  QUOTATION_PREVIEW_TABLE_FONT,
+  type ItineraryTableLayout,
 } from "@/features/flight-converter/lib/itinerary-table-layout";
 import type { NormalizedSegment } from "@/features/flight-converter/types/flight-converter.types";
 import { AirlineLogo } from "@/features/flight-converter/ui/airline-logo";
+import { cn } from "@/lib/utils";
 
 type ItineraryPreviewTableProps = {
   segments: NormalizedSegment[];
+  layout?: ItineraryTableLayout;
+  flightNoHeaderMultiline?: boolean;
 };
-
-const thClass =
-  "border border-border px-3 py-3 text-left align-middle font-bold text-foreground whitespace-nowrap";
-const tdClass =
-  "border border-border px-3 py-3 align-middle text-foreground break-words font-normal";
 
 function splitArrivalDisplay(display: string) {
   const idx = display.indexOf(" (");
@@ -57,11 +57,38 @@ function useSyncExportThemeAttr(): "light" | "dark" {
   return exportTheme;
 }
 
+function MultilineHeader({ lines }: { lines: [string, string] }) {
+  return (
+    <span className="inline-block leading-tight">
+      {lines[0]}
+      <br />
+      {lines[1]}
+    </span>
+  );
+}
+
 export const ItineraryPreviewTable = forwardRef<
   HTMLDivElement,
   ItineraryPreviewTableProps
->(function ItineraryPreviewTable({ segments }, ref) {
+>(function ItineraryPreviewTable(
+  { segments, layout = "converter", flightNoHeaderMultiline },
+  ref,
+) {
   const exportTheme = useSyncExportThemeAttr();
+  const isQuotation = layout === "quotation";
+  const useMultilineFlightNo = flightNoHeaderMultiline ?? isQuotation;
+  const fonts = isQuotation ? QUOTATION_PREVIEW_TABLE_FONT : EXPORT_TABLE_FONT;
+
+  const thClass = cn(
+    "border border-border align-middle font-bold text-foreground",
+    isQuotation
+      ? "px-2 py-2 text-center text-[13px] leading-snug whitespace-normal"
+      : "px-3 py-3 text-left whitespace-nowrap",
+  );
+  const tdClass = cn(
+    "border border-border align-middle text-foreground font-normal",
+    isQuotation ? "px-2 py-2.5 break-words text-[14px]" : "px-3 py-3 break-words",
+  );
 
   return (
     <div
@@ -76,7 +103,7 @@ export const ItineraryPreviewTable = forwardRef<
           style={{
             tableLayout: "fixed",
             width: "100%",
-            fontSize: EXPORT_TABLE_FONT.cell,
+            fontSize: fonts.cell,
             fontFamily: EXPORT_TABLE_FONT_FAMILY,
             fontWeight: 400,
             lineHeight: 1.45,
@@ -86,75 +113,91 @@ export const ItineraryPreviewTable = forwardRef<
           }}
         >
           <colgroup>
-            <col style={{ width: itineraryColumnWidthPercent("logo") }} />
-            <col style={{ width: itineraryColumnWidthPercent("date") }} />
-            <col style={{ width: itineraryColumnWidthPercent("flightNo") }} />
-            <col style={{ width: itineraryColumnWidthPercent("operatedBy") }} />
-            <col style={{ width: itineraryColumnWidthPercent("depart") }} />
-            <col style={{ width: itineraryColumnWidthPercent("from") }} />
-            <col style={{ width: itineraryColumnWidthPercent("arrive") }} />
-            <col style={{ width: itineraryColumnWidthPercent("at") }} />
-            <col style={{ width: itineraryColumnWidthPercent("duration") }} />
-            <col style={{ width: itineraryColumnWidthPercent("transit") }} />
+            <col style={{ width: itineraryColumnWidthPercent("logo", layout) }} />
+            <col style={{ width: itineraryColumnWidthPercent("date", layout) }} />
+            <col
+              style={{ width: itineraryColumnWidthPercent("operatedBy", layout) }}
+            />
+            <col
+              style={{ width: itineraryColumnWidthPercent("flightNo", layout) }}
+            />
+            <col
+              style={{ width: itineraryColumnWidthPercent("depart", layout) }}
+            />
+            <col style={{ width: itineraryColumnWidthPercent("from", layout) }} />
+            <col
+              style={{ width: itineraryColumnWidthPercent("arrive", layout) }}
+            />
+            <col style={{ width: itineraryColumnWidthPercent("at", layout) }} />
+            <col
+              style={{ width: itineraryColumnWidthPercent("duration", layout) }}
+            />
+            <col
+              style={{ width: itineraryColumnWidthPercent("transit", layout) }}
+            />
           </colgroup>
           <thead>
             <tr>
               <th
                 className={thClass}
                 data-logo-cell
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               />
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
                 Date
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
-                Flight No
+                Airline
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
-                Operated By
+                {useMultilineFlightNo ? (
+                  <MultilineHeader lines={["Flight", "No"]} />
+                ) : (
+                  "Flight No"
+                )}
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
                 Depart
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
                 From
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
                 Arrive
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
                 At
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
                 Duration
               </th>
               <th
                 className={thClass}
-                style={{ fontSize: EXPORT_TABLE_FONT.header, fontWeight: 700 }}
+                style={{ fontSize: fonts.header, fontWeight: 700 }}
               >
                 Transit
               </th>
@@ -178,14 +221,18 @@ export const ItineraryPreviewTable = forwardRef<
                     <AirlineLogo segment={seg} />
                   </td>
                   <td className={tdClass}>{seg.departureDateDisplay}</td>
-                  <td className={tdClass}>{seg.flightNumber}</td>
                   <td
                     className={tdClass}
-                    style={{ fontSize: EXPORT_TABLE_FONT.cellSmall }}
+                    style={{ fontSize: fonts.cellSmall }}
                   >
                     {seg.airlineName}
                   </td>
-                  <td className={tdClass}>{seg.departureTime}</td>
+                  <td className={cn(tdClass, "whitespace-nowrap")}>
+                    {seg.flightNumber}
+                  </td>
+                  <td className={cn(tdClass, "whitespace-nowrap")}>
+                    {seg.departureTime}
+                  </td>
                   <td className={tdClass}>
                     {seg.fromName} ({seg.fromCode})
                   </td>
@@ -194,7 +241,7 @@ export const ItineraryPreviewTable = forwardRef<
                     {arrival.note && (
                       <span
                         className="mt-0.5 block text-xs italic font-medium text-muted-foreground"
-                        style={{ fontSize: EXPORT_TABLE_FONT.cellSmall }}
+                        style={{ fontSize: fonts.cellSmall }}
                       >
                         ({arrival.note})
                       </span>
@@ -203,8 +250,12 @@ export const ItineraryPreviewTable = forwardRef<
                   <td className={tdClass}>
                     {seg.toName} ({seg.toCode})
                   </td>
-                  <td className={tdClass}>{seg.durationDisplay}</td>
-                  <td className={tdClass}>{seg.transitDisplay}</td>
+                  <td className={cn(tdClass, "whitespace-nowrap")}>
+                    {seg.durationDisplay}
+                  </td>
+                  <td className={cn(tdClass, "whitespace-nowrap")}>
+                    {seg.transitDisplay}
+                  </td>
                 </tr>
               );
             })}

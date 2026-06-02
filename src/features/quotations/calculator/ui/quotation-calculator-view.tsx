@@ -52,6 +52,7 @@ function QuotationCalculatorContent({
 }: TQuotationCalculatorViewProps) {
   const {
     draft,
+    activeOptions,
     activeOption,
     activeTotals,
     activeOptionIndex,
@@ -131,14 +132,14 @@ function QuotationCalculatorContent({
       />
 
       <QuotationOptionTabs
-        options={draft.options}
+        options={activeOptions}
         activeIndex={activeOptionIndex}
         onSelect={setActiveOptionIndex}
         onRemove={removeOption}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="space-y-6 lg:col-span-8">
+        <div className="space-y-6 lg:col-span-9">
           <QuotationFlightSection
             option={activeOption}
             currency={draft.currency}
@@ -163,6 +164,7 @@ function QuotationCalculatorContent({
           {showTransferSection ? (
             <QuotationTransferSection
               option={activeOption}
+              currency={draft.currency}
               onChange={updateActiveOption}
               onAddRoute={addRoute}
               onRemoveRoute={removeRoute}
@@ -175,7 +177,7 @@ function QuotationCalculatorContent({
           />
         </div>
 
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-3">
           <QuotationSummaryPanel
             option={activeOption}
             totals={activeTotals}
@@ -186,7 +188,7 @@ function QuotationCalculatorContent({
       </div>
 
       <QuotationComparisonTable
-        options={draft.options}
+        options={activeOptions}
         activeIndex={activeOptionIndex}
         currency={draft.currency}
         onSelect={setActiveOptionIndex}

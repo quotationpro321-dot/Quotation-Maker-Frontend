@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { calculateOptionTotals } from "@/features/quotations/calculator/lib/calculate-quotation";
+import { getCalculatorTypeState } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
 import { getQuotationTemplate } from "@/features/quotations/calculator/lib/quotation-template-registry";
 import type { TQuotationDraft } from "@/types/quotation.type";
 
@@ -34,7 +35,9 @@ export function QuotationPreviewDialog({
   onExportImage,
   onExportPdf,
 }: TQuotationPreviewDialogProps) {
-  const activeOption = draft.options[activeOptionIndex] ?? draft.options[0];
+  const activeCalculatorOptions = getCalculatorTypeState(draft).options;
+  const activeOption =
+    activeCalculatorOptions[activeOptionIndex] ?? activeCalculatorOptions[0];
   const template = getQuotationTemplate(draft.templateId);
   const TemplateComponent = template?.component;
   const totals = calculateOptionTotals(activeOption);

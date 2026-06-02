@@ -2,10 +2,17 @@
 
 import { CreditCard } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatQuotationMoney } from "@/features/quotations/calculator/lib/calculate-quotation";
+import {
+  calculateVisaTotal,
+  formatQuotationMoney,
+} from "@/features/quotations/calculator/lib/calculate-quotation";
+import {
+  QuotationSectionHeader,
+  quotationSectionBodyClass,
+} from "@/features/quotations/calculator/ui/quotation-section-header";
 import type { TQuotationOption, TQuotationVisaLine } from "@/types/quotation.type";
 
 type TQuotationVisaSectionProps = {
@@ -25,23 +32,21 @@ export function QuotationVisaSection({
   currency,
   onChange,
 }: TQuotationVisaSectionProps) {
-  const visaTotal =
-    option.visaUmrah.pax * option.visaUmrah.cost +
-    option.visaEVW.pax * option.visaEVW.cost +
-    option.visaHoliday.pax * option.visaHoliday.cost;
+  const visaTotal = calculateVisaTotal(option);
+  const displayVisaTotal = option.visaSectionEnabled ? visaTotal : 0;
 
   return (
     <Card className="rounded!">
-      <CardHeader className="flex flex-row items-center justify-between border-b">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <CreditCard className="size-5 text-brand-primary" />
-          Visa services
-        </CardTitle>
-        <span className="text-sm font-semibold text-muted-foreground">
-          {formatQuotationMoney(visaTotal, currency)}
-        </span>
-      </CardHeader>
-      <CardContent className="grid gap-4 pt-6 md:grid-cols-3">
+      <QuotationSectionHeader
+        icon={<CreditCard className="size-5 text-brand-primary" />}
+        title="Visa services"
+        enabled={option.visaSectionEnabled}
+        onEnabledChange={(visaSectionEnabled) => onChange({ visaSectionEnabled })}
+        priceLabel={formatQuotationMoney(displayVisaTotal, currency)}
+      />
+      <CardContent
+        className={`grid gap-4 md:grid-cols-3 ${quotationSectionBodyClass(option.visaSectionEnabled)}`}
+      >
         {VISA_FIELDS.map(({ label, field }) => {
           const visa = option[field] as TQuotationVisaLine;
           return (

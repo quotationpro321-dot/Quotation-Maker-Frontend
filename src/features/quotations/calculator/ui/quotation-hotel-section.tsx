@@ -2,7 +2,7 @@
 
 import { Hotel } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,7 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatQuotationMoney } from "@/features/quotations/calculator/lib/calculate-quotation";
+import {
+  calculateHotelTotal,
+  formatQuotationMoney,
+} from "@/features/quotations/calculator/lib/calculate-quotation";
+import {
+  QuotationSectionHeader,
+  quotationSectionBodyClass,
+} from "@/features/quotations/calculator/ui/quotation-section-header";
 import {
   HOTELS_HOLIDAY,
   HOTELS_MADINAH,
@@ -37,23 +44,21 @@ export function QuotationHotelSection({
   currency,
   onChange,
 }: TQuotationHotelSectionProps) {
-  const hotelTotal =
-    option.hotelMakkah.cost +
-    option.hotelMadinah.cost +
-    option.hotelHoliday.cost;
+  const hotelTotal = calculateHotelTotal(option);
+  const displayHotelTotal = option.hotelSectionEnabled ? hotelTotal : 0;
 
   return (
     <Card className="rounded!">
-      <CardHeader className="flex flex-row items-center justify-between border-b">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Hotel className="size-5 text-brand-primary" />
-          Hotel accommodation
-        </CardTitle>
-        <span className="text-sm font-semibold text-muted-foreground">
-          {formatQuotationMoney(hotelTotal, currency)}
-        </span>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-6">
+      <QuotationSectionHeader
+        icon={<Hotel className="size-5 text-brand-primary" />}
+        title="Hotel accommodation"
+        enabled={option.hotelSectionEnabled}
+        onEnabledChange={(hotelSectionEnabled) => onChange({ hotelSectionEnabled })}
+        priceLabel={formatQuotationMoney(displayHotelTotal, currency)}
+      />
+      <CardContent
+        className={`space-y-4 ${quotationSectionBodyClass(option.hotelSectionEnabled)}`}
+      >
         {HOTEL_FIELDS.map(({ label, field, list }) => {
           const hotel = option[field] as TQuotationHotel;
           return (

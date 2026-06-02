@@ -1,3 +1,5 @@
+import type { NormalizedSegment } from "@/features/flight-converter/types/flight-converter.types";
+
 export type TQuotationStatus = "draft" | "pending" | "confirmed" | "cancelled";
 
 export type TQuotationTemplateId = "classic" | "modern" | "compact";
@@ -39,22 +41,7 @@ export type TQuotationRoute = {
   to: string;
 };
 
-export type TQuotationFlightSegment = {
-  segmentOrder: number;
-  airlineCode: string;
-  airlineName: string;
-  airlineLogoUrl: string;
-  flightNumber: string;
-  bookingClass: string;
-  departureDateDisplay: string;
-  departureTime: string;
-  arrivalTime: string;
-  arrivalDisplay: string;
-  fromCode: string;
-  fromName: string;
-  toCode: string;
-  toName: string;
-};
+export type TQuotationFlightSegment = NormalizedSegment;
 
 export type TQuotationOption = {
   id: string;
@@ -79,7 +66,23 @@ export type TQuotationOption = {
   flightSegments: TQuotationFlightSegment[];
   holdLuggage: string;
   cabinLuggage: string;
+  flightSectionEnabled: boolean;
+  hotelSectionEnabled: boolean;
+  visaSectionEnabled: boolean;
+  transferSectionEnabled: boolean;
+  officeNoteSectionEnabled: boolean;
+  customerNoteSectionEnabled: boolean;
 };
+
+export type TQuotationCalculatorTypeState = {
+  options: TQuotationOption[];
+  activeOptionIndex: number;
+};
+
+export type TQuotationCalculatorTypeStates = Record<
+  TQuotationCalculatorType,
+  TQuotationCalculatorTypeState
+>;
 
 export type TQuotationDraft = {
   id?: string;
@@ -91,8 +94,7 @@ export type TQuotationDraft = {
   status: TQuotationStatus;
   currency: string;
   templateId: TQuotationTemplateId;
-  options: TQuotationOption[];
-  activeOptionIndex: number;
+  calculatorStates: TQuotationCalculatorTypeStates;
 };
 
 export type TQuotationDetail = TQuotationListItem & {

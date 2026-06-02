@@ -19,11 +19,19 @@ import {
   saveDraftToStorage,
 } from "@/features/quotations/calculator/lib/quotation-calculator-storage";
 import {
+  getCalculatorTypeState,
+  hasLegacyFlatOptions,
+  migrateLegacyDraftToCalculatorStates,
+  updateActiveCalculatorTypeState,
+} from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
+import {
   exportQuotationAsImage,
   exportQuotationAsPdf,
 } from "@/features/quotations/calculator/lib/export-quotation";
+import type { NormalizedSegment } from "@/features/flight-converter/types/flight-converter.types";
 import type {
   TQuotationCalculatorType,
+  TQuotationCalculatorTypeState,
   TQuotationDraft,
   TQuotationOption,
   TQuotationRoute,
@@ -37,10 +45,6 @@ type TUseQuotationCalculatorOptions = {
   expectedRole: UserRole;
 };
 
-function cloneDraft(draft: TQuotationDraft): TQuotationDraft {
-  return JSON.parse(JSON.stringify(draft)) as TQuotationDraft;
-}
-
 function withSequentialOptionTitles(options: TQuotationOption[]): TQuotationOption[] {
   return options.map((option, index) => ({
     ...option,
@@ -48,11 +52,70 @@ function withSequentialOptionTitles(options: TQuotationOption[]): TQuotationOpti
   }));
 }
 
+function normalizeFlightSegment(
+  segment: TQuotationOption["flightSegments"][number],
+): NormalizedSegment {
+  return {
+    ...segment,
+    cabinType: segment.cabinType ?? "",
+    departureDate: segment.departureDate ?? "",
+    arrivalDate: segment.arrivalDate ?? "",
+    arrivalDateDisplay: segment.arrivalDateDisplay ?? segment.arrivalDisplay,
+    durationMinutes: segment.durationMinutes ?? null,
+    durationDisplay: segment.durationDisplay || "-",
+    transitMinutes: segment.transitMinutes ?? null,
+    transitDisplay: segment.transitDisplay || "-",
+    terminalDepart: segment.terminalDepart ?? "",
+    terminalArrive: segment.terminalArrive ?? "",
+    parseConfidence: segment.parseConfidence ?? "high",
+    sourceLine: segment.sourceLine ?? "",
+  };
+}
+
+function normalizeOption(option: TQuotationOption): TQuotationOption {
+  return {
+    ...option,
+    flightSegments: option.flightSegments.map(normalizeFlightSegment),
+    flightSectionEnabled: option.flightSectionEnabled ?? true,
+    hotelSectionEnabled: option.hotelSectionEnabled ?? true,
+    visaSectionEnabled: option.visaSectionEnabled ?? true,
+    transferSectionEnabled: option.transferSectionEnabled ?? true,
+    officeNoteSectionEnabled: option.officeNoteSectionEnabled ?? true,
+    customerNoteSectionEnabled: option.customerNoteSectionEnabled ?? true,
+  };
+}
+
+function normalizeCalculatorTypeState(
+  state: TQuotationCalculatorTypeState,
+): TQuotationCalculatorTypeState {
+  return {
+    activeOptionIndex: state.activeOptionIndex ?? 0,
+    options: withSequentialOptionTitles(state.options).map(normalizeOption),
+  };
+}
+
 function normalizeDraft(draft: TQuotationDraft): TQuotationDraft {
+  const emptyStates = createEmptyDraft().calculatorStates;
+  const calculatorStates = hasLegacyFlatOptions(draft)
+    ? migrateLegacyDraftToCalculatorStates(draft)
+    : {
+        umrah: draft.calculatorStates?.umrah ?? emptyStates.umrah,
+        holiday: draft.calculatorStates?.holiday ?? emptyStates.holiday,
+        flights: draft.calculatorStates?.flights ?? emptyStates.flights,
+      };
+
+  const normalizedStates = {
+    umrah: normalizeCalculatorTypeState(calculatorStates.umrah),
+    holiday: normalizeCalculatorTypeState(calculatorStates.holiday),
+    flights: normalizeCalculatorTypeState(calculatorStates.flights),
+  };
+
+  const calculatorType = draft.calculatorType ?? "umrah";
+
   return {
     ...draft,
-    calculatorType: draft.calculatorType ?? "umrah",
-    options: withSequentialOptionTitles(draft.options),
+    calculatorType,
+    calculatorStates: normalizedStates,
   };
 }
 
@@ -72,6 +135,10 @@ export function useQuotationCalculator({
 
   const storageKey = getStorageKey(expectedRole, editId);
 
+  const activeCalculatorState = getCalculatorTypeState(draft);
+  const activeOptions = activeCalculatorState.options;
+  const activeOptionIndex = activeCalculatorState.activeOptionIndex;
+
   useEffect(() => {
     const fromMock = editId ? loadMockQuotationDetail(editId) : null;
     const fromStorage = loadDraftFromStorage(storageKey);
@@ -89,7 +156,7 @@ export function useQuotationCalculator({
     return () => window.clearTimeout(timeoutId);
   }, [draft, isInitialized, storageKey]);
 
-  const activeOption = draft.options[draft.activeOptionIndex] ?? draft.options[0];
+  const activeOption = activeOptions[activeOptionIndex] ?? activeOptions[0];
   const activeTotals = useMemo(
     () => calculateOptionTotals(activeOption),
     [activeOption],
@@ -100,59 +167,74 @@ export function useQuotationCalculator({
   }, []);
 
   const updateActiveOption = useCallback((patch: Partial<TQuotationOption>) => {
-    setDraft((prev) => ({
-      ...prev,
-      options: prev.options.map((option, index) =>
-        index === prev.activeOptionIndex ? { ...option, ...patch } : option,
-      ),
-    }));
+    setDraft((prev) =>
+      updateActiveCalculatorTypeState(prev, (state) => ({
+        ...state,
+        options: state.options.map((option, index) =>
+          index === state.activeOptionIndex ? { ...option, ...patch } : option,
+        ),
+      })),
+    );
   }, []);
 
   const setActiveOptionIndex = useCallback((index: number) => {
-    setDraft((prev) => ({ ...prev, activeOptionIndex: index }));
+    setDraft((prev) =>
+      updateActiveCalculatorTypeState(prev, (state) => ({
+        ...state,
+        activeOptionIndex: index,
+      })),
+    );
   }, []);
 
   const addOption = useCallback(() => {
-    setDraft((prev) => {
-      const next = createInitialOption();
-      const options = withSequentialOptionTitles([...prev.options, next]);
-      return {
-        ...prev,
-        options,
-        activeOptionIndex: options.length - 1,
-      };
-    });
+    setDraft((prev) =>
+      updateActiveCalculatorTypeState(prev, (state) => {
+        const options = withSequentialOptionTitles([
+          ...state.options,
+          createInitialOption(),
+        ]);
+        return {
+          options,
+          activeOptionIndex: options.length - 1,
+        };
+      }),
+    );
   }, []);
 
   const removeOption = useCallback((index: number) => {
-    setDraft((prev) => {
-      if (prev.options.length <= 1) return prev;
-      const options = withSequentialOptionTitles(
-        prev.options.filter((_, i) => i !== index),
-      );
-      return {
-        ...prev,
-        options,
-        activeOptionIndex: Math.max(0, Math.min(prev.activeOptionIndex, options.length - 1)),
-      };
-    });
+    setDraft((prev) =>
+      updateActiveCalculatorTypeState(prev, (state) => {
+        if (state.options.length <= 1) return state;
+        const options = withSequentialOptionTitles(
+          state.options.filter((_, i) => i !== index),
+        );
+        return {
+          options,
+          activeOptionIndex: Math.max(
+            0,
+            Math.min(state.activeOptionIndex, options.length - 1),
+          ),
+        };
+      }),
+    );
   }, []);
 
   const duplicateOption = useCallback((index: number) => {
-    setDraft((prev) => {
-      const source = prev.options[index];
-      if (!source) return prev;
-      const copy = {
-        ...cloneDraft({ ...createEmptyDraft(), options: [source] }).options[0],
-        id: crypto.randomUUID(),
-      };
-      const options = withSequentialOptionTitles([...prev.options, copy]);
-      return {
-        ...prev,
-        options,
-        activeOptionIndex: options.length - 1,
-      };
-    });
+    setDraft((prev) =>
+      updateActiveCalculatorTypeState(prev, (state) => {
+        const source = state.options[index];
+        if (!source) return state;
+        const copy: TQuotationOption = {
+          ...(JSON.parse(JSON.stringify(source)) as TQuotationOption),
+          id: crypto.randomUUID(),
+        };
+        const options = withSequentialOptionTitles([...state.options, copy]);
+        return {
+          options,
+          activeOptionIndex: options.length - 1,
+        };
+      }),
+    );
   }, []);
 
   const addRoute = useCallback(() => {
@@ -215,16 +297,16 @@ export function useQuotationCalculator({
 
   const setCalculatorType = useCallback(
     (calculatorType: TQuotationCalculatorType) => {
-      updateDraft({ calculatorType });
+      setDraft((prev) => ({ ...prev, calculatorType }));
     },
-    [updateDraft],
+    [],
   );
 
   const saveQuotation = useCallback(() => {
     const parsed = quotationCalculatorSaveSchema.safeParse({
       customerName: draft.customerName,
       customerNumber: draft.customerNumber,
-      options: draft.options,
+      options: activeOptions,
     });
 
     if (!parsed.success) {
@@ -236,7 +318,7 @@ export function useQuotationCalculator({
     toast.success("Quotation saved locally.", {
       description: "Backend persistence will connect when the API is ready.",
     });
-  }, [draft, storageKey]);
+  }, [activeOptions, draft, storageKey]);
 
   const exportImage = useCallback(async () => {
     if (!previewRef.current) return;
@@ -268,9 +350,10 @@ export function useQuotationCalculator({
 
   return {
     draft,
+    activeOptions,
     activeOption,
     activeTotals,
-    activeOptionIndex: draft.activeOptionIndex,
+    activeOptionIndex,
     isPreviewOpen,
     isParsingFlight,
     previewRef,

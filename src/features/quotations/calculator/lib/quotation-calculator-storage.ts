@@ -1,6 +1,7 @@
 import type { TQuotationDraft, TQuotationDetail } from "@/types/quotation.type";
 
 import { createEmptyDraft, createInitialOption } from "./quotation-calculator-defaults";
+import { createEmptyCalculatorStates } from "./quotation-calculator-type-state";
 
 const MOCK_DETAILS: Record<string, TQuotationDetail> = {
   "q-1": {
@@ -74,18 +75,24 @@ export function loadMockQuotationDetail(id: string): TQuotationDraft | null {
   const detail = MOCK_DETAILS[id];
   if (!detail) return null;
 
+  const calculatorType = detail.calculatorType ?? "umrah";
+  const calculatorStates = createEmptyCalculatorStates();
+  calculatorStates[calculatorType] = {
+    options: detail.options,
+    activeOptionIndex: 0,
+  };
+
   return {
     id: detail.id,
     referenceNumber: detail.referenceNumber,
     customerName: detail.customerName,
     customerNumber: detail.customerNumber ?? detail.customerPhone ?? "",
-    calculatorType: detail.calculatorType ?? "umrah",
+    calculatorType,
     quotationDate: detail.quotationDate,
     status: detail.status,
     currency: detail.currency,
     templateId: detail.templateId,
-    options: detail.options,
-    activeOptionIndex: 0,
+    calculatorStates,
   };
 }
 

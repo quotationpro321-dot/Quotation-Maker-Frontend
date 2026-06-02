@@ -12,11 +12,27 @@ export const ITINERARY_TABLE_COLUMNS = {
   transit: 104,
 } as const;
 
+/** Narrower calculator column — more room for headers and flight numbers. */
+export const ITINERARY_TABLE_COLUMNS_QUOTATION = {
+  logo: 124,
+  date: 100,
+  flightNo: 108,
+  operatedBy: 124,
+  depart: 76,
+  from: 188,
+  arrive: 112,
+  at: 188,
+  duration: 96,
+  transit: 88,
+} as const;
+
 export const ITINERARY_TABLE_MIN_WIDTH = Object.values(
   ITINERARY_TABLE_COLUMNS,
 ).reduce((sum, w) => sum + w, 0);
 
 export type ItineraryTableColumn = keyof typeof ITINERARY_TABLE_COLUMNS;
+
+export type ItineraryTableLayout = "converter" | "quotation";
 
 export const ITINERARY_TABLE_COLUMN_KEYS = Object.keys(
   ITINERARY_TABLE_COLUMNS,
@@ -28,9 +44,14 @@ export const ITINERARY_TABLE_CELL_PADDING_X = 24;
 /** Proportional column width for full-width preview (export uses fixed px). */
 export function itineraryColumnWidthPercent(
   column: ItineraryTableColumn,
+  layout: ItineraryTableLayout = "converter",
 ): string {
-  const width = ITINERARY_TABLE_COLUMNS[column];
-  return `${((width / ITINERARY_TABLE_MIN_WIDTH) * 100).toFixed(4)}%`;
+  const columns =
+    layout === "quotation"
+      ? ITINERARY_TABLE_COLUMNS_QUOTATION
+      : ITINERARY_TABLE_COLUMNS;
+  const total = Object.values(columns).reduce((sum, width) => sum + width, 0);
+  return `${((columns[column] / total) * 100).toFixed(4)}%`;
 }
 
 /** Max logo height inside the first column (px) — matches cell padding + row height. */
@@ -81,6 +102,12 @@ export const EXPORT_TABLE_FONT = {
   header: "16px",
   cell: "16px",
   cellSmall: "14px",
+} as const;
+
+export const QUOTATION_PREVIEW_TABLE_FONT = {
+  header: "13px",
+  cell: "14px",
+  cellSmall: "12px",
 } as const;
 
 export const EXPORT_TABLE_FONT_FAMILY =

@@ -26,7 +26,15 @@ export type TQuotationListItem = {
 
 export type TQuotationHotel = {
   name: string;
+  city: string;
+  country: string;
+  location: string;
+  areaSlug?: string;
+  distance: string;
+  checkIn: string;
+  checkOut: string;
   roomType: string;
+  board: string;
   cost: number;
 };
 
@@ -39,6 +47,13 @@ export type TQuotationRoute = {
   id: string;
   from: string;
   to: string;
+};
+
+export type TQuotationIncludedServices = {
+  guide: boolean;
+  ziyarah: boolean;
+  manager: boolean;
+  esim: boolean;
 };
 
 export type TQuotationFlightSegment = NormalizedSegment;
@@ -57,6 +72,9 @@ export type TQuotationOption = {
   visaEVW: TQuotationVisaLine;
   visaHoliday: TQuotationVisaLine;
   transferCost: number;
+  includedServices: TQuotationIncludedServices;
+  vehicleName: string;
+  vehicleQuantity: number;
   routes: TQuotationRoute[];
   officeNote: string;
   customerNote: string;

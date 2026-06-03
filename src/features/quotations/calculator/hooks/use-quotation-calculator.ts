@@ -12,6 +12,7 @@ import {
   createInitialOption,
   createRouteRow,
 } from "@/features/quotations/calculator/lib/quotation-calculator-defaults";
+import { DEFAULT_INCLUDED_SERVICES } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import {
   getStorageKey,
   loadDraftFromStorage,
@@ -33,6 +34,7 @@ import type {
   TQuotationCalculatorType,
   TQuotationCalculatorTypeState,
   TQuotationDraft,
+  TQuotationHotel,
   TQuotationOption,
   TQuotationRoute,
   TQuotationTemplateId,
@@ -72,10 +74,47 @@ function normalizeFlightSegment(
   };
 }
 
+function normalizeHotel(
+  hotel: Partial<TQuotationHotel> | undefined,
+  defaults: { location: string; areaSlug?: string },
+): TQuotationHotel {
+  return {
+    name: hotel?.name ?? "",
+    city: hotel?.city ?? "",
+    country: hotel?.country ?? "",
+    location: hotel?.location || defaults.location,
+    areaSlug: hotel?.areaSlug ?? defaults.areaSlug,
+    distance: hotel?.distance ?? "",
+    checkIn: hotel?.checkIn ?? "",
+    checkOut: hotel?.checkOut ?? "",
+    roomType: hotel?.roomType ?? "",
+    board: hotel?.board ?? "",
+    cost: hotel?.cost ?? 0,
+  };
+}
+
+function normalizeIncludedServices(
+  services: Partial<TQuotationOption["includedServices"]> | undefined,
+): TQuotationOption["includedServices"] {
+  return {
+    guide: services?.guide ?? DEFAULT_INCLUDED_SERVICES.guide,
+    ziyarah: services?.ziyarah ?? DEFAULT_INCLUDED_SERVICES.ziyarah,
+    manager: services?.manager ?? DEFAULT_INCLUDED_SERVICES.manager,
+    esim: services?.esim ?? DEFAULT_INCLUDED_SERVICES.esim,
+  };
+}
+
 function normalizeOption(option: TQuotationOption): TQuotationOption {
   return {
     ...option,
     flightSegments: option.flightSegments.map(normalizeFlightSegment),
+    includedServices: normalizeIncludedServices(option.includedServices),
+    vehicleName: option.vehicleName ?? "",
+    vehicleQuantity:
+      (option.vehicleQuantity ?? 0) > 0 ? option.vehicleQuantity : 1,
+    hotelMakkah: normalizeHotel(option.hotelMakkah, { location: "" }),
+    hotelMadinah: normalizeHotel(option.hotelMadinah, { location: "" }),
+    hotelHoliday: normalizeHotel(option.hotelHoliday, { location: "" }),
     flightSectionEnabled: option.flightSectionEnabled ?? true,
     hotelSectionEnabled: option.hotelSectionEnabled ?? true,
     visaSectionEnabled: option.visaSectionEnabled ?? true,

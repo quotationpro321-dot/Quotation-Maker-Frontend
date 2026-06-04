@@ -1,11 +1,19 @@
 import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
 
+import {
+  QUOTATION_A4_HEIGHT_PX,
+  QUOTATION_A4_WIDTH_PX,
+} from "@/features/quotations/calculator/lib/quotation-classic-umrah.constants";
+
 const EXPORT_ROOT_ATTR = "data-quotation-export-root";
+const EXPORT_PAGE_ATTR = "data-quotation-pdf-page";
 const EXPORT_PADDING = 3;
 const EXPORT_SCALE = 3;
 const CSS_PX_PER_MM = 96 / 25.4;
 const CANVAS_BG = "#ffffff";
+const A4_PAGE_WIDTH_MM = 210;
+const A4_PAGE_HEIGHT_MM = 297;
 
 function parseHexColor(hex: string): { r: number; g: number; b: number } {
   const normalized = hex.replace("#", "");
@@ -112,6 +120,13 @@ function sanitizeCloneForExport(root: HTMLElement, captureHeight: number) {
   root.style.setProperty("max-width", "800px", "important");
 }
 
+function sanitizeFixedPageClone(page: HTMLElement) {
+  page.style.setProperty("margin", "0", "important");
+  page.style.setProperty("padding", "0", "important");
+  page.style.setProperty("box-sizing", "border-box", "important");
+  page.style.setProperty("overflow", "hidden", "important");
+}
+
 async function preloadImages(root: HTMLElement): Promise<void> {
   const images = Array.from(root.querySelectorAll("img"));
   await Promise.all(
@@ -131,13 +146,61 @@ async function preloadImages(root: HTMLElement): Promise<void> {
   );
 }
 
+function getExportPages(root: HTMLElement): HTMLElement[] {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(`[${EXPORT_PAGE_ATTR}]`),
+  );
+}
+
 function measureExportHeight(element: HTMLElement): number {
   const content = element.querySelector("[data-quotation-export-content]");
-  const target =
-    content instanceof HTMLElement ? content : element;
+  const target = content instanceof HTMLElement ? content : element;
   return Math.ceil(
-    Math.max(target.scrollHeight, target.offsetHeight, target.getBoundingClientRect().height),
+    Math.max(
+      target.scrollHeight,
+      target.offsetHeight,
+      target.getBoundingClientRect().height,
+    ),
   );
+}
+
+function readFixedPageSize(page: HTMLElement) {
+  const width = Math.ceil(
+    page.offsetWidth ||
+      Number.parseFloat(page.style.width) ||
+      QUOTATION_A4_WIDTH_PX,
+  );
+  const height = Math.ceil(
+    page.offsetHeight ||
+      Number.parseFloat(page.style.height) ||
+      QUOTATION_A4_HEIGHT_PX,
+  );
+  return { width, height };
+}
+
+async function captureFixedPageCanvas(
+  page: HTMLElement,
+): Promise<HTMLCanvasElement> {
+  await preloadImages(page);
+  const { width: captureWidth, height: captureHeight } = readFixedPageSize(page);
+
+  return html2canvas(page, {
+    scale: EXPORT_SCALE,
+    backgroundColor: null,
+    useCORS: true,
+    allowTaint: true,
+    logging: false,
+    width: captureWidth,
+    height: captureHeight,
+    windowWidth: captureWidth,
+    windowHeight: captureHeight,
+    onclone: (clonedDoc) => {
+      const clonedPage = clonedDoc.querySelector(`[${EXPORT_PAGE_ATTR}]`);
+      if (clonedPage instanceof HTMLElement) {
+        sanitizeFixedPageClone(clonedPage);
+      }
+    },
+  });
 }
 
 async function captureElementCanvas(
@@ -172,6 +235,43 @@ async function captureElementCanvas(
   return trimCanvasToContent(canvas, EXPORT_PADDING);
 }
 
+async function captureExportCanvases(
+  element: HTMLElement,
+): Promise<HTMLCanvasElement[]> {
+  const exportRoot =
+    element.querySelector<HTMLElement>(`[${EXPORT_ROOT_ATTR}]`) ?? element;
+  const pages = getExportPages(exportRoot);
+
+  if (pages.length > 0) {
+    await preloadImages(exportRoot);
+    return Promise.all(pages.map((page) => captureFixedPageCanvas(page)));
+  }
+
+  return [await captureElementCanvas(element)];
+}
+
+function stackCanvasesVertically(canvases: HTMLCanvasElement[]): HTMLCanvasElement {
+  if (canvases.length === 1) return canvases[0];
+
+  const width = Math.max(...canvases.map((canvas) => canvas.width));
+  const height = canvases.reduce((total, canvas) => total + canvas.height, 0);
+  const stacked = document.createElement("canvas");
+  stacked.width = width;
+  stacked.height = height;
+
+  const ctx = stacked.getContext("2d");
+  if (!ctx) return canvases[0];
+
+  let offsetY = 0;
+  for (const canvas of canvases) {
+    const offsetX = Math.floor((width - canvas.width) / 2);
+    ctx.drawImage(canvas, offsetX, offsetY);
+    offsetY += canvas.height;
+  }
+
+  return stacked;
+}
+
 function downloadDataUrl(dataUrl: string, filename: string) {
   const link = document.createElement("a");
   link.download = filename;
@@ -186,7 +286,8 @@ export async function exportQuotationAsImage(
   element: HTMLElement,
   filename: string,
 ) {
-  const canvas = await captureElementCanvas(element);
+  const canvases = await captureExportCanvases(element);
+  const canvas = stackCanvasesVertically(canvases);
   downloadDataUrl(canvas.toDataURL("image/png"), filename);
 }
 
@@ -194,6 +295,34 @@ export async function exportQuotationAsPdf(
   element: HTMLElement,
   filename: string,
 ) {
+  const exportRoot =
+    element.querySelector<HTMLElement>(`[${EXPORT_ROOT_ATTR}]`) ?? element;
+  const pages = getExportPages(exportRoot);
+
+  if (pages.length > 0) {
+    const canvases = await captureExportCanvases(element);
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    canvases.forEach((canvas, index) => {
+      if (index > 0) pdf.addPage();
+      pdf.addImage(
+        canvas.toDataURL("image/png", 1.0),
+        "PNG",
+        0,
+        0,
+        A4_PAGE_WIDTH_MM,
+        A4_PAGE_HEIGHT_MM,
+      );
+    });
+
+    pdf.save(filename);
+    return;
+  }
+
   const canvas = await captureElementCanvas(element);
   const imgData = canvas.toDataURL("image/png", 1.0);
   const cssWidth = canvas.width / EXPORT_SCALE;
@@ -221,4 +350,4 @@ export async function exportQuotationAsPdf(
   pdf.save(filename);
 }
 
-export { EXPORT_ROOT_ATTR };
+export { EXPORT_PAGE_ATTR, EXPORT_ROOT_ATTR };

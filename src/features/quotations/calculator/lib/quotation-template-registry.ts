@@ -19,7 +19,7 @@ export const QUOTATION_TEMPLATES: TQuotationTemplateMeta[] = [
   {
     id: "classic",
     name: "Classic",
-    description: "White document layout with clear section blocks.",
+    description: "Umrah cover and introduction pages; package details follow in export.",
     component: StubClassicTemplate,
   },
   {

@@ -2,9 +2,13 @@
 
 import { FileText, Info } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  QuotationSectionHeader,
+  quotationSectionBodyClass,
+} from "@/features/quotations/calculator/ui/quotation-section-header";
 import type { TQuotationOption } from "@/types/quotation.type";
 
 type TQuotationNotesSectionProps = {
@@ -19,13 +23,17 @@ export function QuotationNotesSection({
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card className="rounded!">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Info className="size-4" />
-            Office note (internal)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
+        <QuotationSectionHeader
+          icon={<Info className="size-4" />}
+          title="Office note (internal)"
+          enabled={option.officeNoteSectionEnabled}
+          onEnabledChange={(officeNoteSectionEnabled) =>
+            onChange({ officeNoteSectionEnabled })
+          }
+        />
+        <CardContent
+          className={`space-y-2 ${quotationSectionBodyClass(option.officeNoteSectionEnabled)}`}
+        >
           <Label htmlFor="office-note" className="sr-only">
             Office note
           </Label>
@@ -42,13 +50,17 @@ export function QuotationNotesSection({
         </CardContent>
       </Card>
       <Card className="rounded!">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <FileText className="size-4" />
-            Customer note (external)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
+        <QuotationSectionHeader
+          icon={<FileText className="size-4" />}
+          title="Customer note (external)"
+          enabled={option.customerNoteSectionEnabled}
+          onEnabledChange={(customerNoteSectionEnabled) =>
+            onChange({ customerNoteSectionEnabled })
+          }
+        />
+        <CardContent
+          className={`space-y-2 ${quotationSectionBodyClass(option.customerNoteSectionEnabled)}`}
+        >
           <Label htmlFor="customer-note" className="sr-only">
             Customer note
           </Label>

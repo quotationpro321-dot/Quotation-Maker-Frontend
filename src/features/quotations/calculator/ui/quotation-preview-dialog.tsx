@@ -12,10 +12,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { calculateOptionTotals } from "@/features/quotations/calculator/lib/calculate-quotation";
+import { getCalculatorTypeState } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
 import { getQuotationTemplate } from "@/features/quotations/calculator/lib/quotation-template-registry";
+import { QuotationPagedPreviewScaler } from "@/features/quotations/calculator/ui/quotation-paged-preview-scaler";
 import type { TQuotationDraft } from "@/types/quotation.type";
-
-import { QuotationTemplatePicker } from "./quotation-template-picker";
 
 type TQuotationPreviewDialogProps = {
   open: boolean;
@@ -23,10 +23,13 @@ type TQuotationPreviewDialogProps = {
   activeOptionIndex: number;
   previewRef: React.RefObject<HTMLDivElement | null>;
   onOpenChange: (open: boolean) => void;
-  onTemplateChange: (templateId: TQuotationDraft["templateId"]) => void;
   onExportImage: () => void;
   onExportPdf: () => void;
 };
+
+function isUmrahClassicPagedPreview(draft: TQuotationDraft): boolean {
+  return draft.calculatorType === "umrah" && draft.templateId === "classic";
+}
 
 export function QuotationPreviewDialog({
   open,
@@ -34,41 +37,51 @@ export function QuotationPreviewDialog({
   activeOptionIndex,
   previewRef,
   onOpenChange,
-  onTemplateChange,
   onExportImage,
   onExportPdf,
 }: TQuotationPreviewDialogProps) {
-  const activeOption = draft.options[activeOptionIndex] ?? draft.options[0];
+  const activeCalculatorOptions = getCalculatorTypeState(draft).options;
+  const activeOption =
+    activeCalculatorOptions[activeOptionIndex] ?? activeCalculatorOptions[0];
   const template = getQuotationTemplate(draft.templateId);
   const TemplateComponent = template?.component;
   const totals = calculateOptionTotals(activeOption);
+  const usePagedPreview = isUmrahClassicPagedPreview(draft);
+
+  const templatePreview = TemplateComponent ? (
+    <TemplateComponent
+      draft={draft}
+      option={activeOption}
+      optionIndex={activeOptionIndex}
+      totals={totals}
+      currency={draft.currency}
+    />
+  ) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-hidden rounded! sm:max-w-5xl">
+      <DialogContent className="flex max-h-[90vh] w-[min(100vw-2rem,64rem)]! max-w-none! flex-col gap-4 overflow-hidden rounded! p-4 sm:max-w-none!">
         <DialogHeader>
           <DialogTitle>Quotation preview</DialogTitle>
           <DialogDescription>
-            Select a template, review filled data, then download as image or PDF.
+            Review filled data, then download as image or PDF.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 overflow-y-auto pr-1">
-          <QuotationTemplatePicker
-            selectedTemplateId={draft.templateId}
-            onSelect={onTemplateChange}
-          />
-
-          <div ref={previewRef} className="rounded! border border-border bg-muted/20 p-4">
-            {TemplateComponent ? (
-              <TemplateComponent
-                draft={draft}
-                option={activeOption}
-                optionIndex={activeOptionIndex}
-                totals={totals}
-                currency={draft.currency}
-              />
-            ) : null}
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1">
+          <div
+            ref={previewRef}
+            className={
+              usePagedPreview
+                ? "flex min-w-0 justify-center py-2"
+                : "rounded! border border-border bg-muted/20 p-4"
+            }
+          >
+            {usePagedPreview ? (
+              <QuotationPagedPreviewScaler>{templatePreview}</QuotationPagedPreviewScaler>
+            ) : (
+              templatePreview
+            )}
           </div>
         </div>
 

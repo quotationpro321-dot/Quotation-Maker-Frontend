@@ -1,6 +1,9 @@
+import type { NormalizedSegment } from "@/features/flight-converter/types/flight-converter.types";
+
 export type TQuotationStatus = "draft" | "pending" | "confirmed" | "cancelled";
 
 export type TQuotationTemplateId = "classic" | "modern" | "compact";
+export type TQuotationCalculatorType = "umrah" | "holiday" | "flights";
 
 export type TQuotationCreator = {
   id: string;
@@ -23,7 +26,15 @@ export type TQuotationListItem = {
 
 export type TQuotationHotel = {
   name: string;
+  city: string;
+  country: string;
+  location: string;
+  areaSlug?: string;
+  distance: string;
+  checkIn: string;
+  checkOut: string;
   roomType: string;
+  board: string;
   cost: number;
 };
 
@@ -38,22 +49,14 @@ export type TQuotationRoute = {
   to: string;
 };
 
-export type TQuotationFlightSegment = {
-  segmentOrder: number;
-  airlineCode: string;
-  airlineName: string;
-  airlineLogoUrl: string;
-  flightNumber: string;
-  bookingClass: string;
-  departureDateDisplay: string;
-  departureTime: string;
-  arrivalTime: string;
-  arrivalDisplay: string;
-  fromCode: string;
-  fromName: string;
-  toCode: string;
-  toName: string;
+export type TQuotationIncludedServices = {
+  guide: boolean;
+  ziyarah: boolean;
+  manager: boolean;
+  esim: boolean;
 };
+
+export type TQuotationFlightSegment = NormalizedSegment;
 
 export type TQuotationOption = {
   id: string;
@@ -69,6 +72,9 @@ export type TQuotationOption = {
   visaEVW: TQuotationVisaLine;
   visaHoliday: TQuotationVisaLine;
   transferCost: number;
+  includedServices: TQuotationIncludedServices;
+  vehicleName: string;
+  vehicleQuantity: number;
   routes: TQuotationRoute[];
   officeNote: string;
   customerNote: string;
@@ -78,23 +84,40 @@ export type TQuotationOption = {
   flightSegments: TQuotationFlightSegment[];
   holdLuggage: string;
   cabinLuggage: string;
+  flightSectionEnabled: boolean;
+  hotelSectionEnabled: boolean;
+  visaSectionEnabled: boolean;
+  transferSectionEnabled: boolean;
+  officeNoteSectionEnabled: boolean;
+  customerNoteSectionEnabled: boolean;
 };
+
+export type TQuotationCalculatorTypeState = {
+  options: TQuotationOption[];
+  activeOptionIndex: number;
+};
+
+export type TQuotationCalculatorTypeStates = Record<
+  TQuotationCalculatorType,
+  TQuotationCalculatorTypeState
+>;
 
 export type TQuotationDraft = {
   id?: string;
   referenceNumber?: number;
   customerName: string;
   customerNumber: string;
+  calculatorType: TQuotationCalculatorType;
   quotationDate: string;
   status: TQuotationStatus;
   currency: string;
   templateId: TQuotationTemplateId;
-  options: TQuotationOption[];
-  activeOptionIndex: number;
+  calculatorStates: TQuotationCalculatorTypeStates;
 };
 
 export type TQuotationDetail = TQuotationListItem & {
   customerNumber?: string;
+  calculatorType?: TQuotationCalculatorType;
   templateId: TQuotationTemplateId;
   options: TQuotationOption[];
 };

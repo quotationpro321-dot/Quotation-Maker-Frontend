@@ -7,7 +7,7 @@ import {
   QUOTATION_A4_WIDTH_PX,
 } from "@/features/quotations/calculator/lib/quotation-classic-umrah.constants";
 
-const PAGE_GAP_PX = 24;
+const PAGE_GAP_PX = 0;
 const PAGE_COUNT = 2;
 const TOTAL_CONTENT_HEIGHT =
   QUOTATION_A4_HEIGHT_PX * PAGE_COUNT + PAGE_GAP_PX * (PAGE_COUNT - 1);
@@ -44,11 +44,11 @@ export function QuotationPagedPreviewScaler({
   return (
     <div ref={containerRef} className="w-full min-w-0">
       <div
-        className="mx-auto overflow-hidden rounded! shadow-md ring-1 ring-border/60"
+        className="mx-auto overflow-hidden"
         style={{ width: scaledWidth, height: scaledHeight }}
       >
         <div
-          className="bg-muted/20"
+          className="bg-transparent"
           style={{
             width: QUOTATION_A4_WIDTH_PX,
             transform: `scale(${scale})`,

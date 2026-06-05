@@ -4,10 +4,12 @@ import { jsPDF } from "jspdf";
 import {
   QUOTATION_A4_HEIGHT_PX,
   QUOTATION_A4_WIDTH_PX,
+  UMRAH_QUOTATION_ASSETS,
 } from "@/features/quotations/calculator/lib/quotation-classic-umrah.constants";
 
 const EXPORT_ROOT_ATTR = "data-quotation-export-root";
 const EXPORT_PAGE_ATTR = "data-quotation-pdf-page";
+const EXPORT_COVER_PAGE_ATTR = "data-quotation-cover-page";
 const EXPORT_PADDING = 3;
 const EXPORT_SCALE = 3;
 const CSS_PX_PER_MM = 96 / 25.4;
@@ -125,6 +127,128 @@ function sanitizeFixedPageClone(page: HTMLElement) {
   page.style.setProperty("padding", "0", "important");
   page.style.setProperty("box-sizing", "border-box", "important");
   page.style.setProperty("overflow", "hidden", "important");
+
+  if (page.hasAttribute(EXPORT_COVER_PAGE_ATTR)) {
+    page.style.setProperty("background-color", "#000000", "important");
+  }
+}
+
+function resolvePublicAssetUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  return new URL(path, window.location.origin).href;
+}
+
+function getImageFormat(src: string): "PNG" | "JPEG" | "WEBP" {
+  const normalized = src.split("?")[0]?.toLowerCase() ?? "";
+  if (normalized.endsWith(".jpg") || normalized.endsWith(".jpeg")) return "JPEG";
+  if (normalized.endsWith(".webp")) return "WEBP";
+  return "PNG";
+}
+
+async function loadImageMeta(src: string): Promise<{
+  dataUrl: string;
+  width: number;
+  height: number;
+  format: "PNG" | "JPEG" | "WEBP";
+}> {
+  const url = resolvePublicAssetUrl(src);
+  const format = getImageFormat(url);
+
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Could not prepare cover image for export."));
+        return;
+      }
+      context.drawImage(image, 0, 0);
+      const mimeType =
+        format === "JPEG"
+          ? "image/jpeg"
+          : format === "WEBP"
+            ? "image/webp"
+            : "image/png";
+      resolve({
+        dataUrl: canvas.toDataURL(mimeType, 1),
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        format,
+      });
+    };
+    image.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+    image.src = url;
+  });
+}
+
+function computeFullBleedPlacement(
+  imageWidth: number,
+  imageHeight: number,
+  pageWidth: number,
+  pageHeight: number,
+) {
+  const scale = Math.max(pageWidth / imageWidth, pageHeight / imageHeight);
+  const width = imageWidth * scale;
+  const height = imageHeight * scale;
+  return {
+    x: (pageWidth - width) / 2,
+    y: (pageHeight - height) / 2,
+    width,
+    height,
+  };
+}
+
+function isCoverPage(page: HTMLElement): boolean {
+  return page.hasAttribute(EXPORT_COVER_PAGE_ATTR);
+}
+
+function getCoverImageSrc(page: HTMLElement): string {
+  const image = page.querySelector("img");
+  if (image?.getAttribute("src")) {
+    return image.getAttribute("src") as string;
+  }
+  return UMRAH_QUOTATION_ASSETS.coverPage;
+}
+
+async function captureCoverPageCanvas(page: HTMLElement): Promise<HTMLCanvasElement> {
+  const { dataUrl, width, height } = await loadImageMeta(getCoverImageSrc(page));
+  const { width: pageWidth, height: pageHeight } = readFixedPageSize(page);
+  const placement = computeFullBleedPlacement(width, height, pageWidth, pageHeight);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = pageWidth * EXPORT_SCALE;
+  canvas.height = pageHeight * EXPORT_SCALE;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Could not render cover page.");
+  }
+
+  context.fillStyle = "#000000";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  const image = new Image();
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error("Failed to draw cover page."));
+    image.src = dataUrl;
+  });
+
+  context.drawImage(
+    image,
+    placement.x * EXPORT_SCALE,
+    placement.y * EXPORT_SCALE,
+    placement.width * EXPORT_SCALE,
+    placement.height * EXPORT_SCALE,
+  );
+
+  return canvas;
 }
 
 async function preloadImages(root: HTMLElement): Promise<void> {
@@ -181,6 +305,10 @@ function readFixedPageSize(page: HTMLElement) {
 async function captureFixedPageCanvas(
   page: HTMLElement,
 ): Promise<HTMLCanvasElement> {
+  if (isCoverPage(page)) {
+    return captureCoverPageCanvas(page);
+  }
+
   await preloadImages(page);
   const { width: captureWidth, height: captureHeight } = readFixedPageSize(page);
 
@@ -307,17 +435,33 @@ export async function exportQuotationAsPdf(
       format: "a4",
     });
 
-    canvases.forEach((canvas, index) => {
+    for (let index = 0; index < canvases.length; index++) {
+      const page = pages[index];
       if (index > 0) pdf.addPage();
+
+      if (page && isCoverPage(page)) {
+        const { dataUrl, width, height, format } = await loadImageMeta(
+          getCoverImageSrc(page),
+        );
+        const placement = computeFullBleedPlacement(
+          width,
+          height,
+          A4_PAGE_WIDTH_MM,
+          A4_PAGE_HEIGHT_MM,
+        );
+        pdf.addImage(dataUrl, format, placement.x, placement.y, placement.width, placement.height);
+        continue;
+      }
+
       pdf.addImage(
-        canvas.toDataURL("image/png", 1.0),
+        canvases[index].toDataURL("image/png", 1.0),
         "PNG",
         0,
         0,
         A4_PAGE_WIDTH_MM,
         A4_PAGE_HEIGHT_MM,
       );
-    });
+    }
 
     pdf.save(filename);
     return;
@@ -350,4 +494,4 @@ export async function exportQuotationAsPdf(
   pdf.save(filename);
 }
 
-export { EXPORT_PAGE_ATTR, EXPORT_ROOT_ATTR };
+export { EXPORT_COVER_PAGE_ATTR, EXPORT_PAGE_ATTR, EXPORT_ROOT_ATTR };

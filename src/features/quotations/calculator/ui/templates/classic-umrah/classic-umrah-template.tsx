@@ -8,7 +8,7 @@ export function ClassicUmrahTemplate(_props: TQuotationTemplateProps) {
   return (
     <div
       {...{ [EXPORT_ROOT_ATTR]: "" }}
-      className="mx-auto flex w-fit shrink-0 flex-col gap-6"
+      className="mx-auto flex w-fit shrink-0 flex-col gap-0"
     >
       <ClassicUmrahCoverPage />
       <ClassicUmrahIntroPage />

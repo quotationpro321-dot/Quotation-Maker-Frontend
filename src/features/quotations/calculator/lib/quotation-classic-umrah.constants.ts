@@ -3,14 +3,14 @@ export const QUOTATION_A4_WIDTH_PX = 794;
 export const QUOTATION_A4_HEIGHT_PX = 1123;
 
 /** Horizontal inset for intro page text and collage — aligned in the PDF mockup. */
-export const UMRAH_INTRO_PAGE_MARGIN_PX = 40;
+export const UMRAH_INTRO_PAGE_MARGIN_PX = 80;
 
 /** Full content width for intro text and square collage. */
 export const UMRAH_INTRO_CONTENT_WIDTH_PX =
   QUOTATION_A4_WIDTH_PX - UMRAH_INTRO_PAGE_MARGIN_PX * 2;
 
 /** Square collage display size (1:1 JPEG) — fits below copy on A4. */
-export const UMRAH_INTRO_COLLAGE_SIZE_PX = 520;
+export const UMRAH_INTRO_COLLAGE_SIZE_PX = 630;
 
 export const UMRAH_QUOTATION_ASSETS = {
   coverPage: "/quotations/umrah/cover-page.png",

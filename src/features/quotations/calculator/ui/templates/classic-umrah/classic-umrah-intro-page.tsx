@@ -11,7 +11,7 @@ import {
   UMRAH_QUOTATION_ASSETS,
 } from "@/features/quotations/calculator/lib/quotation-classic-umrah.constants";
 
-import { ClassicUmrahBrandLockup } from "./classic-umrah-brand-lockup";
+import AlsamaLogoSvg from "@/components/common/AlsamaLogoSvg";
 
 export function ClassicUmrahIntroPage() {
   const pageMargin = {
@@ -29,24 +29,25 @@ export function ClassicUmrahIntroPage() {
       }}
     >
       <header
-        className="flex shrink-0 items-start justify-between pt-8 pb-4"
+        className="flex shrink-0 items-center justify-between pt-8 pb-4"
         style={pageMargin}
       >
         <p
-          className="max-w-[58%] font-serif text-[2.25rem] leading-[1.15] text-[#818160]"
+          className="max-w-[58%] font-serif text-xl leading-[1.15] text-sec"
           dir="rtl"
           lang="ar"
         >
           السلام عليكم
         </p>
-        <ClassicUmrahBrandLockup />
+        {/* <ClassicUmrahBrandLockup /> */}
+        <AlsamaLogoSvg />
       </header>
 
       <div className="shrink-0 space-y-3 pb-4" style={pageMargin}>
         {UMRAH_INTRO_PARAGRAPHS.map((paragraph) => (
           <p
             key={paragraph.slice(0, 40)}
-            className="text-justify text-[12px] leading-[1.55] text-slate-800"
+            className="text-justify text-sm leading-[1.55] text-slate-800"
           >
             {paragraph}
           </p>

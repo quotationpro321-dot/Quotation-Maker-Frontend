@@ -7,6 +7,7 @@ import {
   calculateOptionTotals,
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
+import { HOTEL_SLOT_FIELDS } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
 import type { TQuotationOption } from "@/types/quotation.type";
 
 type TQuotationComparisonTableProps = {
@@ -42,14 +43,23 @@ export function QuotationComparisonTable({
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b">
-              <td className="px-3 py-2 font-medium">Makkah hotel</td>
-              {options.map((option) => (
-                <td key={`${option.id}-makkah`} className="px-3 py-2">
-                  {option.hotelMakkah.name || "—"}
-                </td>
-              ))}
-            </tr>
+            {HOTEL_SLOT_FIELDS.map((field, slotIndex) => (
+              <tr key={field} className="border-b">
+                <td className="px-3 py-2 font-medium">Hotel stay {slotIndex + 1}</td>
+                {options.map((option) => {
+                  const hotel = option[field];
+                  const label = hotel.location
+                    ? `${hotel.location}${hotel.name ? ` — ${hotel.name}` : ""}`
+                    : hotel.name || "—";
+
+                  return (
+                    <td key={`${option.id}-${field}`} className="px-3 py-2">
+                      {label}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
             <tr className="border-b">
               <td className="px-3 py-2 font-medium">Final gross (adult)</td>
               {options.map((option, index) => {

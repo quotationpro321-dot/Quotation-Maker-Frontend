@@ -26,16 +26,18 @@ export function calculateVisaTotal(option: TQuotationOption): number {
 }
 
 export function calculateOptionTotals(option: TQuotationOption): TOptionTotals {
-  const hotelTotal = calculateHotelTotal(option);
-  const visaTotal = calculateVisaTotal(option);
-  const serviceTotal = hotelTotal + visaTotal + option.transferCost;
+  const hotelTotal = option.hotelSectionEnabled ? calculateHotelTotal(option) : 0;
+  const visaTotal = option.visaSectionEnabled ? calculateVisaTotal(option) : 0;
+  const transferCost = option.transferSectionEnabled ? option.transferCost : 0;
+  const serviceTotal = hotelTotal + visaTotal + transferCost;
   const perPersonServiceCost =
     option.numPax > 0 ? serviceTotal / option.numPax : 0;
-  const flightTotal =
-    option.flightAdult +
-    option.flightYouth +
-    option.flightChild +
-    option.flightInfant;
+  const flightTotal = option.flightSectionEnabled
+    ? option.flightAdult +
+      option.flightYouth +
+      option.flightChild +
+      option.flightInfant
+    : 0;
   const totalMarkup = option.numPax * option.markupPerPerson;
 
   return {
@@ -53,7 +55,8 @@ export function calculateGross(
   flightCost: number,
 ): number {
   const { perPersonServiceCost } = calculateOptionTotals(option);
-  return flightCost + perPersonServiceCost + option.markupPerPerson;
+  const effectiveFlightCost = option.flightSectionEnabled ? flightCost : 0;
+  return effectiveFlightCost + perPersonServiceCost + option.markupPerPerson;
 }
 
 export function formatQuotationMoney(value: number, currency = "GBP"): string {

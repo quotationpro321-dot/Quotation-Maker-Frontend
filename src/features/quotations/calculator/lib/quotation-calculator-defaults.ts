@@ -1,41 +1,38 @@
+import { createEmptyCalculatorStates } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
+import { DEFAULT_INCLUDED_SERVICES } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import type {
   TQuotationDraft,
+  TQuotationHotel,
   TQuotationOption,
   TQuotationRoute,
 } from "@/types/quotation.type";
 
-export const HOTELS_MAKKAH = [
-  "Fairmont Makkah",
-  "Pullman Zamzam",
-  "Swissôtel Makkah",
-  "Movenpick Hajar",
-  "Adnan Hotel",
-  "Hilton Makkah Convention Hotel",
-];
+export const HOTEL_BOARD_OPTIONS = [
+  "All-Inclusive",
+  "Half-Board",
+  "Full-Board",
+  "Bed & Breakfast",
+  "Room Only",
+] as const;
 
-export const HOTELS_MADINAH = [
-  "Anwar Al Madinah",
-  "Hilton Madinah",
-  "Pullman Zamzam Madinah",
-  "Shaza Al Madinah",
-  "InterContinental Dar Al Iman",
-];
-
-export const HOTELS_HOLIDAY = [
-  "Dubai Atlantis",
-  "Istanbul Marriott",
-  "London Hilton",
-  "Paris Hyatt",
-];
-
-export const TRANSFER_LOCATIONS = [
-  "Jeddah Airport",
-  "Makkah Hotel",
-  "Madinah Hotel",
-  "Madinah Airport",
-  "Haram",
-  "Train Station",
-];
+export function createEmptyHotel(
+  location = "",
+  areaSlug?: string,
+): TQuotationHotel {
+  return {
+    name: "",
+    city: "",
+    country: "",
+    location,
+    areaSlug,
+    distance: "",
+    checkIn: "",
+    checkOut: "",
+    roomType: "",
+    board: "",
+    cost: 0,
+  };
+}
 
 export const QUOTATION_DRAFT_STORAGE_KEY = "quotation-calculator-draft";
 
@@ -51,13 +48,16 @@ export function createInitialOption(title = "Option 1"): TQuotationOption {
     flightYouth: 0,
     flightChild: 0,
     flightInfant: 0,
-    hotelMakkah: { name: "", roomType: "", cost: 0 },
-    hotelMadinah: { name: "", roomType: "", cost: 0 },
-    hotelHoliday: { name: "", roomType: "", cost: 0 },
+    hotelMakkah: createEmptyHotel(),
+    hotelMadinah: createEmptyHotel(),
+    hotelHoliday: createEmptyHotel(),
     visaUmrah: { pax: 0, cost: 0 },
     visaEVW: { pax: 0, cost: 0 },
     visaHoliday: { pax: 0, cost: 0 },
     transferCost: 0,
+    includedServices: { ...DEFAULT_INCLUDED_SERVICES },
+    vehicleName: "",
+    vehicleQuantity: 1,
     routes: [createRoute()],
     officeNote: "",
     customerNote: "",
@@ -67,6 +67,12 @@ export function createInitialOption(title = "Option 1"): TQuotationOption {
     flightSegments: [],
     holdLuggage: "",
     cabinLuggage: "",
+    flightSectionEnabled: true,
+    hotelSectionEnabled: true,
+    visaSectionEnabled: true,
+    transferSectionEnabled: true,
+    officeNoteSectionEnabled: true,
+    customerNoteSectionEnabled: true,
   };
 }
 
@@ -74,12 +80,12 @@ export function createEmptyDraft(): TQuotationDraft {
   return {
     customerName: "",
     customerNumber: "",
+    calculatorType: "umrah",
     quotationDate: new Date().toISOString(),
     status: "draft",
     currency: "GBP",
     templateId: "classic",
-    options: [createInitialOption()],
-    activeOptionIndex: 0,
+    calculatorStates: createEmptyCalculatorStates(),
   };
 }
 

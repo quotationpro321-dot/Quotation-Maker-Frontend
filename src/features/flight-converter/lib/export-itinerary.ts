@@ -3,6 +3,7 @@ import { jsPDF } from "jspdf";
 
 import {
   AIRLINE_LOGO_MAX_HEIGHT,
+  EXPORT_TABLE_FONT_FAMILY,
   ITINERARY_EXPORT_CANVAS_SCALE,
   ITINERARY_EXPORT_PADDING,
   ITINERARY_EXPORT_THEME,
@@ -204,6 +205,11 @@ function sanitizeCloneForCanvas(
 
   root.style.setProperty("background-color", p.bg, "important");
   root.style.setProperty("color", p.fg, "important");
+  root.style.setProperty("font-family", EXPORT_TABLE_FONT_FAMILY, "important");
+  root.style.setProperty("line-height", "1.45", "important");
+  root.style.setProperty("letter-spacing", "0.01em", "important");
+  root.style.setProperty("text-rendering", "geometricPrecision", "important");
+  root.style.setProperty("-webkit-font-smoothing", "antialiased", "important");
   root.style.setProperty("overflow", "hidden", "important");
   root.style.setProperty("box-sizing", "border-box", "important");
   root.style.setProperty("width", `${EXPORT_CAPTURE_WIDTH}px`, "important");
@@ -256,6 +262,9 @@ function sanitizeCloneForCanvas(
   root.querySelectorAll("*").forEach((node) => {
     const el = node as HTMLElement;
     const tag = el.tagName.toLowerCase();
+    el.style.setProperty("font-family", EXPORT_TABLE_FONT_FAMILY, "important");
+    el.style.setProperty("line-height", "1.45", "important");
+    el.style.setProperty("letter-spacing", "0.01em", "important");
 
     if (tag === "img") {
       if (!(el instanceof HTMLImageElement)) return;

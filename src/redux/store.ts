@@ -1,6 +1,8 @@
 // src/redux/store.ts
 import "@/redux/api/dashboard.api";
 import "@/redux/api/flight-converter.api";
+import "@/redux/api/hotels.api";
+import "@/redux/api/transfer.api";
 import "@/redux/api/quotations.api";
 import "@/redux/api/users.api";
 import { configureStore } from "@reduxjs/toolkit";

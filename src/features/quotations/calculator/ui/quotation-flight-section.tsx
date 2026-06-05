@@ -1,13 +1,29 @@
 "use client";
 
-import { Check, Plane } from "lucide-react";
+import { useCallback, useRef } from "react";
+import { Check, Copy, Download, FileText, Info, Plane } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  copyElementHtml,
+  exportElementAsImage,
+  exportElementAsPdf,
+} from "@/features/flight-converter/lib/export-itinerary";
+import {
+  EXAMPLE_BG_ITINERARY,
+  EXAMPLE_QR_ITINERARY,
+} from "@/features/flight-converter/lib/examples";
 import { formatQuotationMoney } from "@/features/quotations/calculator/lib/calculate-quotation";
+import {
+  QuotationSectionHeader,
+  quotationSectionBodyClass,
+} from "@/features/quotations/calculator/ui/quotation-section-header";
+import { ItineraryPreviewTable } from "@/features/flight-converter/ui/itinerary-preview-table";
 import type { TQuotationOption } from "@/types/quotation.type";
 
 type TQuotationFlightSectionProps = {
@@ -25,26 +41,108 @@ export function QuotationFlightSection({
   onChange,
   onParse,
 }: TQuotationFlightSectionProps) {
+  const itineraryPreviewRef = useRef<HTMLDivElement>(null);
+  const hasItineraryPreview = option.flightSegments.length > 0;
+
   const flightTotal =
     option.flightAdult +
     option.flightYouth +
     option.flightChild +
     option.flightInfant;
+  const displayFlightTotal = option.flightSectionEnabled ? flightTotal : 0;
+
+  const handleCopyItinerary = useCallback(async () => {
+    if (!itineraryPreviewRef.current) return;
+    try {
+      await copyElementHtml(itineraryPreviewRef.current);
+      toast.success("Itinerary copied to clipboard.");
+    } catch {
+      toast.error("Could not copy itinerary.");
+    }
+  }, []);
+
+  const handleExportItineraryImage = useCallback(async () => {
+    if (!itineraryPreviewRef.current) return;
+    try {
+      await exportElementAsImage(
+        itineraryPreviewRef.current,
+        "flight-itinerary.png",
+      );
+      toast.success("Image downloaded.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not export image. Try again.",
+      );
+    }
+  }, []);
+
+  const handleExportItineraryPdf = useCallback(async () => {
+    if (!itineraryPreviewRef.current) return;
+    try {
+      await exportElementAsPdf(
+        itineraryPreviewRef.current,
+        "flight-itinerary.pdf",
+      );
+      toast.success("PDF downloaded.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not export PDF. Try again.",
+      );
+    }
+  }, []);
 
   return (
     <Card className="rounded!">
-      <CardHeader className="flex flex-row items-center justify-between border-b">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Plane className="size-5 text-brand-primary" />
-          Flight itinerary & costs
-        </CardTitle>
-        <span className="rounded! bg-brand-primary/10 px-3 py-1 text-sm font-semibold text-brand-primary">
-          Total: {formatQuotationMoney(flightTotal, currency)}
-        </span>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-6">
+      <QuotationSectionHeader
+        icon={<Plane className="size-5 text-brand-primary" />}
+        title="Flight itinerary & costs"
+        enabled={option.flightSectionEnabled}
+        onEnabledChange={(flightSectionEnabled) =>
+          onChange({ flightSectionEnabled })
+        }
+        priceLabel={`Total: ${formatQuotationMoney(displayFlightTotal, currency)}`}
+      />
+      <CardContent
+        className={`space-y-4 ${quotationSectionBodyClass(option.flightSectionEnabled)}`}
+      >
         <div className="space-y-2">
-          <Label>Paste flight itinerary (Amadeus text)</Label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label>Paste flight itinerary (Amadeus text)</Label>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded!"
+                onClick={() =>
+                  onChange({
+                    rawItinerary: EXAMPLE_QR_ITINERARY,
+                    flightSegments: [],
+                  })
+                }
+              >
+                <Info className="size-4" />
+                QR Example
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded!"
+                onClick={() =>
+                  onChange({
+                    rawItinerary: EXAMPLE_BG_ITINERARY,
+                    flightSegments: [],
+                  })
+                }
+              >
+                <Info className="size-4" />
+                BG Example
+              </Button>
+            </div>
+          </div>
           <Textarea
             value={option.rawItinerary}
             onChange={(e) => onChange({ rawItinerary: e.target.value })}
@@ -91,32 +189,49 @@ export function QuotationFlightSection({
           </div>
         </div>
 
-        {option.flightSegments.length > 0 ? (
-          <div className="overflow-x-auto rounded! border border-border">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-3 py-2">Flight</th>
-                  <th className="px-3 py-2">Date</th>
-                  <th className="px-3 py-2">Route</th>
-                  <th className="px-3 py-2">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {option.flightSegments.map((seg) => (
-                  <tr key={`${seg.segmentOrder}-${seg.flightNumber}`} className="border-t">
-                    <td className="px-3 py-2 font-semibold">{seg.flightNumber}</td>
-                    <td className="px-3 py-2">{seg.departureDateDisplay}</td>
-                    <td className="px-3 py-2">
-                      {seg.fromCode} → {seg.toCode}
-                    </td>
-                    <td className="px-3 py-2">
-                      {seg.departureTime} – {seg.arrivalTime}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {hasItineraryPreview ? (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold">Itinerary preview</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded!"
+                  onClick={() => void handleCopyItinerary()}
+                >
+                  <Copy className="size-4" />
+                  Copy
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded!"
+                  onClick={() => void handleExportItineraryImage()}
+                >
+                  <Download className="size-4" />
+                  Save as image
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="rounded! border-transparent bg-brand-primary! font-medium text-white! shadow-sm hover:bg-brand-primary-700! hover:text-white! focus-visible:ring-brand-primary/35 disabled:hover:bg-brand-primary!"
+                  onClick={() => void handleExportItineraryPdf()}
+                >
+                  <FileText className="size-4" />
+                  Export PDF
+                </Button>
+              </div>
+            </div>
+            <div className="overflow-x-hidden rounded! border border-border bg-card p-3">
+              <ItineraryPreviewTable
+                ref={itineraryPreviewRef}
+                segments={option.flightSegments}
+                layout="quotation"
+              />
+            </div>
           </div>
         ) : null}
 

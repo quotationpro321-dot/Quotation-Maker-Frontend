@@ -1,6 +1,7 @@
 import type { TQuotationDraft, TQuotationDetail } from "@/types/quotation.type";
 
 import { createEmptyDraft, createInitialOption } from "./quotation-calculator-defaults";
+import { createEmptyCalculatorStates } from "./quotation-calculator-type-state";
 
 const MOCK_DETAILS: Record<string, TQuotationDetail> = {
   "q-1": {
@@ -22,17 +23,48 @@ const MOCK_DETAILS: Record<string, TQuotationDetail> = {
         ...createInitialOption("Option 1"),
         hotelMakkah: {
           name: "Hilton Makkah Convention Hotel",
+          city: "Makkah",
+          country: "Saudi Arabia",
+          location: "Makkah",
+          areaSlug: "makkah",
+          distance: "5-7 Minutes",
+          checkIn: "10 Dec 2025",
+          checkOut: "15 Dec 2025",
           roomType: "Double",
+          board: "Half-Board",
           cost: 850,
         },
         hotelMadinah: {
           name: "Anwar Al Madinah Movenpick Hotel",
+          city: "Madinah",
+          country: "Saudi Arabia",
+          location: "Madinah",
+          areaSlug: "madinah",
+          distance: "0-1 Minutes",
+          checkIn: "15 Dec 2025",
+          checkOut: "20 Dec 2025",
           roomType: "Twin",
+          board: "Bed & Breakfast",
           cost: 620,
         },
         flightAdult: 725,
         numPax: 2,
         markupPerPerson: 150,
+        transferCost: 180,
+        vehicleName: "Hyundai H1",
+        vehicleQuantity: 2,
+        routes: [
+          {
+            id: "route-mock-1",
+            from: "Jeddah Airport",
+            to: "Makkah Hotel",
+          },
+          {
+            id: "route-mock-2",
+            from: "Makkah Hotel",
+            to: "Madinah Hotel",
+          },
+        ],
       },
     ],
   },
@@ -53,13 +85,29 @@ const MOCK_DETAILS: Record<string, TQuotationDetail> = {
       {
         ...createInitialOption("Option 1"),
         hotelMakkah: {
-          name: "Pullman Zamzam Makkah",
+          name: "Pullman Zamzam",
+          city: "Makkah",
+          country: "Saudi Arabia",
+          location: "Makkah",
+          areaSlug: "makkah",
+          distance: "1-2 Minutes",
+          checkIn: "01 Jan 2026",
+          checkOut: "08 Jan 2026",
           roomType: "Deluxe",
+          board: "Full-Board",
           cost: 1200,
         },
         hotelMadinah: {
           name: "Pullman Zamzam Madinah",
+          city: "Madinah",
+          country: "Saudi Arabia",
+          location: "Madinah",
+          areaSlug: "madinah",
+          distance: "2-3 Minutes",
+          checkIn: "08 Jan 2026",
+          checkOut: "14 Jan 2026",
           roomType: "Deluxe",
+          board: "Full-Board",
           cost: 980,
         },
         flightAdult: 1450,
@@ -74,17 +122,24 @@ export function loadMockQuotationDetail(id: string): TQuotationDraft | null {
   const detail = MOCK_DETAILS[id];
   if (!detail) return null;
 
+  const calculatorType = detail.calculatorType ?? "umrah";
+  const calculatorStates = createEmptyCalculatorStates();
+  calculatorStates[calculatorType] = {
+    options: detail.options,
+    activeOptionIndex: 0,
+  };
+
   return {
     id: detail.id,
     referenceNumber: detail.referenceNumber,
     customerName: detail.customerName,
     customerNumber: detail.customerNumber ?? detail.customerPhone ?? "",
+    calculatorType,
     quotationDate: detail.quotationDate,
     status: detail.status,
     currency: detail.currency,
     templateId: detail.templateId,
-    options: detail.options,
-    activeOptionIndex: 0,
+    calculatorStates,
   };
 }
 

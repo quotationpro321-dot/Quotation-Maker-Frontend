@@ -1,10 +1,12 @@
 import { format } from "date-fns";
-import { Hotel, Plane, Receipt } from "lucide-react";
+import { Hotel, MapPin, Plane, Receipt } from "lucide-react";
 
 import {
   calculateGross,
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
+import { listHotelSlots } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
+import { INCLUDED_SERVICE_OPTIONS } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import type { TQuotationTemplateProps } from "@/features/quotations/calculator/lib/quotation-template.types";
 
 type TQuotationTemplateContentProps = TQuotationTemplateProps & {
@@ -21,6 +23,12 @@ export function QuotationTemplateContent({
   const issuedDate = format(new Date(draft.quotationDate), "d MMMM yyyy");
   const adultGross = calculateGross(option, option.flightAdult);
   const isCompact = variant === "compact";
+  const includedServiceLabels = INCLUDED_SERVICE_OPTIONS.filter(
+    (service) => option.includedServices?.[service.id],
+  ).map((service) => service.label);
+  const hasTransferContent =
+    option.vehicleName ||
+    option.routes.some((route) => route.from || route.to);
 
   return (
     <div data-quotation-export-content className="space-y-8 text-foreground">
@@ -101,24 +109,72 @@ export function QuotationTemplateContent({
           Accommodation
         </h3>
         <div className={isCompact ? "grid gap-2" : "grid gap-3 sm:grid-cols-3"}>
-          {[
-            { label: "Makkah", hotel: option.hotelMakkah },
-            { label: "Madinah", hotel: option.hotelMadinah },
-            { label: "Holiday", hotel: option.hotelHoliday },
-          ]
-            .filter((item) => item.hotel.name)
-            .map((item) => (
+          {listHotelSlots(option)
+            .filter(({ hotel }) => hotel.name || hotel.location)
+            .map(({ field, hotel }) => (
               <div
-                key={item.label}
+                key={field}
                 className="rounded! border border-border p-3 text-sm"
               >
-                <p className="text-xs uppercase text-muted-foreground">{item.label}</p>
-                <p className="font-semibold">{item.hotel.name}</p>
-                <p className="text-muted-foreground">{item.hotel.roomType || "N/A"}</p>
+                <p className="text-xs uppercase text-muted-foreground">
+                  {hotel.location || "Hotel stay"}
+                </p>
+                {hotel.name ? <p className="font-semibold">{hotel.name}</p> : null}
+                {hotel.checkIn || hotel.checkOut ? (
+                  <p className="text-muted-foreground">
+                    {hotel.checkIn || "—"} → {hotel.checkOut || "—"}
+                  </p>
+                ) : null}
+                {hotel.board ? (
+                  <p className="text-muted-foreground">Board: {hotel.board}</p>
+                ) : null}
+                <p className="text-muted-foreground">
+                  {hotel.roomType ? `Room: ${hotel.roomType}` : "Room: N/A"}
+                </p>
               </div>
             ))}
         </div>
       </section>
+
+      {hasTransferContent ? (
+        <section className="space-y-3">
+          <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
+            <MapPin className="size-4 text-brand-primary" />
+            Transfers
+          </h3>
+          {option.vehicleName ? (
+            <div className="rounded! border border-border p-3 text-sm">
+              <p className="text-xs uppercase text-muted-foreground">Vehicle</p>
+              <p className="font-semibold">{option.vehicleName}</p>
+              <p className="text-muted-foreground">
+                {option.vehicleQuantity} unit(s)
+              </p>
+            </div>
+          ) : null}
+          {includedServiceLabels.length > 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Included: {includedServiceLabels.join(", ")}
+            </p>
+          ) : null}
+          <div className="space-y-2">
+            {option.routes
+              .filter((route) => route.from || route.to)
+              .map((route) => (
+                <div
+                  key={route.id}
+                  className="rounded! border border-border px-3 py-2 text-sm"
+                >
+                  {route.from || "—"} → {route.to || "—"}
+                </div>
+              ))}
+          </div>
+          {option.transferCost > 0 ? (
+            <p className="text-sm font-medium">
+              Transfer cost: {formatQuotationMoney(option.transferCost, currency)}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">

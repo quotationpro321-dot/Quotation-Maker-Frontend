@@ -18,19 +18,19 @@ export type TQuotationTemplateMeta = {
 export const QUOTATION_TEMPLATES: TQuotationTemplateMeta[] = [
   {
     id: "classic",
-    name: "Classic",
+    name: "Alsama",
     description: "Umrah cover and introduction pages; package details follow in export.",
     component: StubClassicTemplate,
   },
   {
     id: "modern",
-    name: "Modern",
+    name: "Agent 1",
     description: "ALSAMA brand header with structured sections.",
     component: StubModernTemplate,
   },
   {
     id: "compact",
-    name: "Compact",
+    name: "Agent 2",
     description: "Dense table-focused summary for quick review.",
     component: StubCompactTemplate,
   },

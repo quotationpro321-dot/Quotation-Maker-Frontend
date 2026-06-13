@@ -52,11 +52,20 @@ export type TQuotationRoute = {
 export type TQuotationIncludedServices = {
   guide: boolean;
   ziyarah: boolean;
+  train: boolean;
   manager: boolean;
   esim: boolean;
 };
 
+export type TQuotationCustomIncludedService = {
+  id: string;
+  label: string;
+  included: boolean;
+};
+
 export type TQuotationFlightSegment = NormalizedSegment;
+
+export type TFlightItineraryInputMode = "text" | "image";
 
 export type TQuotationOption = {
   id: string;
@@ -73,6 +82,7 @@ export type TQuotationOption = {
   visaHoliday: TQuotationVisaLine;
   transferCost: number;
   includedServices: TQuotationIncludedServices;
+  customIncludedServices: TQuotationCustomIncludedService[];
   vehicleName: string;
   vehicleQuantity: number;
   routes: TQuotationRoute[];
@@ -82,6 +92,9 @@ export type TQuotationOption = {
   markupPerPerson: number;
   rawItinerary: string;
   flightSegments: TQuotationFlightSegment[];
+  flightItineraryMode: TFlightItineraryInputMode;
+  /** JPEG data URL shown in preview/PDF when mode is `image`. */
+  flightItineraryImage: string;
   holdLuggage: string;
   cabinLuggage: string;
   flightSectionEnabled: boolean;

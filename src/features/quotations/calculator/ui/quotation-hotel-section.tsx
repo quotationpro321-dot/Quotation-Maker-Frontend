@@ -18,12 +18,15 @@ import {
   calculateHotelTotal,
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
+import { HOTEL_BOARD_OPTIONS } from "@/features/quotations/calculator/lib/quotation-calculator-defaults";
 import {
-  HOTEL_BOARD_OPTIONS,
-} from "@/features/quotations/calculator/lib/quotation-calculator-defaults";
-import {
-  getUsedAreaSlugs,
   HOTEL_SLOT_FIELDS,
+  getCustomHotelValue,
+  getCustomLocationValue,
+  getUsedAreaSlugs,
+  getUsedCustomLocations,
+  isCatalogArea,
+  isCatalogHotel,
   resolveHotelAreaSlug,
   showsHotelDistance,
 } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
@@ -55,6 +58,7 @@ type THotelAccommodationRowProps = {
   areas: THotelAreaDto[];
   areasLoading: boolean;
   disabledAreaSlugs: Set<string>;
+  usedCustomLocations: Set<string>;
   disabled: boolean;
   onHotelChange: (hotel: TQuotationHotel) => void;
 };
@@ -65,6 +69,7 @@ function HotelAccommodationRow({
   areas,
   areasLoading,
   disabledAreaSlugs,
+  usedCustomLocations,
   disabled,
   onHotelChange,
 }: THotelAccommodationRowProps) {
@@ -83,10 +88,7 @@ function HotelAccommodationRow({
     data: hotelsResponse,
     isLoading: hotelsLoading,
     isError: hotelsError,
-  } = useListHotelsByAreaQuery(
-    { area: areaSlug ?? "" },
-    { skip: !areaSlug },
-  );
+  } = useListHotelsByAreaQuery({ area: areaSlug ?? "" }, { skip: !areaSlug });
 
   const hotels = hotelsResponse?.data ?? [];
 
@@ -111,6 +113,18 @@ function HotelAccommodationRow({
     });
   };
 
+  const handleCustomLocationChange = (value: string) => {
+    onHotelChange({
+      ...hotel,
+      location: value,
+      areaSlug: undefined,
+      name: "",
+      city: "",
+      country: "",
+      distance: "",
+    });
+  };
+
   const handleHotelSelect = (hotelName: string) => {
     const selected = hotels.find((item) => item.name === hotelName);
     onHotelChange({
@@ -124,8 +138,27 @@ function HotelAccommodationRow({
     });
   };
 
-  const selectedAreaId =
-    areas.find((area) => area.slug === areaSlug)?.id ?? "";
+  const handleCustomHotelChange = (value: string) => {
+    onHotelChange({
+      ...hotel,
+      name: value,
+      city: "",
+      country: "",
+      distance: "",
+    });
+  };
+
+  const catalogAreaSelected = isCatalogArea(hotel, areas);
+  const selectedAreaId = catalogAreaSelected
+    ? (areas.find((area) => area.slug === hotel.areaSlug)?.id ?? "")
+    : "";
+  const customLocationValue = getCustomLocationValue(hotel, areas);
+  const customHotelValue = getCustomHotelValue(hotel, hotels);
+  const catalogHotelSelected = isCatalogHotel(hotel, hotels);
+  const customLocationKey = customLocationValue.trim().toLowerCase();
+  const isDuplicateCustomLocation =
+    customLocationKey.length > 0 && usedCustomLocations.has(customLocationKey);
+  const hasLocation = Boolean(hotel.location.trim());
 
   const distanceLabel = showsHotelDistance(areaSlug)
     ? hotel.distance || "Select hotel"
@@ -145,12 +178,15 @@ function HotelAccommodationRow({
             disabled={disabled || areasLoading}
           >
             <SelectTrigger className={hotelSelectTriggerClass}>
-              <SelectValue placeholder={areasLoading ? "Loading areas…" : "Select area"} />
+              <SelectValue
+                placeholder={areasLoading ? "Loading areas…" : "Select area"}
+              />
             </SelectTrigger>
             <SelectContent>
               {areas.map((area) => {
                 const isTakenElsewhere =
-                  disabledAreaSlugs.has(area.slug) && area.id !== selectedAreaId;
+                  disabledAreaSlugs.has(area.slug) &&
+                  area.id !== selectedAreaId;
 
                 return (
                   <SelectItem
@@ -165,12 +201,25 @@ function HotelAccommodationRow({
               })}
             </SelectContent>
           </Select>
+          <Input
+            value={customLocationValue}
+            onChange={(e) => handleCustomLocationChange(e.target.value)}
+            placeholder="Or enter custom location"
+            disabled={disabled}
+            aria-invalid={isDuplicateCustomLocation}
+            className={hotelInputClass}
+          />
+          {isDuplicateCustomLocation ? (
+            <p className="text-xs text-destructive">
+              This location is already used in another stay.
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-2">
           <Label>Hotel</Label>
           <Select
-            value={hotel.name || undefined}
+            value={catalogHotelSelected ? hotel.name : undefined}
             onValueChange={handleHotelSelect}
             disabled={disabled || hotelsLoading || !areaSlug}
           >
@@ -193,6 +242,13 @@ function HotelAccommodationRow({
               ))}
             </SelectContent>
           </Select>
+          <Input
+            value={customHotelValue}
+            onChange={(e) => handleCustomHotelChange(e.target.value)}
+            placeholder="Or enter custom hotel"
+            disabled={disabled || !hasLocation}
+            className={hotelInputClass}
+          />
         </div>
       </div>
 
@@ -278,7 +334,9 @@ function HotelAccommodationRow({
         onOpenChange={setStayDatesOpen}
         checkIn={hotel.checkIn}
         checkOut={hotel.checkOut}
-        onApply={(checkIn, checkOut) => onHotelChange({ ...hotel, checkIn, checkOut })}
+        onApply={(checkIn, checkOut) =>
+          onHotelChange({ ...hotel, checkIn, checkOut })
+        }
       />
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -286,7 +344,9 @@ function HotelAccommodationRow({
           <Label>Room category</Label>
           <Input
             value={hotel.roomType}
-            onChange={(e) => onHotelChange({ ...hotel, roomType: e.target.value })}
+            onChange={(e) =>
+              onHotelChange({ ...hotel, roomType: e.target.value })
+            }
             placeholder="e.g. Double"
             disabled={disabled}
             className={hotelInputClass}
@@ -343,7 +403,9 @@ export function QuotationHotelSection({
         icon={<Hotel className="size-5 text-brand-primary" />}
         title="Hotel accommodation"
         enabled={option.hotelSectionEnabled}
-        onEnabledChange={(hotelSectionEnabled) => onChange({ hotelSectionEnabled })}
+        onEnabledChange={(hotelSectionEnabled) =>
+          onChange({ hotelSectionEnabled })
+        }
         priceLabel={formatQuotationMoney(displayHotelTotal, currency)}
       />
       <CardContent
@@ -357,6 +419,7 @@ export function QuotationHotelSection({
             areas={areas}
             areasLoading={areasLoading}
             disabledAreaSlugs={getUsedAreaSlugs(option, areas, field)}
+            usedCustomLocations={getUsedCustomLocations(option, areas, field)}
             disabled={sectionDisabled}
             onHotelChange={(hotel) => onChange({ [field]: hotel })}
           />

@@ -1,4 +1,4 @@
-import type { THotelAreaDto } from "@/redux/api/hotels.api";
+import type { THotelAreaDto, THotelDto } from "@/redux/api/hotels.api";
 import type { TQuotationHotel, TQuotationOption } from "@/types/quotation.type";
 
 export const HOTEL_SLOT_FIELDS = [
@@ -41,6 +41,55 @@ export function getUsedAreaSlugs(
     if (field === excludeField) continue;
     const slug = resolveHotelAreaSlug(hotel, areas);
     if (slug) used.add(slug);
+  }
+
+  return used;
+}
+
+export function isCatalogArea(
+  hotel: TQuotationHotel,
+  areas: THotelAreaDto[],
+): boolean {
+  if (!hotel.areaSlug) return false;
+  return areas.some((area) => area.slug === hotel.areaSlug);
+}
+
+export function getCustomLocationValue(
+  hotel: TQuotationHotel,
+  areas: THotelAreaDto[],
+): string {
+  if (isCatalogArea(hotel, areas)) return "";
+  return hotel.location;
+}
+
+export function isCatalogHotel(
+  hotel: TQuotationHotel,
+  hotels: Pick<THotelDto, "name">[],
+): boolean {
+  if (!hotel.name) return false;
+  return hotels.some((item) => item.name === hotel.name);
+}
+
+export function getCustomHotelValue(
+  hotel: TQuotationHotel,
+  hotels: Pick<THotelDto, "name">[],
+): string {
+  if (isCatalogHotel(hotel, hotels)) return "";
+  return hotel.name;
+}
+
+export function getUsedCustomLocations(
+  option: TQuotationOption,
+  areas: THotelAreaDto[],
+  excludeField: THotelSlotField,
+): Set<string> {
+  const used = new Set<string>();
+
+  for (const { field, hotel } of listHotelSlots(option)) {
+    if (field === excludeField) continue;
+    if (isCatalogArea(hotel, areas)) continue;
+    const key = hotel.location.trim().toLowerCase();
+    if (key) used.add(key);
   }
 
   return used;

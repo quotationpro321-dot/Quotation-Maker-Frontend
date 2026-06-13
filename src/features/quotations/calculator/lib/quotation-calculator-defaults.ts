@@ -1,4 +1,5 @@
 import { createEmptyCalculatorStates } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
+import { normalizeCustomIncludedServices } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import { DEFAULT_INCLUDED_SERVICES } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import type {
   TQuotationDraft,
@@ -56,6 +57,7 @@ export function createInitialOption(title = "Option 1"): TQuotationOption {
     visaHoliday: { pax: 0, cost: 0 },
     transferCost: 0,
     includedServices: { ...DEFAULT_INCLUDED_SERVICES },
+    customIncludedServices: [],
     vehicleName: "",
     vehicleQuantity: 1,
     routes: [createRoute()],
@@ -65,6 +67,8 @@ export function createInitialOption(title = "Option 1"): TQuotationOption {
     markupPerPerson: 0,
     rawItinerary: "",
     flightSegments: [],
+    flightItineraryMode: "text",
+    flightItineraryImage: "",
     holdLuggage: "",
     cabinLuggage: "",
     flightSectionEnabled: true,
@@ -91,4 +95,25 @@ export function createEmptyDraft(): TQuotationDraft {
 
 export function createRouteRow(): TQuotationRoute {
   return createRoute();
+}
+
+/** Copies all option fields from a source option; hotel slots stay empty for manual entry. */
+export function createOptionFromPrevious(
+  source: TQuotationOption,
+): TQuotationOption {
+  const copy = JSON.parse(JSON.stringify(source)) as TQuotationOption;
+  return {
+    ...copy,
+    id: crypto.randomUUID(),
+    title: "",
+    hotelMakkah: createEmptyHotel(),
+    hotelMadinah: createEmptyHotel(),
+    hotelHoliday: createEmptyHotel(),
+    flightItineraryMode:
+      copy.flightItineraryMode === "image" ? "image" : "text",
+    flightItineraryImage: copy.flightItineraryImage ?? "",
+    customIncludedServices: normalizeCustomIncludedServices(
+      copy.customIncludedServices,
+    ),
+  };
 }

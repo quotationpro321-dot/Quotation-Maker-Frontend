@@ -59,6 +59,7 @@ export function useDashboardSettings() {
       const body = {
         name: values.name.trim(),
         email: values.email.trim(),
+        whatsappNumber: values.whatsappNumber?.trim() ?? "",
         ...(emailChanged && values.currentPassword
           ? { currentPassword: values.currentPassword }
           : {}),
@@ -85,6 +86,7 @@ export function useDashboardSettings() {
               ...prev,
               name: next.name,
               email: next.email,
+              whatsappNumber: next.whatsappNumber ?? "",
               profilePhotoUrl: next.profilePhotoUrl ?? "",
             }
           : null,

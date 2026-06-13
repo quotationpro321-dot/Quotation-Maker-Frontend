@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileText } from "lucide-react";
+import { FileText, Link2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { calculateOptionTotals } from "@/features/quotations/calculator/lib/calculate-quotation";
-import { getCalculatorTypeState } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
-import { getQuotationTemplate } from "@/features/quotations/calculator/lib/quotation-template-registry";
-import { QuotationPagedPreviewScaler } from "@/features/quotations/calculator/ui/quotation-paged-preview-scaler";
+import { QuotationTemplatePreview } from "@/features/quotations/calculator/ui/quotation-template-preview";
 import type { TQuotationDraft } from "@/types/quotation.type";
 
 type TQuotationPreviewDialogProps = {
@@ -23,13 +20,10 @@ type TQuotationPreviewDialogProps = {
   activeOptionIndex: number;
   previewRef: React.RefObject<HTMLDivElement | null>;
   onOpenChange: (open: boolean) => void;
-  onExportImage: () => void;
   onExportPdf: () => void;
+  onShareLink: () => void;
+  isSharing?: boolean;
 };
-
-function isUmrahClassicPagedPreview(draft: TQuotationDraft): boolean {
-  return draft.calculatorType === "umrah" && draft.templateId === "classic";
-}
 
 export function QuotationPreviewDialog({
   open,
@@ -37,52 +31,26 @@ export function QuotationPreviewDialog({
   activeOptionIndex,
   previewRef,
   onOpenChange,
-  onExportImage,
   onExportPdf,
+  onShareLink,
+  isSharing = false,
 }: TQuotationPreviewDialogProps) {
-  const activeCalculatorOptions = getCalculatorTypeState(draft).options;
-  const activeOption =
-    activeCalculatorOptions[activeOptionIndex] ?? activeCalculatorOptions[0];
-  const template = getQuotationTemplate(draft.templateId);
-  const TemplateComponent = template?.component;
-  const totals = calculateOptionTotals(activeOption);
-  const usePagedPreview = isUmrahClassicPagedPreview(draft);
-
-  const templatePreview = TemplateComponent ? (
-    <TemplateComponent
-      draft={draft}
-      option={activeOption}
-      optionIndex={activeOptionIndex}
-      totals={totals}
-      currency={draft.currency}
-    />
-  ) : null;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] w-[min(100vw-2rem,64rem)]! max-w-none! flex-col gap-4 overflow-hidden rounded! p-4 sm:max-w-none!">
         <DialogHeader>
           <DialogTitle>Quotation preview</DialogTitle>
           <DialogDescription>
-            Review filled data, then download as image or PDF.
+            Review filled data, then export as PDF or share an HTML view link.
           </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1">
-          <div
-            ref={previewRef}
-            className={
-              usePagedPreview
-                ? "flex min-w-0 justify-center py-2"
-                : "rounded! border border-border bg-muted/20 p-4"
-            }
-          >
-            {usePagedPreview ? (
-              <QuotationPagedPreviewScaler>{templatePreview}</QuotationPagedPreviewScaler>
-            ) : (
-              templatePreview
-            )}
-          </div>
+          <QuotationTemplatePreview
+            draft={draft}
+            activeOptionIndex={activeOptionIndex}
+            previewRef={previewRef}
+          />
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
@@ -99,10 +67,11 @@ export function QuotationPreviewDialog({
               type="button"
               variant="outline"
               className="rounded!"
-              onClick={() => void onExportImage()}
+              onClick={onShareLink}
+              disabled={isSharing}
             >
-              <Download className="size-4" />
-              Download image
+              <Link2 className="size-4" />
+              Share link
             </Button>
             <Button
               type="button"

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Hash, Loader2, Mail, Save, UserRound } from "lucide-react";
+import { Hash, Loader2, Mail, MessageCircle, Save, UserRound } from "lucide-react";
 import { useId, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { Resolver } from "react-hook-form";
@@ -29,6 +29,7 @@ type TSettingsProfileIdentityFormProps = {
   userId: string;
   defaultName: string;
   defaultEmail: string;
+  defaultWhatsapp: string;
   isSaving: boolean;
   onSubmit: (values: TSettingsProfileSavePayload) => Promise<boolean>;
   onFinalizeEmailChangeSession: () => Promise<void>;
@@ -38,6 +39,7 @@ export function SettingsProfileIdentityForm({
   userId,
   defaultName,
   defaultEmail,
+  defaultWhatsapp,
   isSaving,
   onSubmit,
   onFinalizeEmailChangeSession,
@@ -52,8 +54,16 @@ export function SettingsProfileIdentityForm({
     resolver: zodResolver(
       settingsProfileIdentitySchema as never,
     ) as Resolver<TSettingsProfileIdentityValues>,
-    defaultValues: { name: defaultName, email: defaultEmail },
-    values: { name: defaultName, email: defaultEmail },
+    defaultValues: {
+      name: defaultName,
+      email: defaultEmail,
+      whatsappNumber: defaultWhatsapp,
+    },
+    values: {
+      name: defaultName,
+      email: defaultEmail,
+      whatsappNumber: defaultWhatsapp,
+    },
   });
 
   const emailChangedVsServer = (data: TSettingsProfileIdentityValues) =>
@@ -141,6 +151,32 @@ export function SettingsProfileIdentityForm({
                 )}
               />
             </div>
+
+            <Controller
+              name="whatsappNumber"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={`${formId}-whatsapp`}>
+                    WhatsApp Number
+                  </FieldLabel>
+                  <BrandInputShell
+                    {...field}
+                    value={field.value ?? ""}
+                    id={`${formId}-whatsapp`}
+                    leading={<MessageCircle />}
+                    type="tel"
+                    autoComplete="tel"
+                    invalid={fieldState.invalid}
+                    placeholder="e.g. +44 7960 046798"
+                  />
+                  <FieldDescription>
+                    Shown on your quotation PDFs. Leave blank to hide it.
+                  </FieldDescription>
+                  {fieldState.invalid ? <FieldError errors={[fieldState.error]} /> : null}
+                </Field>
+              )}
+            />
           </FieldGroup>
 
           <div className="flex justify-end pt-2">

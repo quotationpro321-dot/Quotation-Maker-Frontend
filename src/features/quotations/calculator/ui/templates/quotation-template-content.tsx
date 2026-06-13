@@ -6,8 +6,11 @@ import {
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
 import { listHotelSlots } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
-import { INCLUDED_SERVICE_OPTIONS } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
+import { hasFlightItineraryContent, getFlightItineraryImage, getFlightItineraryMode } from "@/features/quotations/calculator/lib/quotation-flight-itinerary";
+import { formatTransferRouteEndpoint } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
+import { listCheckedIncludedServiceLabels } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import type { TQuotationTemplateProps } from "@/features/quotations/calculator/lib/quotation-template.types";
+import { QuotationFlightItineraryImagePreview } from "@/features/quotations/calculator/ui/quotation-flight-itinerary-image-preview";
 
 type TQuotationTemplateContentProps = TQuotationTemplateProps & {
   variant?: "classic" | "modern" | "compact";
@@ -23,12 +26,11 @@ export function QuotationTemplateContent({
   const issuedDate = format(new Date(draft.quotationDate), "d MMMM yyyy");
   const adultGross = calculateGross(option, option.flightAdult);
   const isCompact = variant === "compact";
-  const includedServiceLabels = INCLUDED_SERVICE_OPTIONS.filter(
-    (service) => option.includedServices?.[service.id],
-  ).map((service) => service.label);
+  const includedServiceLabels = listCheckedIncludedServiceLabels(option);
   const hasTransferContent =
     option.vehicleName ||
-    option.routes.some((route) => route.from || route.to);
+    option.routes.some((route) => route.from || route.to) ||
+    includedServiceLabels.length > 0;
 
   return (
     <div data-quotation-export-content className="space-y-8 text-foreground">
@@ -78,28 +80,40 @@ export function QuotationTemplateContent({
         </div>
       </div>
 
-      {option.flightSegments.length > 0 ? (
+      {hasFlightItineraryContent(option) ? (
         <section className="space-y-3">
           <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
             <Plane className="size-4 text-brand-primary" />
             Flight itinerary
           </h3>
-          <div className={isCompact ? "space-y-2" : "space-y-3"}>
-            {option.flightSegments.map((seg) => (
-              <div
-                key={`${seg.flightNumber}-${seg.segmentOrder}`}
-                className="rounded! border border-border bg-muted/20 p-3 text-sm"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold">{seg.flightNumber}</span>
-                  <span className="text-muted-foreground">{seg.departureDateDisplay}</span>
+          {getFlightItineraryMode(option) === "image" &&
+          getFlightItineraryImage(option) ? (
+            <div className="rounded! border border-border bg-muted/20 p-3">
+              <QuotationFlightItineraryImagePreview
+                src={getFlightItineraryImage(option)}
+              />
+            </div>
+          ) : (
+            <div className={isCompact ? "space-y-2" : "space-y-3"}>
+              {option.flightSegments.map((seg) => (
+                <div
+                  key={`${seg.flightNumber}-${seg.segmentOrder}`}
+                  className="rounded! border border-border bg-muted/20 p-3 text-sm"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-semibold">{seg.flightNumber}</span>
+                    <span className="text-muted-foreground">
+                      {seg.departureDateDisplay}
+                    </span>
+                  </div>
+                  <p className="mt-1">
+                    {seg.fromCode} → {seg.toCode} · {seg.departureTime} –{" "}
+                    {seg.arrivalTime}
+                  </p>
                 </div>
-                <p className="mt-1">
-                  {seg.fromCode} → {seg.toCode} · {seg.departureTime} – {seg.arrivalTime}
-                </p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       ) : null}
 
@@ -164,7 +178,11 @@ export function QuotationTemplateContent({
                   key={route.id}
                   className="rounded! border border-border px-3 py-2 text-sm"
                 >
-                  {route.from || "—"} → {route.to || "—"}
+                  {formatTransferRouteEndpoint(route.from, draft.calculatorType) ||
+                    "—"}{" "}
+                  →{" "}
+                  {formatTransferRouteEndpoint(route.to, draft.calculatorType) ||
+                    "—"}
                 </div>
               ))}
           </div>

@@ -7,6 +7,10 @@ import {
   UMRAH_TRANSFER_INSTRUCTION,
   UMRAH_VISA_NOTE,
 } from "@/features/quotations/calculator/lib/quotation-classic-umrah-copy";
+import {
+  isTransferSectionExported,
+  isVisaSectionExported,
+} from "@/features/quotations/calculator/lib/quotation-section-export";
 import type { TQuotationOption } from "@/types/quotation.type";
 
 import { ClassicUmrahPageShell } from "./classic-umrah-page-shell";
@@ -62,6 +66,8 @@ export function ClassicUmrahOptionTransfersPage({
   option: TQuotationOption;
   currency: string;
 }) {
+  const showTransfers = isTransferSectionExported(option);
+  const showVisa = isVisaSectionExported(option);
   const grossPerPerson = calculateGross(option, option.flightAdult);
   const totalQuoteValue = grossPerPerson * option.numPax;
   const customIncludedServices = normalizeCustomIncludedServices(
@@ -74,65 +80,79 @@ export function ClassicUmrahOptionTransfersPage({
 
   return (
     <ClassicUmrahPageShell>
-      <h2 className="text-center text-[16px] font-bold">TRANSFERS:</h2>
-      <p className="pb-4 text-center text-[14px] font-semibold">
-        Private Transfers
-      </p>
+      {showTransfers ? (
+        <>
+          <h2 className="text-center text-[16px] font-bold">TRANSFERS:</h2>
+          <p className="pb-4 text-center text-[14px] font-semibold">
+            Private Transfers
+          </p>
 
-      <div className="space-y-2">
-        {option.routes
-          .filter((route) => route.from || route.to)
-          .map((route) => (
-            <div
-              key={route.id}
-              className="grid grid-cols-[170px_1fr_170px] items-center gap-2"
+          <div className="space-y-2">
+            {option.routes
+              .filter((route) => route.from || route.to)
+              .map((route) => (
+                <div
+                  key={route.id}
+                  className="grid grid-cols-[170px_1fr_170px] items-center gap-2"
+                >
+                  <RoutePill>{route.from || "—"}</RoutePill>
+                  <span className="text-center text-[12px] tracking-tight text-slate-800">
+                    {"------------------------->>"}
+                  </span>
+                  <RoutePill>{route.to || "—"}</RoutePill>
+                </div>
+              ))}
+          </div>
+
+          <div className="space-y-1.5 pt-6 pl-10">
+            {UMRAH_SERVICE_CHECKLIST.map((service) => (
+              <ChecklistRow
+                key={service.id}
+                checked={Boolean(option.includedServices[service.id])}
+                label={service.label}
+              />
+            ))}
+            {customIncludedServices.map((service) => (
+              <ChecklistRow
+                key={service.id}
+                checked={service.included}
+                label={service.label.trim()}
+              />
+            ))}
+          </div>
+
+          {option.includedServices.esim ? <EsimBadge /> : <div className="py-4" />}
+        </>
+      ) : null}
+
+      {showVisa ? (
+        <>
+          <h2
+            className={`text-center text-[16px] font-bold ${showTransfers ? "pt-6" : "pt-2"}`}
+          >
+            VISA:
+          </h2>
+          <div className="pl-10 pt-1">
+            {visaLines.length > 0 ? (
+              visaLines.map((line) => (
+                <p key={line.label} className="text-[13.5px] text-slate-900">
+                  ● {line.pax} x {line.label}
+                </p>
+              ))
+            ) : (
+              <p className="text-[13.5px] text-slate-500">● Visa not included</p>
+            )}
+            <p
+              className="pt-1 text-[11px] italic leading-snug"
+              style={{ color: UMRAH_PDF_RED }}
             >
-              <RoutePill>{route.from || "—"}</RoutePill>
-              <span className="text-center text-[12px] tracking-tight text-slate-800">
-                {"------------------------->>"}
-              </span>
-              <RoutePill>{route.to || "—"}</RoutePill>
-            </div>
-          ))}
-      </div>
-
-      <div className="space-y-1.5 pt-6 pl-10">
-        {UMRAH_SERVICE_CHECKLIST.map((service) => (
-          <ChecklistRow
-            key={service.id}
-            checked={Boolean(option.includedServices[service.id])}
-            label={service.label}
-          />
-        ))}
-        {customIncludedServices.map((service) => (
-          <ChecklistRow
-            key={service.id}
-            checked={service.included}
-            label={service.label.trim()}
-          />
-        ))}
-      </div>
-
-      <h2 className="pt-6 text-center text-[16px] font-bold">VISA:</h2>
-      <div className="pl-10 pt-1">
-        {visaLines.length > 0 ? (
-          visaLines.map((line) => (
-            <p key={line.label} className="text-[13.5px] text-slate-900">
-              ● {line.pax} x {line.label}
+              {UMRAH_VISA_NOTE}
             </p>
-          ))
-        ) : (
-          <p className="text-[13.5px] text-slate-500">● Visa not included</p>
-        )}
-        <p
-          className="pt-1 text-[11px] italic leading-snug"
-          style={{ color: UMRAH_PDF_RED }}
-        >
-          {UMRAH_VISA_NOTE}
-        </p>
-      </div>
+          </div>
+        </>
+      ) : null}
 
-      {option.includedServices.esim ? <EsimBadge /> : <div className="py-4" />}
+      {!showTransfers && !showVisa ? <div className="pt-2" /> : null}
 
       <div className="mt-auto pb-8">
         <div
@@ -157,14 +177,16 @@ export function ClassicUmrahOptionTransfersPage({
             {formatWholeMoney(totalQuoteValue, currency)}
           </div>
         </div>
-        <div
-          className="space-y-1 border border-t-0 border-slate-900 px-4 py-2 text-center text-[10.5px] italic leading-snug"
-          style={{ color: UMRAH_PDF_RED }}
-        >
-          <p className="font-bold">{UMRAH_TRANSFER_INSTRUCTION.title}</p>
-          <p>{UMRAH_TRANSFER_INSTRUCTION.body}</p>
-          <p className="font-semibold">{UMRAH_TRANSFER_INSTRUCTION.driversNote}</p>
-        </div>
+        {showTransfers ? (
+          <div
+            className="space-y-1 border border-t-0 border-slate-900 px-4 py-2 text-center text-[10.5px] italic leading-snug"
+            style={{ color: UMRAH_PDF_RED }}
+          >
+            <p className="font-bold">{UMRAH_TRANSFER_INSTRUCTION.title}</p>
+            <p>{UMRAH_TRANSFER_INSTRUCTION.body}</p>
+            <p className="font-semibold">{UMRAH_TRANSFER_INSTRUCTION.driversNote}</p>
+          </div>
+        ) : null}
       </div>
     </ClassicUmrahPageShell>
   );

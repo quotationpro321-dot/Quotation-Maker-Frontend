@@ -6,6 +6,7 @@ import {
   QUOTATION_A4_WIDTH_PX,
 } from "@/features/quotations/calculator/lib/quotation-classic-umrah.constants";
 import { hasFlightItineraryContent, getFlightItineraryImage, getFlightItineraryMode } from "@/features/quotations/calculator/lib/quotation-flight-itinerary";
+import { isFlightSectionExported } from "@/features/quotations/calculator/lib/quotation-section-export";
 import { QuotationFlightItineraryImagePreview } from "@/features/quotations/calculator/ui/quotation-flight-itinerary-image-preview";
 import type { TQuotationOption } from "@/types/quotation.type";
 
@@ -39,6 +40,8 @@ function BaggageRow({ label, value }: { label: string; value: string }) {
 }
 
 export function ClassicUmrahFlightsPage({ option }: { option: TQuotationOption }) {
+  if (!isFlightSectionExported(option)) return null;
+
   const segments = option.flightSegments ?? [];
   const isImageMode = getFlightItineraryMode(option) === "image";
   const itineraryImage = getFlightItineraryImage(option);

@@ -3,6 +3,13 @@ import {
   UMRAH_PDF_RED,
   UMRAH_PDF_TEAL,
 } from "@/features/quotations/calculator/lib/quotation-classic-umrah-copy";
+import {
+  chunkFilledHotelStays,
+  getHotelStayLabel,
+  listFilledHotelStays,
+  type TFilledHotelStay,
+} from "@/features/quotations/calculator/lib/quotation-hotel-slots";
+import { isHotelSectionExported } from "@/features/quotations/calculator/lib/quotation-section-export";
 import type { TQuotationHotel, TQuotationOption } from "@/types/quotation.type";
 
 import { ClassicUmrahPageShell } from "./classic-umrah-page-shell";
@@ -57,6 +64,62 @@ function HotelBlock({ title, hotel }: { title: string; hotel: TQuotationHotel })
   );
 }
 
+function HotelNotesFooter() {
+  return (
+    <div className="mt-auto space-y-2 border-t border-slate-300 pt-4 pb-8">
+      <p
+        className="text-center text-[11.5px] font-semibold italic leading-snug"
+        style={{ color: UMRAH_PDF_RED }}
+      >
+        {UMRAH_HOTEL_NOTES.extraBeds}
+      </p>
+      <p className="text-center text-[10.5px] text-slate-800">
+        {UMRAH_HOTEL_NOTES.checkTimes}
+      </p>
+      <div className="text-center text-[10.5px] leading-snug text-slate-800">
+        <p className="italic">{UMRAH_HOTEL_NOTES.roomPolicyTitle}</p>
+        <p>{UMRAH_HOTEL_NOTES.roomPolicy}</p>
+      </div>
+      <div className="text-center text-[10.5px] leading-snug text-slate-800">
+        <p className="italic">{UMRAH_HOTEL_NOTES.roomIssuesTitle}</p>
+        <p>{UMRAH_HOTEL_NOTES.roomIssues}</p>
+      </div>
+    </div>
+  );
+}
+
+type TClassicUmrahOptionHotelsPageContentProps = {
+  optionNumber: number;
+  hotels: TFilledHotelStay[];
+  showNotes: boolean;
+};
+
+function ClassicUmrahOptionHotelsPageContent({
+  optionNumber,
+  hotels,
+  showNotes,
+}: TClassicUmrahOptionHotelsPageContentProps) {
+  return (
+    <ClassicUmrahPageShell>
+      <h2 className="text-center text-[16px] font-bold">Option- {optionNumber}</h2>
+      <h2 className="pb-4 text-center text-[16px] font-bold">HOTELS</h2>
+
+      {hotels.map(({ hotel, index }, displayIndex) => (
+        <div key={`hotel-block-${index}`}>
+          {displayIndex > 0 ? (
+            <p className="py-4 text-center text-[13px] tracking-wide text-slate-700">
+              --------------------------------- oOo ---------------------------------
+            </p>
+          ) : null}
+          <HotelBlock title={getHotelStayLabel(hotel, index)} hotel={hotel} />
+        </div>
+      ))}
+
+      {showNotes ? <HotelNotesFooter /> : null}
+    </ClassicUmrahPageShell>
+  );
+}
+
 type TClassicUmrahOptionHotelsPageProps = {
   option: TQuotationOption;
   optionNumber: number;
@@ -66,38 +129,21 @@ export function ClassicUmrahOptionHotelsPage({
   option,
   optionNumber,
 }: TClassicUmrahOptionHotelsPageProps) {
+  if (!isHotelSectionExported(option)) return null;
+
+  const hotelPages = chunkFilledHotelStays(listFilledHotelStays(option));
+  const lastPageIndex = hotelPages.length - 1;
+
   return (
-    <ClassicUmrahPageShell>
-      <h2 className="text-center text-[16px] font-bold">Option- {optionNumber}</h2>
-      <h2 className="pb-4 text-center text-[16px] font-bold">HOTELS</h2>
-
-      <HotelBlock title="MAKKAH HOTEL" hotel={option.hotelMakkah} />
-
-      <p className="py-4 text-center text-[13px] tracking-wide text-slate-700">
-        --------------------------------- oOo ---------------------------------
-      </p>
-
-      <HotelBlock title="MADINAH HOTEL" hotel={option.hotelMadinah} />
-
-      <div className="mt-auto space-y-2 border-t border-slate-300 pt-4 pb-8">
-        <p
-          className="text-center text-[11.5px] font-semibold italic leading-snug"
-          style={{ color: UMRAH_PDF_RED }}
-        >
-          {UMRAH_HOTEL_NOTES.extraBeds}
-        </p>
-        <p className="text-center text-[10.5px] text-slate-800">
-          {UMRAH_HOTEL_NOTES.checkTimes}
-        </p>
-        <div className="text-center text-[10.5px] leading-snug text-slate-800">
-          <p className="italic">{UMRAH_HOTEL_NOTES.roomPolicyTitle}</p>
-          <p>{UMRAH_HOTEL_NOTES.roomPolicy}</p>
-        </div>
-        <div className="text-center text-[10.5px] leading-snug text-slate-800">
-          <p className="italic">{UMRAH_HOTEL_NOTES.roomIssuesTitle}</p>
-          <p>{UMRAH_HOTEL_NOTES.roomIssues}</p>
-        </div>
-      </div>
-    </ClassicUmrahPageShell>
+    <>
+      {hotelPages.map((hotels, pageIndex) => (
+        <ClassicUmrahOptionHotelsPageContent
+          key={`option-${optionNumber}-hotels-page-${pageIndex}`}
+          optionNumber={optionNumber}
+          hotels={hotels}
+          showNotes={pageIndex === lastPageIndex}
+        />
+      ))}
+    </>
   );
 }

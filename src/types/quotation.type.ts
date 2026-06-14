@@ -74,9 +74,7 @@ export type TQuotationOption = {
   flightYouth: number;
   flightChild: number;
   flightInfant: number;
-  hotelMakkah: TQuotationHotel;
-  hotelMadinah: TQuotationHotel;
-  hotelHoliday: TQuotationHotel;
+  hotels: TQuotationHotel[];
   visaUmrah: TQuotationVisaLine;
   visaEVW: TQuotationVisaLine;
   visaHoliday: TQuotationVisaLine;

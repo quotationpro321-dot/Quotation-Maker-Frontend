@@ -6,6 +6,7 @@ import { ClassicUmrahCoverPage } from "./classic-umrah-cover-page";
 import { ClassicUmrahFinalPage } from "./classic-umrah-final-page";
 import { ClassicUmrahFlightsPage } from "./classic-umrah-flights-page";
 import { ClassicUmrahIntroPage } from "./classic-umrah-intro-page";
+import { ClassicUmrahOptionCustomerNotePage } from "./classic-umrah-option-customer-note-page";
 import { ClassicUmrahOptionHotelsPage } from "./classic-umrah-option-hotels-page";
 import { ClassicUmrahOptionTransfersPage } from "./classic-umrah-option-transfers-page";
 
@@ -35,6 +36,10 @@ export function ClassicUmrahTemplate(props: TQuotationTemplateProps) {
         <div key={option.id} className="contents">
           <ClassicUmrahOptionHotelsPage option={option} optionNumber={index + 1} />
           <ClassicUmrahOptionTransfersPage option={option} currency={currency} />
+          <ClassicUmrahOptionCustomerNotePage
+            option={option}
+            optionNumber={index + 1}
+          />
         </div>
       ))}
       <ClassicUmrahFinalPage

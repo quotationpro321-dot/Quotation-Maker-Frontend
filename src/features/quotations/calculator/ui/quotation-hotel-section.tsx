@@ -1,9 +1,10 @@
 "use client";
 
-import { Calendar as CalendarIcon, Hotel } from "lucide-react";
+import { Calendar as CalendarIcon, Hotel, PlusCircle, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,9 +19,14 @@ import {
   calculateHotelTotal,
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
-import { HOTEL_BOARD_OPTIONS } from "@/features/quotations/calculator/lib/quotation-calculator-defaults";
 import {
-  HOTEL_SLOT_FIELDS,
+  createEmptyHotel,
+  HOTEL_BOARD_OPTIONS,
+} from "@/features/quotations/calculator/lib/quotation-calculator-defaults";
+import {
+  MAX_HOTEL_STAYS,
+  MIN_HOTEL_STAYS,
+  getHotelStayHeading,
   getCustomHotelValue,
   getCustomLocationValue,
   getUsedAreaSlugs,
@@ -60,7 +66,9 @@ type THotelAccommodationRowProps = {
   disabledAreaSlugs: Set<string>;
   usedCustomLocations: Set<string>;
   disabled: boolean;
+  canRemove: boolean;
   onHotelChange: (hotel: TQuotationHotel) => void;
+  onRemove: () => void;
 };
 
 function HotelAccommodationRow({
@@ -71,7 +79,9 @@ function HotelAccommodationRow({
   disabledAreaSlugs,
   usedCustomLocations,
   disabled,
+  canRemove,
   onHotelChange,
+  onRemove,
 }: THotelAccommodationRowProps) {
   const [stayDatesOpen, setStayDatesOpen] = useState(false);
 
@@ -167,8 +177,25 @@ function HotelAccommodationRow({
   return (
     <div
       className="space-y-4 rounded! border border-border p-4"
-      aria-label={`Hotel stay ${slotIndex + 1}`}
+      aria-label={getHotelStayHeading(slotIndex)}
     >
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-foreground">
+          {getHotelStayHeading(slotIndex)}
+        </p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="rounded!"
+          disabled={disabled || !canRemove}
+          onClick={onRemove}
+          aria-label={`Remove ${getHotelStayHeading(slotIndex)}`}
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-2">
           <Label>Location / area</Label>
@@ -382,6 +409,8 @@ export function QuotationHotelSection({
   const hotelTotal = calculateHotelTotal(option);
   const displayHotelTotal = option.hotelSectionEnabled ? hotelTotal : 0;
   const sectionDisabled = !option.hotelSectionEnabled;
+  const canAddHotel = option.hotels.length < MAX_HOTEL_STAYS;
+  const canRemoveHotel = option.hotels.length > MIN_HOTEL_STAYS;
 
   const {
     data: areasResponse,
@@ -397,6 +426,22 @@ export function QuotationHotelSection({
     }
   }, [areasError]);
 
+  const handleHotelChange = (index: number, hotel: TQuotationHotel) => {
+    const hotels = [...option.hotels];
+    hotels[index] = hotel;
+    onChange({ hotels });
+  };
+
+  const handleAddHotel = () => {
+    if (!canAddHotel) return;
+    onChange({ hotels: [...option.hotels, createEmptyHotel()] });
+  };
+
+  const handleRemoveHotel = (index: number) => {
+    if (!canRemoveHotel) return;
+    onChange({ hotels: option.hotels.filter((_, hotelIndex) => hotelIndex !== index) });
+  };
+
   return (
     <Card className="rounded!">
       <QuotationSectionHeader
@@ -411,19 +456,32 @@ export function QuotationHotelSection({
       <CardContent
         className={`space-y-6 ${quotationSectionBodyClass(option.hotelSectionEnabled)}`}
       >
-        {HOTEL_SLOT_FIELDS.map((field, slotIndex) => (
+        {option.hotels.map((hotel, slotIndex) => (
           <HotelAccommodationRow
-            key={field}
+            key={`hotel-stay-${slotIndex}`}
             slotIndex={slotIndex}
-            hotel={option[field]}
+            hotel={hotel}
             areas={areas}
             areasLoading={areasLoading}
-            disabledAreaSlugs={getUsedAreaSlugs(option, areas, field)}
-            usedCustomLocations={getUsedCustomLocations(option, areas, field)}
+            disabledAreaSlugs={getUsedAreaSlugs(option, areas, slotIndex)}
+            usedCustomLocations={getUsedCustomLocations(option, areas, slotIndex)}
             disabled={sectionDisabled}
-            onHotelChange={(hotel) => onChange({ [field]: hotel })}
+            canRemove={canRemoveHotel}
+            onHotelChange={(nextHotel) => handleHotelChange(slotIndex, nextHotel)}
+            onRemove={() => handleRemoveHotel(slotIndex)}
           />
         ))}
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full rounded! border-dashed"
+          disabled={sectionDisabled || !canAddHotel}
+          onClick={handleAddHotel}
+        >
+          <PlusCircle className="size-4" />
+          Add accommodation
+        </Button>
       </CardContent>
     </Card>
   );

@@ -9,6 +9,7 @@ import { calculateOptionTotals } from "@/features/quotations/calculator/lib/calc
 import { mapSegmentsToQuotation } from "@/features/quotations/calculator/lib/map-flight-segments";
 import {
   createEmptyDraft,
+  createDefaultHotels,
   createInitialOption,
   createOptionFromPrevious,
   createRouteRow,
@@ -97,6 +98,30 @@ function normalizeHotel(
   };
 }
 
+type TLegacyQuotationOption = TQuotationOption & {
+  hotelMakkah?: Partial<TQuotationHotel>;
+  hotelMadinah?: Partial<TQuotationHotel>;
+  hotelHoliday?: Partial<TQuotationHotel>;
+};
+
+function resolveHotels(option: TLegacyQuotationOption): TQuotationHotel[] {
+  if (Array.isArray(option.hotels) && option.hotels.length > 0) {
+    return option.hotels.map((hotel) => normalizeHotel(hotel, { location: "" }));
+  }
+
+  const legacyHotels = [
+    option.hotelMakkah,
+    option.hotelMadinah,
+    option.hotelHoliday,
+  ].filter((hotel): hotel is Partial<TQuotationHotel> => Boolean(hotel));
+
+  if (legacyHotels.length > 0) {
+    return legacyHotels.map((hotel) => normalizeHotel(hotel, { location: "" }));
+  }
+
+  return createDefaultHotels();
+}
+
 function normalizeIncludedServices(
   services: Partial<TQuotationOption["includedServices"]> | undefined,
 ): TQuotationOption["includedServices"] {
@@ -120,9 +145,7 @@ function normalizeOption(option: TQuotationOption): TQuotationOption {
     vehicleName: option.vehicleName ?? "",
     vehicleQuantity:
       (option.vehicleQuantity ?? 0) > 0 ? option.vehicleQuantity : 1,
-    hotelMakkah: normalizeHotel(option.hotelMakkah, { location: "" }),
-    hotelMadinah: normalizeHotel(option.hotelMadinah, { location: "" }),
-    hotelHoliday: normalizeHotel(option.hotelHoliday, { location: "" }),
+    hotels: resolveHotels(option),
     flightSectionEnabled: option.flightSectionEnabled ?? true,
     hotelSectionEnabled: option.hotelSectionEnabled ?? true,
     visaSectionEnabled: option.visaSectionEnabled ?? true,

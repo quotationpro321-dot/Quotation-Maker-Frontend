@@ -5,8 +5,15 @@ import {
   calculateGross,
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
-import { listHotelSlots } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
+import { hasExportableCustomerNote } from "@/features/quotations/calculator/lib/quotation-customer-note";
 import { hasFlightItineraryContent, getFlightItineraryImage, getFlightItineraryMode } from "@/features/quotations/calculator/lib/quotation-flight-itinerary";
+import { listHotelSlots } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
+import {
+  hasGroundServicesInExport,
+  isFlightSectionExported,
+  isHotelSectionExported,
+  isTransferSectionExported,
+} from "@/features/quotations/calculator/lib/quotation-section-export";
 import { formatTransferRouteEndpoint } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import { listCheckedIncludedServiceLabels } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import type { TQuotationTemplateProps } from "@/features/quotations/calculator/lib/quotation-template.types";
@@ -28,9 +35,13 @@ export function QuotationTemplateContent({
   const isCompact = variant === "compact";
   const includedServiceLabels = listCheckedIncludedServiceLabels(option);
   const hasTransferContent =
-    option.vehicleName ||
-    option.routes.some((route) => route.from || route.to) ||
-    includedServiceLabels.length > 0;
+    isTransferSectionExported(option) &&
+    (option.vehicleName ||
+      option.routes.some((route) => route.from || route.to) ||
+      includedServiceLabels.length > 0);
+  const filledHotels = listHotelSlots(option).filter(
+    ({ hotel }) => hotel.name || hotel.location,
+  );
 
   return (
     <div data-quotation-export-content className="space-y-8 text-foreground">
@@ -80,7 +91,7 @@ export function QuotationTemplateContent({
         </div>
       </div>
 
-      {hasFlightItineraryContent(option) ? (
+      {isFlightSectionExported(option) && hasFlightItineraryContent(option) ? (
         <section className="space-y-3">
           <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
             <Plane className="size-4 text-brand-primary" />
@@ -117,17 +128,16 @@ export function QuotationTemplateContent({
         </section>
       ) : null}
 
-      <section className="space-y-3">
-        <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-          <Hotel className="size-4 text-brand-primary" />
-          Accommodation
-        </h3>
-        <div className={isCompact ? "grid gap-2" : "grid gap-3 sm:grid-cols-3"}>
-          {listHotelSlots(option)
-            .filter(({ hotel }) => hotel.name || hotel.location)
-            .map(({ field, hotel }) => (
+      {isHotelSectionExported(option) && filledHotels.length > 0 ? (
+        <section className="space-y-3">
+          <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
+            <Hotel className="size-4 text-brand-primary" />
+            Accommodation
+          </h3>
+          <div className={isCompact ? "grid gap-2" : "grid gap-3 sm:grid-cols-3"}>
+            {filledHotels.map(({ index, hotel }) => (
               <div
-                key={field}
+                key={`hotel-stay-${index}`}
                 className="rounded! border border-border p-3 text-sm"
               >
                 <p className="text-xs uppercase text-muted-foreground">
@@ -147,8 +157,9 @@ export function QuotationTemplateContent({
                 </p>
               </div>
             ))}
-        </div>
-      </section>
+          </div>
+        </section>
+      ) : null}
 
       {hasTransferContent ? (
         <section className="space-y-3">
@@ -207,18 +218,22 @@ export function QuotationTemplateContent({
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-border/60">
-              <td className="py-3">Flight services</td>
-              <td className="py-3 text-right font-medium">
-                {formatQuotationMoney(option.flightAdult, currency)}
-              </td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="py-3">Ground services & visas</td>
-              <td className="py-3 text-right font-medium">
-                {formatQuotationMoney(totals.perPersonServiceCost, currency)}
-              </td>
-            </tr>
+            {isFlightSectionExported(option) ? (
+              <tr className="border-b border-border/60">
+                <td className="py-3">Flight services</td>
+                <td className="py-3 text-right font-medium">
+                  {formatQuotationMoney(option.flightAdult, currency)}
+                </td>
+              </tr>
+            ) : null}
+            {hasGroundServicesInExport(option) ? (
+              <tr className="border-b border-border/60">
+                <td className="py-3">Ground services & visas</td>
+                <td className="py-3 text-right font-medium">
+                  {formatQuotationMoney(totals.perPersonServiceCost, currency)}
+                </td>
+              </tr>
+            ) : null}
             <tr className="border-b border-border/60">
               <td className="py-3">Markup</td>
               <td className="py-3 text-right font-medium">
@@ -237,12 +252,12 @@ export function QuotationTemplateContent({
         </table>
       </section>
 
-      {option.customerNote ? (
+      {hasExportableCustomerNote(option) ? (
         <section className="rounded! border border-border bg-muted/20 p-4 text-sm">
           <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
             Customer notes
           </p>
-          <p className="whitespace-pre-line">{option.customerNote}</p>
+          <p className="whitespace-pre-line">{option.customerNote.trim()}</p>
         </section>
       ) : null}
     </div>

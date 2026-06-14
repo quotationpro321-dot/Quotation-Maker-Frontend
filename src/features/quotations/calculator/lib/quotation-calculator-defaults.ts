@@ -1,5 +1,6 @@
 import { createEmptyCalculatorStates } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
 import { normalizeCustomIncludedServices } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
+import { DEFAULT_HOTEL_STAY_COUNT } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
 import { DEFAULT_INCLUDED_SERVICES } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import type {
   TQuotationDraft,
@@ -35,6 +36,12 @@ export function createEmptyHotel(
   };
 }
 
+export function createDefaultHotels(
+  count = DEFAULT_HOTEL_STAY_COUNT,
+): TQuotationHotel[] {
+  return Array.from({ length: count }, () => createEmptyHotel());
+}
+
 export const QUOTATION_DRAFT_STORAGE_KEY = "quotation-calculator-draft";
 
 function createRoute(): TQuotationRoute {
@@ -49,9 +56,7 @@ export function createInitialOption(title = "Option 1"): TQuotationOption {
     flightYouth: 0,
     flightChild: 0,
     flightInfant: 0,
-    hotelMakkah: createEmptyHotel(),
-    hotelMadinah: createEmptyHotel(),
-    hotelHoliday: createEmptyHotel(),
+    hotels: createDefaultHotels(),
     visaUmrah: { pax: 0, cost: 0 },
     visaEVW: { pax: 0, cost: 0 },
     visaHoliday: { pax: 0, cost: 0 },
@@ -106,9 +111,7 @@ export function createOptionFromPrevious(
     ...copy,
     id: crypto.randomUUID(),
     title: "",
-    hotelMakkah: createEmptyHotel(),
-    hotelMadinah: createEmptyHotel(),
-    hotelHoliday: createEmptyHotel(),
+    hotels: createDefaultHotels(),
     flightItineraryMode:
       copy.flightItineraryMode === "image" ? "image" : "text",
     flightItineraryImage: copy.flightItineraryImage ?? "",

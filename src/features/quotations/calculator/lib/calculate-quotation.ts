@@ -10,11 +10,7 @@ export type TOptionTotals = {
 };
 
 export function calculateHotelTotal(option: TQuotationOption): number {
-  return (
-    option.hotelMakkah.cost +
-    option.hotelMadinah.cost +
-    option.hotelHoliday.cost
-  );
+  return option.hotels.reduce((total, hotel) => total + hotel.cost, 0);
 }
 
 export function calculateVisaTotal(option: TQuotationOption): number {

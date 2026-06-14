@@ -7,7 +7,7 @@ import {
   calculateOptionTotals,
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
-import { HOTEL_SLOT_FIELDS } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
+import { getMaxHotelStayCount } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
 import type { TQuotationOption } from "@/types/quotation.type";
 
 type TQuotationComparisonTableProps = {
@@ -43,17 +43,19 @@ export function QuotationComparisonTable({
             </tr>
           </thead>
           <tbody>
-            {HOTEL_SLOT_FIELDS.map((field, slotIndex) => (
-              <tr key={field} className="border-b">
+            {Array.from({ length: getMaxHotelStayCount(options) }, (_, slotIndex) => (
+              <tr key={`hotel-stay-${slotIndex}`} className="border-b">
                 <td className="px-3 py-2 font-medium">Hotel stay {slotIndex + 1}</td>
                 {options.map((option) => {
-                  const hotel = option[field];
-                  const label = hotel.location
-                    ? `${hotel.location}${hotel.name ? ` — ${hotel.name}` : ""}`
-                    : hotel.name || "—";
+                  const hotel = option.hotels[slotIndex];
+                  const label = hotel
+                    ? hotel.location
+                      ? `${hotel.location}${hotel.name ? ` — ${hotel.name}` : ""}`
+                      : hotel.name || "—"
+                    : "—";
 
                   return (
-                    <td key={`${option.id}-${field}`} className="px-3 py-2">
+                    <td key={`${option.id}-hotel-${slotIndex}`} className="px-3 py-2">
                       {label}
                     </td>
                   );

@@ -7,9 +7,14 @@ import type { NormalizedSegment } from "@/features/flight-converter/types/flight
 
 type AirlineLogoProps = {
   segment: NormalizedSegment;
+  /** Override the default cap (e.g. compact PDF cells). */
+  maxHeightPx?: number;
 };
 
-export function AirlineLogo({ segment }: AirlineLogoProps) {
+export function AirlineLogo({
+  segment,
+  maxHeightPx = AIRLINE_LOGO_MAX_HEIGHT,
+}: AirlineLogoProps) {
   const [error, setError] = useState(false);
 
   if (error) {
@@ -35,7 +40,7 @@ export function AirlineLogo({ segment }: AirlineLogoProps) {
         data-export-airline-logo
         className="export-airline-logo block h-auto w-auto max-w-full object-contain"
         style={{
-          maxHeight: AIRLINE_LOGO_MAX_HEIGHT,
+          maxHeight: maxHeightPx,
           maxWidth: "100%",
           width: "auto",
           height: "auto",

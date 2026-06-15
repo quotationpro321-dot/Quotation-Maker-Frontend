@@ -8,4 +8,8 @@ export type TQuotationTemplateProps = {
   optionIndex: number;
   totals: TOptionTotals;
   currency: string;
+  /** Logged-in user's full name for the PDF footer (from dashboard profile). */
+  consultantName?: string;
+  /** Logged-in user's WhatsApp number for the PDF footer (from dashboard profile). */
+  consultantWhatsapp?: string;
 };

@@ -5,9 +5,19 @@ import {
   calculateGross,
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
+import { hasExportableCustomerNote } from "@/features/quotations/calculator/lib/quotation-customer-note";
+import { hasFlightItineraryContent, getFlightItineraryImage, getFlightItineraryMode } from "@/features/quotations/calculator/lib/quotation-flight-itinerary";
 import { listHotelSlots } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
-import { INCLUDED_SERVICE_OPTIONS } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
+import {
+  hasGroundServicesInExport,
+  isFlightSectionExported,
+  isHotelSectionExported,
+  isTransferSectionExported,
+} from "@/features/quotations/calculator/lib/quotation-section-export";
+import { formatTransferRouteEndpoint } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
+import { listCheckedIncludedServiceLabels } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import type { TQuotationTemplateProps } from "@/features/quotations/calculator/lib/quotation-template.types";
+import { QuotationFlightItineraryImagePreview } from "@/features/quotations/calculator/ui/quotation-flight-itinerary-image-preview";
 
 type TQuotationTemplateContentProps = TQuotationTemplateProps & {
   variant?: "classic" | "modern" | "compact";
@@ -23,12 +33,15 @@ export function QuotationTemplateContent({
   const issuedDate = format(new Date(draft.quotationDate), "d MMMM yyyy");
   const adultGross = calculateGross(option, option.flightAdult);
   const isCompact = variant === "compact";
-  const includedServiceLabels = INCLUDED_SERVICE_OPTIONS.filter(
-    (service) => option.includedServices?.[service.id],
-  ).map((service) => service.label);
+  const includedServiceLabels = listCheckedIncludedServiceLabels(option);
   const hasTransferContent =
-    option.vehicleName ||
-    option.routes.some((route) => route.from || route.to);
+    isTransferSectionExported(option) &&
+    (option.vehicleName ||
+      option.routes.some((route) => route.from || route.to) ||
+      includedServiceLabels.length > 0);
+  const filledHotels = listHotelSlots(option).filter(
+    ({ hotel }) => hotel.name || hotel.location,
+  );
 
   return (
     <div data-quotation-export-content className="space-y-8 text-foreground">
@@ -78,42 +91,53 @@ export function QuotationTemplateContent({
         </div>
       </div>
 
-      {option.flightSegments.length > 0 ? (
+      {isFlightSectionExported(option) && hasFlightItineraryContent(option) ? (
         <section className="space-y-3">
           <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
             <Plane className="size-4 text-brand-primary" />
             Flight itinerary
           </h3>
-          <div className={isCompact ? "space-y-2" : "space-y-3"}>
-            {option.flightSegments.map((seg) => (
-              <div
-                key={`${seg.flightNumber}-${seg.segmentOrder}`}
-                className="rounded! border border-border bg-muted/20 p-3 text-sm"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold">{seg.flightNumber}</span>
-                  <span className="text-muted-foreground">{seg.departureDateDisplay}</span>
+          {getFlightItineraryMode(option) === "image" &&
+          getFlightItineraryImage(option) ? (
+            <div className="rounded! border border-border bg-muted/20 p-3">
+              <QuotationFlightItineraryImagePreview
+                src={getFlightItineraryImage(option)}
+              />
+            </div>
+          ) : (
+            <div className={isCompact ? "space-y-2" : "space-y-3"}>
+              {option.flightSegments.map((seg) => (
+                <div
+                  key={`${seg.flightNumber}-${seg.segmentOrder}`}
+                  className="rounded! border border-border bg-muted/20 p-3 text-sm"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-semibold">{seg.flightNumber}</span>
+                    <span className="text-muted-foreground">
+                      {seg.departureDateDisplay}
+                    </span>
+                  </div>
+                  <p className="mt-1">
+                    {seg.fromCode} → {seg.toCode} · {seg.departureTime} –{" "}
+                    {seg.arrivalTime}
+                  </p>
                 </div>
-                <p className="mt-1">
-                  {seg.fromCode} → {seg.toCode} · {seg.departureTime} – {seg.arrivalTime}
-                </p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       ) : null}
 
-      <section className="space-y-3">
-        <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-          <Hotel className="size-4 text-brand-primary" />
-          Accommodation
-        </h3>
-        <div className={isCompact ? "grid gap-2" : "grid gap-3 sm:grid-cols-3"}>
-          {listHotelSlots(option)
-            .filter(({ hotel }) => hotel.name || hotel.location)
-            .map(({ field, hotel }) => (
+      {isHotelSectionExported(option) && filledHotels.length > 0 ? (
+        <section className="space-y-3">
+          <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
+            <Hotel className="size-4 text-brand-primary" />
+            Accommodation
+          </h3>
+          <div className={isCompact ? "grid gap-2" : "grid gap-3 sm:grid-cols-3"}>
+            {filledHotels.map(({ index, hotel }) => (
               <div
-                key={field}
+                key={`hotel-stay-${index}`}
                 className="rounded! border border-border p-3 text-sm"
               >
                 <p className="text-xs uppercase text-muted-foreground">
@@ -133,8 +157,9 @@ export function QuotationTemplateContent({
                 </p>
               </div>
             ))}
-        </div>
-      </section>
+          </div>
+        </section>
+      ) : null}
 
       {hasTransferContent ? (
         <section className="space-y-3">
@@ -164,7 +189,11 @@ export function QuotationTemplateContent({
                   key={route.id}
                   className="rounded! border border-border px-3 py-2 text-sm"
                 >
-                  {route.from || "—"} → {route.to || "—"}
+                  {formatTransferRouteEndpoint(route.from, draft.calculatorType) ||
+                    "—"}{" "}
+                  →{" "}
+                  {formatTransferRouteEndpoint(route.to, draft.calculatorType) ||
+                    "—"}
                 </div>
               ))}
           </div>
@@ -189,18 +218,22 @@ export function QuotationTemplateContent({
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-border/60">
-              <td className="py-3">Flight services</td>
-              <td className="py-3 text-right font-medium">
-                {formatQuotationMoney(option.flightAdult, currency)}
-              </td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="py-3">Ground services & visas</td>
-              <td className="py-3 text-right font-medium">
-                {formatQuotationMoney(totals.perPersonServiceCost, currency)}
-              </td>
-            </tr>
+            {isFlightSectionExported(option) ? (
+              <tr className="border-b border-border/60">
+                <td className="py-3">Flight services</td>
+                <td className="py-3 text-right font-medium">
+                  {formatQuotationMoney(option.flightAdult, currency)}
+                </td>
+              </tr>
+            ) : null}
+            {hasGroundServicesInExport(option) ? (
+              <tr className="border-b border-border/60">
+                <td className="py-3">Ground services & visas</td>
+                <td className="py-3 text-right font-medium">
+                  {formatQuotationMoney(totals.perPersonServiceCost, currency)}
+                </td>
+              </tr>
+            ) : null}
             <tr className="border-b border-border/60">
               <td className="py-3">Markup</td>
               <td className="py-3 text-right font-medium">
@@ -219,12 +252,12 @@ export function QuotationTemplateContent({
         </table>
       </section>
 
-      {option.customerNote ? (
+      {hasExportableCustomerNote(option) ? (
         <section className="rounded! border border-border bg-muted/20 p-4 text-sm">
           <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
             Customer notes
           </p>
-          <p className="whitespace-pre-line">{option.customerNote}</p>
+          <p className="whitespace-pre-line">{option.customerNote.trim()}</p>
         </section>
       ) : null}
     </div>

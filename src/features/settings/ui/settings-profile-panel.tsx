@@ -62,6 +62,7 @@ export function SettingsProfilePanel({
           userId={draft.userId}
           defaultName={draft.name}
           defaultEmail={draft.email}
+          defaultWhatsapp={draft.whatsappNumber}
           isSaving={isSaving}
           onSubmit={onSaveIdentity}
           onFinalizeEmailChangeSession={onFinalizeEmailChangeSession}

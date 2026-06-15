@@ -19,6 +19,8 @@ type ItineraryPreviewTableProps = {
   segments: NormalizedSegment[];
   layout?: ItineraryTableLayout;
   flightNoHeaderMultiline?: boolean;
+  /** Lock export styling (e.g. classic Umrah PDF pages always use light). */
+  exportTheme?: "light" | "dark";
 };
 
 function splitArrivalDisplay(display: string) {
@@ -71,10 +73,11 @@ export const ItineraryPreviewTable = forwardRef<
   HTMLDivElement,
   ItineraryPreviewTableProps
 >(function ItineraryPreviewTable(
-  { segments, layout = "converter", flightNoHeaderMultiline },
+  { segments, layout = "converter", flightNoHeaderMultiline, exportTheme: exportThemeProp },
   ref,
 ) {
-  const exportTheme = useSyncExportThemeAttr();
+  const syncedTheme = useSyncExportThemeAttr();
+  const exportTheme = exportThemeProp ?? syncedTheme;
   const isQuotation = layout === "quotation";
   const useMultilineFlightNo = flightNoHeaderMultiline ?? isQuotation;
   const fonts = isQuotation ? QUOTATION_PREVIEW_TABLE_FONT : EXPORT_TABLE_FONT;

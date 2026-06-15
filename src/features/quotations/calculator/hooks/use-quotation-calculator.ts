@@ -9,9 +9,13 @@ import { calculateOptionTotals } from "@/features/quotations/calculator/lib/calc
 import { mapSegmentsToQuotation } from "@/features/quotations/calculator/lib/map-flight-segments";
 import {
   createEmptyDraft,
+  createDefaultHotels,
   createInitialOption,
+  createOptionFromPrevious,
   createRouteRow,
 } from "@/features/quotations/calculator/lib/quotation-calculator-defaults";
+import { normalizeCustomIncludedServices } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
+import { getFlightItineraryMode } from "@/features/quotations/calculator/lib/quotation-flight-itinerary";
 import { DEFAULT_INCLUDED_SERVICES } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import {
   getStorageKey,
@@ -26,9 +30,10 @@ import {
   updateActiveCalculatorTypeState,
 } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
 import {
-  exportQuotationAsImage,
   exportQuotationAsPdf,
 } from "@/features/quotations/calculator/lib/export-quotation";
+import { copyQuotationShareLink } from "@/features/quotations/calculator/lib/quotation-share";
+import { useQuotationConsultantName } from "@/features/quotations/calculator/hooks/use-quotation-consultant-name";
 import type { NormalizedSegment } from "@/features/flight-converter/types/flight-converter.types";
 import type {
   TQuotationCalculatorType,
@@ -93,12 +98,37 @@ function normalizeHotel(
   };
 }
 
+type TLegacyQuotationOption = TQuotationOption & {
+  hotelMakkah?: Partial<TQuotationHotel>;
+  hotelMadinah?: Partial<TQuotationHotel>;
+  hotelHoliday?: Partial<TQuotationHotel>;
+};
+
+function resolveHotels(option: TLegacyQuotationOption): TQuotationHotel[] {
+  if (Array.isArray(option.hotels) && option.hotels.length > 0) {
+    return option.hotels.map((hotel) => normalizeHotel(hotel, { location: "" }));
+  }
+
+  const legacyHotels = [
+    option.hotelMakkah,
+    option.hotelMadinah,
+    option.hotelHoliday,
+  ].filter((hotel): hotel is Partial<TQuotationHotel> => Boolean(hotel));
+
+  if (legacyHotels.length > 0) {
+    return legacyHotels.map((hotel) => normalizeHotel(hotel, { location: "" }));
+  }
+
+  return createDefaultHotels();
+}
+
 function normalizeIncludedServices(
   services: Partial<TQuotationOption["includedServices"]> | undefined,
 ): TQuotationOption["includedServices"] {
   return {
     guide: services?.guide ?? DEFAULT_INCLUDED_SERVICES.guide,
     ziyarah: services?.ziyarah ?? DEFAULT_INCLUDED_SERVICES.ziyarah,
+    train: services?.train ?? DEFAULT_INCLUDED_SERVICES.train,
     manager: services?.manager ?? DEFAULT_INCLUDED_SERVICES.manager,
     esim: services?.esim ?? DEFAULT_INCLUDED_SERVICES.esim,
   };
@@ -109,18 +139,22 @@ function normalizeOption(option: TQuotationOption): TQuotationOption {
     ...option,
     flightSegments: option.flightSegments.map(normalizeFlightSegment),
     includedServices: normalizeIncludedServices(option.includedServices),
+    customIncludedServices: normalizeCustomIncludedServices(
+      option.customIncludedServices,
+    ),
     vehicleName: option.vehicleName ?? "",
     vehicleQuantity:
       (option.vehicleQuantity ?? 0) > 0 ? option.vehicleQuantity : 1,
-    hotelMakkah: normalizeHotel(option.hotelMakkah, { location: "" }),
-    hotelMadinah: normalizeHotel(option.hotelMadinah, { location: "" }),
-    hotelHoliday: normalizeHotel(option.hotelHoliday, { location: "" }),
+    hotels: resolveHotels(option),
     flightSectionEnabled: option.flightSectionEnabled ?? true,
     hotelSectionEnabled: option.hotelSectionEnabled ?? true,
     visaSectionEnabled: option.visaSectionEnabled ?? true,
     transferSectionEnabled: option.transferSectionEnabled ?? true,
     officeNoteSectionEnabled: option.officeNoteSectionEnabled ?? true,
     customerNoteSectionEnabled: option.customerNoteSectionEnabled ?? true,
+    flightItineraryMode:
+      option.flightItineraryMode === "image" ? "image" : "text",
+    flightItineraryImage: option.flightItineraryImage ?? "",
   };
 }
 
@@ -166,8 +200,10 @@ export function useQuotationCalculator({
 
   const [draft, setDraft] = useState<TQuotationDraft>(() => createEmptyDraft());
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isSharingLink, setIsSharingLink] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  const { consultantName, consultantWhatsapp } = useQuotationConsultantName();
 
   const [parseItinerary, { isLoading: isParsingFlight }] =
     useParseItineraryMutation();
@@ -228,10 +264,13 @@ export function useQuotationCalculator({
   const addOption = useCallback(() => {
     setDraft((prev) =>
       updateActiveCalculatorTypeState(prev, (state) => {
-        const options = withSequentialOptionTitles([
-          ...state.options,
-          createInitialOption(),
-        ]);
+        const source =
+          state.options[state.activeOptionIndex] ??
+          state.options[state.options.length - 1];
+        const newOption = source
+          ? createOptionFromPrevious(source)
+          : createInitialOption();
+        const options = withSequentialOptionTitles([...state.options, newOption]);
         return {
           options,
           activeOptionIndex: options.length - 1,
@@ -263,10 +302,7 @@ export function useQuotationCalculator({
       updateActiveCalculatorTypeState(prev, (state) => {
         const source = state.options[index];
         if (!source) return state;
-        const copy: TQuotationOption = {
-          ...(JSON.parse(JSON.stringify(source)) as TQuotationOption),
-          id: crypto.randomUUID(),
-        };
+        const copy = createOptionFromPrevious(source);
         const options = withSequentialOptionTitles([...state.options, copy]);
         return {
           options,
@@ -304,6 +340,8 @@ export function useQuotationCalculator({
   );
 
   const parseFlightItinerary = useCallback(async () => {
+    if (getFlightItineraryMode(activeOption) === "image") return;
+
     const rawText = activeOption.rawItinerary.trim();
     if (!rawText) {
       updateActiveOption({ flightSegments: [] });
@@ -328,7 +366,12 @@ export function useQuotationCalculator({
     } catch (err) {
       toast.error(extractApiErrorMessage(err, "Could not parse itinerary."));
     }
-  }, [activeOption.rawItinerary, parseItinerary, updateActiveOption]);
+  }, [
+    activeOption.flightItineraryMode,
+    activeOption.rawItinerary,
+    parseItinerary,
+    updateActiveOption,
+  ]);
 
   const setTemplateId = useCallback((templateId: TQuotationTemplateId) => {
     updateDraft({ templateId });
@@ -359,20 +402,6 @@ export function useQuotationCalculator({
     });
   }, [activeOptions, draft, storageKey]);
 
-  const exportImage = useCallback(async () => {
-    if (!previewRef.current) return;
-    try {
-      const name = draft.customerName.trim() || "customer";
-      await exportQuotationAsImage(
-        previewRef.current,
-        `quotation-${name.replace(/\s+/g, "-").toLowerCase()}.png`,
-      );
-      toast.success("Image downloaded.");
-    } catch {
-      toast.error("Could not export image.");
-    }
-  }, [draft.customerName]);
-
   const exportPdf = useCallback(async () => {
     if (!previewRef.current) return;
     try {
@@ -386,6 +415,27 @@ export function useQuotationCalculator({
       toast.error("Could not export PDF.");
     }
   }, [draft.customerName]);
+
+  const shareLink = useCallback(async () => {
+    setIsSharingLink(true);
+    try {
+      await copyQuotationShareLink(draft, activeOptionIndex, {
+        name: consultantName,
+        whatsapp: consultantWhatsapp,
+      });
+      toast.success("Share link copied to clipboard.", {
+        description: "Recipients can open the quotation in their browser.",
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === "QUOTATION_TOO_LARGE") {
+        toast.error("Quotation is too large to share as a link.");
+        return;
+      }
+      toast.error("Could not copy share link.");
+    } finally {
+      setIsSharingLink(false);
+    }
+  }, [activeOptionIndex, consultantName, consultantWhatsapp, draft]);
 
   return {
     draft,
@@ -411,7 +461,8 @@ export function useQuotationCalculator({
     saveQuotation,
     openPreview: () => setIsPreviewOpen(true),
     closePreview: () => setIsPreviewOpen(false),
-    exportImage,
     exportPdf,
+    shareLink,
+    isSharingLink,
   };
 }

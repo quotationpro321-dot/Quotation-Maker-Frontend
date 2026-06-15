@@ -11,12 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { QUOTATION_TEMPLATES } from "@/features/quotations/calculator/lib/quotation-template-registry";
-import type { TQuotationTemplateId } from "@/types/quotation.type";
+import { listQuotationTemplatesForCalculatorType } from "@/features/quotations/calculator/lib/quotation-template-registry";
+import type {
+  TQuotationCalculatorType,
+  TQuotationTemplateId,
+} from "@/types/quotation.type";
 
 type TQuotationCustomerHeaderProps = {
   customerName: string;
   customerNumber: string;
+  calculatorType: TQuotationCalculatorType;
   templateId: TQuotationTemplateId;
   onCustomerNameChange: (value: string) => void;
   onCustomerNumberChange: (value: string) => void;
@@ -29,6 +33,7 @@ type TQuotationCustomerHeaderProps = {
 export function QuotationCustomerHeader({
   customerName,
   customerNumber,
+  calculatorType,
   templateId,
   onCustomerNameChange,
   onCustomerNumberChange,
@@ -37,6 +42,8 @@ export function QuotationCustomerHeader({
   onPreview,
   onSave,
 }: TQuotationCustomerHeaderProps) {
+  const templates = listQuotationTemplatesForCalculatorType(calculatorType);
+
   return (
     <div className="flex flex-col gap-4 rounded! border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-[minmax(0,340px)_minmax(0,340px)]">
@@ -67,7 +74,7 @@ export function QuotationCustomerHeader({
             <SelectValue placeholder="Template" />
           </SelectTrigger>
           <SelectContent>
-            {QUOTATION_TEMPLATES.map((template) => (
+            {templates.map((template) => (
               <SelectItem key={template.id} value={template.id}>
                 {template.name}
               </SelectItem>

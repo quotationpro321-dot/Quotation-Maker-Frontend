@@ -124,6 +124,7 @@ function QuotationCalculatorContent({
       <QuotationCustomerHeader
         customerName={draft.customerName}
         customerNumber={draft.customerNumber}
+        calculatorType={draft.calculatorType}
         templateId={draft.templateId}
         onCustomerNameChange={(value) => updateDraft({ customerName: value })}
         onCustomerNumberChange={(value) =>

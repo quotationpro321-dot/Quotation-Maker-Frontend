@@ -49,8 +49,11 @@ const ROW_BG = "#ffffff";
 
 export function ClassicUmrahFlightsTable({
   segments,
+  headerColor = UMRAH_PDF_TEAL,
 }: {
   segments: NormalizedSegment[];
+  /** Header band color so other brands (e.g. SkyGuru) can reuse this table. */
+  headerColor?: string;
 }) {
   return (
     <table
@@ -64,7 +67,7 @@ export function ClassicUmrahFlightsTable({
       </colgroup>
 
       <thead>
-        <tr style={{ backgroundColor: UMRAH_PDF_TEAL }}>
+        <tr style={{ backgroundColor: headerColor }}>
           {HEADERS.map((header) => (
             <th
               key={header.key}

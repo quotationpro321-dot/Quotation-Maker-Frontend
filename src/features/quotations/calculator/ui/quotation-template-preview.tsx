@@ -18,8 +18,10 @@ type TQuotationTemplatePreviewProps = {
   consultantWhatsapp?: string;
 };
 
-function isUmrahClassicPagedPreview(draft: TQuotationDraft): boolean {
-  return draft.calculatorType === "umrah" && draft.templateId === "classic";
+/** Templates rendered as fixed A4 pages need the paged scaler in the preview. */
+function isPagedClassicPreview(draft: TQuotationDraft): boolean {
+  if (draft.templateId !== "classic") return false;
+  return draft.calculatorType === "umrah" || draft.calculatorType === "holiday" || draft.calculatorType === "flights";
 }
 
 export function QuotationTemplatePreview({
@@ -42,7 +44,7 @@ export function QuotationTemplatePreview({
   const template = getQuotationTemplate(draft.templateId);
   const TemplateComponent = template?.component;
   const totals = calculateOptionTotals(activeOption);
-  const usePagedPreview = isUmrahClassicPagedPreview(draft);
+  const usePagedPreview = isPagedClassicPreview(draft);
 
   if (!TemplateComponent || !activeOption) {
     return (

@@ -1,21 +1,28 @@
 "use client";
 
-import { QUOTATION_TEMPLATES } from "@/features/quotations/calculator/lib/quotation-template-registry";
+import { listQuotationTemplatesForCalculatorType } from "@/features/quotations/calculator/lib/quotation-template-registry";
 import { cn } from "@/lib/utils";
-import type { TQuotationTemplateId } from "@/types/quotation.type";
+import type {
+  TQuotationCalculatorType,
+  TQuotationTemplateId,
+} from "@/types/quotation.type";
 
 type TQuotationTemplatePickerProps = {
+  calculatorType: TQuotationCalculatorType;
   selectedTemplateId: TQuotationTemplateId;
   onSelect: (templateId: TQuotationTemplateId) => void;
 };
 
 export function QuotationTemplatePicker({
+  calculatorType,
   selectedTemplateId,
   onSelect,
 }: TQuotationTemplatePickerProps) {
+  const templates = listQuotationTemplatesForCalculatorType(calculatorType);
+
   return (
     <div className="grid gap-3 sm:grid-cols-3">
-      {QUOTATION_TEMPLATES.map((template) => {
+      {templates.map((template) => {
         const isSelected = template.id === selectedTemplateId;
         return (
           <button

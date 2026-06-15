@@ -16,17 +16,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  canAddCustomIncludedService,
+  createCustomIncludedService,
+  normalizeCustomIncludedServices,
+} from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import { formatQuotationMoney } from "@/features/quotations/calculator/lib/calculate-quotation";
-import { INCLUDED_SERVICE_OPTIONS } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
+import {
+  HOLIDAY_TRANSFER_FROM_OPTIONS,
+  HOLIDAY_TRANSFER_TO_OPTIONS,
+  INCLUDED_SERVICE_OPTIONS,
+  usesHolidayTransferRoutes,
+  type TTransferRouteOption,
+} from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import {
   QuotationSectionHeader,
   quotationSectionBodyClass,
 } from "@/features/quotations/calculator/ui/quotation-section-header";
 import { VehicleQuantityInput } from "@/features/quotations/calculator/ui/vehicle-quantity-input";
 import { useListTransferLocationsQuery } from "@/redux/api/transfer.api";
-import type { TQuotationIncludedServices, TQuotationOption } from "@/types/quotation.type";
+import type {
+  TQuotationCalculatorType,
+  TQuotationCustomIncludedService,
+  TQuotationIncludedServices,
+  TQuotationOption,
+} from "@/types/quotation.type";
+import { cn } from "@/lib/utils";
 
 type TQuotationTransferSectionProps = {
+  calculatorType: TQuotationCalculatorType;
   option: TQuotationOption;
   currency: string;
   onChange: (patch: Partial<TQuotationOption>) => void;
@@ -40,8 +58,53 @@ type TQuotationTransferSectionProps = {
 
 const transferInputClass = "h-10 w-full rounded! text-sm";
 const transferSelectTriggerClass = "h-10! w-full rounded! text-sm";
+const includedServiceCellClass =
+  "flex h-11 items-center gap-2.5 rounded! border border-border bg-muted/20 px-3";
+const includedServiceLabelClass =
+  "text-xs font-semibold uppercase tracking-wide text-foreground";
+const includedServiceInlineInputClass =
+  "min-w-0 flex-1 border-0 bg-transparent p-0 text-xs font-semibold uppercase tracking-wide text-foreground outline-none placeholder:text-muted-foreground/80 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:ring-0";
+
+function RouteLocationSelect({
+  label,
+  value,
+  options,
+  placeholder,
+  disabled,
+  onValueChange,
+}: {
+  label: string;
+  value: string;
+  options: TTransferRouteOption[];
+  placeholder: string;
+  disabled: boolean;
+  onValueChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <Select
+        value={value || undefined}
+        onValueChange={onValueChange}
+        disabled={disabled}
+      >
+        <SelectTrigger className={transferSelectTriggerClass}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 export function QuotationTransferSection({
+  calculatorType,
   option,
   currency,
   onChange,
@@ -53,20 +116,33 @@ export function QuotationTransferSection({
   const displayTransferCost = option.transferSectionEnabled
     ? option.transferCost
     : 0;
+  const isHolidayRoutes = usesHolidayTransferRoutes(calculatorType);
 
   const {
     data: locationsResponse,
     isLoading: locationsLoading,
     isError: locationsError,
-  } = useListTransferLocationsQuery();
+  } = useListTransferLocationsQuery(undefined, {
+    skip: isHolidayRoutes,
+  });
 
-  const locations = locationsResponse?.data ?? [];
+  const catalogLocations = locationsResponse?.data ?? [];
+  const fromOptions: TTransferRouteOption[] = isHolidayRoutes
+    ? HOLIDAY_TRANSFER_FROM_OPTIONS
+    : catalogLocations.map((location) => ({
+        value: location.name,
+        label: location.name,
+      }));
+  const toOptions: TTransferRouteOption[] = isHolidayRoutes
+    ? HOLIDAY_TRANSFER_TO_OPTIONS
+    : fromOptions;
+  const locationsLoadingState = isHolidayRoutes ? false : locationsLoading;
 
   useEffect(() => {
-    if (locationsError) {
+    if (!isHolidayRoutes && locationsError) {
       toast.error("Could not load transfer locations.");
     }
-  }, [locationsError]);
+  }, [isHolidayRoutes, locationsError]);
 
   const toggleIncludedService = (key: keyof TQuotationIncludedServices) => {
     onChange({
@@ -74,6 +150,39 @@ export function QuotationTransferSection({
         ...option.includedServices,
         [key]: !option.includedServices[key],
       },
+    });
+  };
+
+  const customIncludedServices = normalizeCustomIncludedServices(
+    option.customIncludedServices,
+  );
+
+  const addCustomIncludedService = () => {
+    if (!canAddCustomIncludedService(customIncludedServices)) return;
+    onChange({
+      customIncludedServices: [
+        ...customIncludedServices,
+        createCustomIncludedService(),
+      ],
+    });
+  };
+
+  const updateCustomIncludedService = (
+    serviceId: string,
+    patch: Partial<TQuotationCustomIncludedService>,
+  ) => {
+    onChange({
+      customIncludedServices: customIncludedServices.map((service) =>
+        service.id === serviceId ? { ...service, ...patch } : service,
+      ),
+    });
+  };
+
+  const removeCustomIncludedService = (serviceId: string) => {
+    onChange({
+      customIncludedServices: customIncludedServices.filter(
+        (service) => service.id !== serviceId,
+      ),
     });
   };
 
@@ -118,18 +227,74 @@ export function QuotationTransferSection({
           {INCLUDED_SERVICE_OPTIONS.map((service) => (
             <label
               key={service.id}
-              className="flex cursor-pointer items-center gap-3 rounded! border border-border bg-muted/20 px-3 py-2.5"
+              className={cn(includedServiceCellClass, "cursor-pointer")}
             >
               <Checkbox
                 checked={option.includedServices[service.id]}
                 onCheckedChange={() => toggleIncludedService(service.id)}
                 disabled={sectionDisabled}
               />
-              <span className="text-xs font-semibold uppercase tracking-wide text-foreground">
+              <span className={cn(includedServiceLabelClass, "truncate")}>
                 {service.label}
               </span>
             </label>
           ))}
+
+          {customIncludedServices.map((service) => (
+            <div key={service.id} className={includedServiceCellClass}>
+              <Checkbox
+                checked={service.included}
+                onCheckedChange={(checked) =>
+                  updateCustomIncludedService(service.id, {
+                    included: checked === true,
+                  })
+                }
+                disabled={sectionDisabled}
+                aria-label={`Include ${service.label || "custom service"}`}
+              />
+              <input
+                type="text"
+                value={service.label}
+                onChange={(event) =>
+                  updateCustomIncludedService(service.id, {
+                    label: event.target.value,
+                  })
+                }
+                placeholder="Custom service"
+                disabled={sectionDisabled}
+                className={includedServiceInlineInputClass}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="size-6 shrink-0 rounded! p-0"
+                disabled={sectionDisabled}
+                onClick={() => removeCustomIncludedService(service.id)}
+                aria-label="Remove custom service"
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className={cn(
+              includedServiceCellClass,
+              "cursor-pointer justify-center border-dashed text-muted-foreground transition-colors hover:border-brand-primary hover:bg-brand-primary/5 hover:text-brand-primary disabled:cursor-not-allowed disabled:opacity-50",
+            )}
+            disabled={
+              sectionDisabled ||
+              !canAddCustomIncludedService(customIncludedServices)
+            }
+            onClick={addCustomIncludedService}
+          >
+            <PlusCircle className="size-4 shrink-0" />
+            <span className={cn(includedServiceLabelClass, "truncate")}>
+              Add checkbox
+            </span>
+          </button>
         </div>
 
         <div className="grid gap-3 border-b border-border pb-6 md:grid-cols-2">
@@ -160,57 +325,33 @@ export function QuotationTransferSection({
               key={route.id}
               className="grid gap-3 rounded! border border-border bg-muted/20 p-3 md:grid-cols-[1fr_auto_1fr_auto]"
             >
-              <div className="space-y-2">
-                <Label>From</Label>
-                <Select
-                  value={route.from || undefined}
-                  onValueChange={(value) => onUpdateRoute(route.id, { from: value })}
-                  disabled={sectionDisabled || locationsLoading}
-                >
-                  <SelectTrigger className={transferSelectTriggerClass}>
-                    <SelectValue
-                      placeholder={
-                        locationsLoading ? "Loading locations…" : "Select location"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem key={location.id} value={location.name}>
-                        {location.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <RouteLocationSelect
+                label="From"
+                value={route.from}
+                options={fromOptions}
+                placeholder={
+                  locationsLoadingState ? "Loading locations…" : "Select location"
+                }
+                disabled={sectionDisabled || locationsLoadingState}
+                onValueChange={(value) =>
+                  onUpdateRoute(route.id, { from: value })
+                }
+              />
               <div className="hidden items-end justify-center pb-2 md:flex">
                 <div className="flex size-8 items-center justify-center rounded-full bg-brand-primary text-white">
                   <Plus className="size-4 rotate-45" />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>To</Label>
-                <Select
-                  value={route.to || undefined}
-                  onValueChange={(value) => onUpdateRoute(route.id, { to: value })}
-                  disabled={sectionDisabled || locationsLoading}
-                >
-                  <SelectTrigger className={transferSelectTriggerClass}>
-                    <SelectValue
-                      placeholder={
-                        locationsLoading ? "Loading locations…" : "Select location"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem key={location.id} value={location.name}>
-                        {location.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <RouteLocationSelect
+                label="To"
+                value={route.to}
+                options={toOptions}
+                placeholder={
+                  locationsLoadingState ? "Loading locations…" : "Select location"
+                }
+                disabled={sectionDisabled || locationsLoadingState}
+                onValueChange={(value) => onUpdateRoute(route.id, { to: value })}
+              />
               <div className="flex items-end">
                 <Button
                   type="button"

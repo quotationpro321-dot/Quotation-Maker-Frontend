@@ -10,6 +10,7 @@ export type TSettingsDraft = {
   userId: string;
   name: string;
   email: string;
+  whatsappNumber: string;
   profilePhotoUrl: string;
 };
 

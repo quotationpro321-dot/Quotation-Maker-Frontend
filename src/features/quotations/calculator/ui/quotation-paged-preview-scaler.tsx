@@ -2,44 +2,46 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import {
-  QUOTATION_A4_HEIGHT_PX,
-  QUOTATION_A4_WIDTH_PX,
-} from "@/features/quotations/calculator/lib/quotation-classic-umrah.constants";
-
-const PAGE_GAP_PX = 0;
-const PAGE_COUNT = 2;
-const TOTAL_CONTENT_HEIGHT =
-  QUOTATION_A4_HEIGHT_PX * PAGE_COUNT + PAGE_GAP_PX * (PAGE_COUNT - 1);
+import { QUOTATION_A4_WIDTH_PX } from "@/features/quotations/calculator/lib/quotation-classic-umrah.constants";
 
 type TQuotationPagedPreviewScalerProps = {
   children: React.ReactNode;
 };
 
+/**
+ * Scales fixed A4 pages down to the available width. Content height is
+ * measured live, so the page count can vary per quotation.
+ */
 export function QuotationPagedPreviewScaler({
   children,
 }: TQuotationPagedPreviewScalerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [contentHeight, setContentHeight] = useState(0);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    const content = contentRef.current;
+    if (!container || !content) return;
 
-    const updateScale = () => {
+    const update = () => {
       const availableWidth = container.clientWidth;
-      if (availableWidth <= 0) return;
-      setScale(Math.min(1, availableWidth / QUOTATION_A4_WIDTH_PX));
+      if (availableWidth > 0) {
+        setScale(Math.min(1, availableWidth / QUOTATION_A4_WIDTH_PX));
+      }
+      setContentHeight(content.offsetHeight);
     };
 
-    updateScale();
-    const observer = new ResizeObserver(updateScale);
+    update();
+    const observer = new ResizeObserver(update);
     observer.observe(container);
+    observer.observe(content);
     return () => observer.disconnect();
   }, []);
 
   const scaledWidth = QUOTATION_A4_WIDTH_PX * scale;
-  const scaledHeight = TOTAL_CONTENT_HEIGHT * scale;
+  const scaledHeight = contentHeight * scale;
 
   return (
     <div ref={containerRef} className="w-full min-w-0">
@@ -48,6 +50,7 @@ export function QuotationPagedPreviewScaler({
         style={{ width: scaledWidth, height: scaledHeight }}
       >
         <div
+          ref={contentRef}
           className="bg-transparent"
           style={{
             width: QUOTATION_A4_WIDTH_PX,

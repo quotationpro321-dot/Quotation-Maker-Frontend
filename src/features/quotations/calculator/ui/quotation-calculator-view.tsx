@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense } from "react";
 import { Calculator } from "lucide-react";
+import { Suspense } from "react";
 
 import {
   Select,
@@ -35,15 +35,18 @@ const CALCULATOR_TYPE_META: Record<
 > = {
   umrah: {
     label: "Umrah",
-    description: "Flight, hotel, visa, and transfer pricing for Umrah quotations.",
+    description:
+      "Flight, hotel, visa, and transfer pricing for Umrah quotations.",
   },
   holiday: {
     label: "Holiday",
-    description: "Build holiday quotations with flights, hotel, visa, and transfer costs.",
+    description:
+      "Build holiday quotations with flights, hotel, visa, and transfer costs.",
   },
   flights: {
     label: "Flights",
-    description: "Flight-only calculator focused on itinerary and fare pricing.",
+    description:
+      "Flight-only calculator focused on itinerary and fare pricing.",
   },
 };
 
@@ -73,8 +76,9 @@ function QuotationCalculatorContent({
     saveQuotation,
     openPreview,
     closePreview,
-    exportImage,
     exportPdf,
+    shareLink,
+    isSharingLink,
   } = useQuotationCalculator({ expectedRole });
   const calculatorMeta = CALCULATOR_TYPE_META[draft.calculatorType];
   const showHotelSection = draft.calculatorType !== "flights";
@@ -120,6 +124,7 @@ function QuotationCalculatorContent({
       <QuotationCustomerHeader
         customerName={draft.customerName}
         customerNumber={draft.customerNumber}
+        calculatorType={draft.calculatorType}
         templateId={draft.templateId}
         onCustomerNameChange={(value) => updateDraft({ customerName: value })}
         onCustomerNumberChange={(value) =>
@@ -163,6 +168,7 @@ function QuotationCalculatorContent({
           ) : null}
           {showTransferSection ? (
             <QuotationTransferSection
+              calculatorType={draft.calculatorType}
               option={activeOption}
               currency={draft.currency}
               onChange={updateActiveOption}
@@ -200,8 +206,9 @@ function QuotationCalculatorContent({
         activeOptionIndex={activeOptionIndex}
         previewRef={previewRef}
         onOpenChange={(open) => (open ? openPreview() : closePreview())}
-        onExportImage={exportImage}
         onExportPdf={exportPdf}
+        onShareLink={() => void shareLink()}
+        isSharing={isSharingLink}
       />
     </div>
   );

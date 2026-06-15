@@ -1,3 +1,9 @@
+/** Theme-aware logos for auth layout only. */
+export const AUTH_LOGO = {
+  light: "/qodest-light.png",
+  dark: "/qodest-dark.png",
+} as const;
+
 /** Auth routes — single source for links between login, forgot, and reset flows. */
 export const AUTH_ROUTES = {
   login: "/auth/login",

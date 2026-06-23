@@ -90,7 +90,7 @@ export function EmployeeDashboardView() {
           {
             label: "Calculator",
             description: "Run fare and margin calculations.",
-            href: paths.calculator,
+            href: `${paths.calculator}?new=1`,
             icon: Calculator,
           },
           {

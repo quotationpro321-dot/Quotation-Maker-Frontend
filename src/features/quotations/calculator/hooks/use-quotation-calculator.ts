@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { extractApiErrorMessage } from "@/features/auth/lib/extract-api-error-message";
@@ -19,10 +19,14 @@ import { getFlightItineraryMode } from "@/features/quotations/calculator/lib/quo
 import { DEFAULT_INCLUDED_SERVICES } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import {
   getStorageKey,
+  clearDraftFromStorage,
   loadDraftFromStorage,
-  loadMockQuotationDetail,
   saveDraftToStorage,
 } from "@/features/quotations/calculator/lib/quotation-calculator-storage";
+import {
+  prepareDraftForSave,
+  quotationDetailToDraft,
+} from "@/features/quotations/lib/quotation-api-mapper";
 import {
   getCalculatorTypeState,
   hasLegacyFlatOptions,
@@ -34,6 +38,7 @@ import {
 } from "@/features/quotations/calculator/lib/export-quotation";
 import { copyQuotationShareLink } from "@/features/quotations/calculator/lib/quotation-share";
 import { useQuotationConsultantName } from "@/features/quotations/calculator/hooks/use-quotation-consultant-name";
+import { runWithLoadingFeedback } from "@/lib/run-with-loading-feedback";
 import type { NormalizedSegment } from "@/features/flight-converter/types/flight-converter.types";
 import type {
   TQuotationCalculatorType,
@@ -46,6 +51,11 @@ import type {
 } from "@/types/quotation.type";
 import type { UserRole } from "@/types/user.type";
 import { useParseItineraryMutation } from "@/redux/api/flight-converter.api";
+import {
+  useCreateQuotationMutation,
+  useGetQuotationDetailQuery,
+  useUpdateQuotationMutation,
+} from "@/redux/api/quotations.api";
 import { quotationCalculatorSaveSchema } from "@/validation/quotation-calculator.schema";
 
 type TUseQuotationCalculatorOptions = {
@@ -195,41 +205,120 @@ function normalizeDraft(draft: TQuotationDraft): TQuotationDraft {
 export function useQuotationCalculator({
   expectedRole,
 }: TUseQuotationCalculatorOptions) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
+  const isNewQuotation = searchParams.get("new") === "1";
 
   const [draft, setDraft] = useState<TQuotationDraft>(() => createEmptyDraft());
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSharingLink, setIsSharingLink] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isSavingQuotation, setIsSavingQuotation] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
-  const { consultantName, consultantWhatsapp } = useQuotationConsultantName();
+  const isExportingPdfRef = useRef(false);
+  const isSavingQuotationRef = useRef(false);
+  const skipDraftRestoreRef = useRef(false);
+  const { consultantName, consultantWhatsapp, consultantDesignation } = useQuotationConsultantName();
 
   const [parseItinerary, { isLoading: isParsingFlight }] =
     useParseItineraryMutation();
+  const [createQuotation] = useCreateQuotationMutation();
+  const [updateQuotation] = useUpdateQuotationMutation();
+
+  const {
+    data: detailResponse,
+    isLoading: isLoadingDetail,
+    isError: isDetailError,
+    error: detailError,
+  } = useGetQuotationDetailQuery(editId ?? "", {
+    skip: !editId,
+  });
 
   const storageKey = getStorageKey(expectedRole, editId);
+  const newDraftStorageKey = getStorageKey(expectedRole, null);
 
   const activeCalculatorState = getCalculatorTypeState(draft);
   const activeOptions = activeCalculatorState.options;
   const activeOptionIndex = activeCalculatorState.activeOptionIndex;
 
   useEffect(() => {
-    const fromMock = editId ? loadMockQuotationDetail(editId) : null;
-    const fromStorage = loadDraftFromStorage(storageKey);
-    const initial = normalizeDraft(fromMock ?? fromStorage ?? createEmptyDraft());
-    if (fromMock?.id) initial.id = fromMock.id;
-    setDraft(initial);
+    if (editId) {
+      if (detailResponse?.data) {
+        const loaded = normalizeDraft(quotationDetailToDraft(detailResponse.data));
+        setDraft(loaded);
+        setIsPreviewOpen(false);
+        setIsInitialized(true);
+        return;
+      }
+
+      if (isLoadingDetail) {
+        setIsInitialized(false);
+        return;
+      }
+
+      if (isDetailError) {
+        toast.error(
+          extractApiErrorMessage(detailError, "Could not load quotation."),
+        );
+        const fromStorage = loadDraftFromStorage(storageKey);
+        setDraft(normalizeDraft(fromStorage ?? createEmptyDraft()));
+        setIsInitialized(true);
+        return;
+      }
+
+      return;
+    }
+
+    if (isNewQuotation) {
+      clearDraftFromStorage(newDraftStorageKey);
+      skipDraftRestoreRef.current = true;
+      setDraft(normalizeDraft(createEmptyDraft()));
+      setIsPreviewOpen(false);
+      setIsInitialized(true);
+      router.replace(pathname);
+      return;
+    }
+
+    if (skipDraftRestoreRef.current) {
+      skipDraftRestoreRef.current = false;
+      setIsInitialized(true);
+      return;
+    }
+
+    const fromStorage = loadDraftFromStorage(newDraftStorageKey);
+    if (fromStorage && !fromStorage.id) {
+      setDraft(normalizeDraft(fromStorage));
+    } else {
+      setDraft(normalizeDraft(createEmptyDraft()));
+    }
+    setIsPreviewOpen(false);
     setIsInitialized(true);
-  }, [editId, storageKey]);
+  }, [
+    detailError,
+    detailResponse,
+    editId,
+    isDetailError,
+    isLoadingDetail,
+    isNewQuotation,
+    newDraftStorageKey,
+    pathname,
+    router,
+    storageKey,
+  ]);
 
   useEffect(() => {
     if (!isInitialized) return;
+    if (editId && draft.id !== editId) return;
+    if (!editId && draft.id) return;
+
     const timeoutId = window.setTimeout(() => {
       saveDraftToStorage(storageKey, draft);
     }, 800);
     return () => window.clearTimeout(timeoutId);
-  }, [draft, isInitialized, storageKey]);
+  }, [draft, draft.id, editId, isInitialized, storageKey]);
 
   const activeOption = activeOptions[activeOptionIndex] ?? activeOptions[0];
   const activeTotals = useMemo(
@@ -384,7 +473,7 @@ export function useQuotationCalculator({
     [],
   );
 
-  const saveQuotation = useCallback(() => {
+  const saveQuotation = useCallback(async () => {
     const parsed = quotationCalculatorSaveSchema.safeParse({
       customerName: draft.customerName,
       customerNumber: draft.customerNumber,
@@ -396,24 +485,70 @@ export function useQuotationCalculator({
       return;
     }
 
-    saveDraftToStorage(storageKey, draft);
-    toast.success("Quotation saved locally.", {
-      description: "Backend persistence will connect when the API is ready.",
+    const payload = prepareDraftForSave(draft);
+
+    await runWithLoadingFeedback({
+      guardRef: isSavingQuotationRef,
+      setLoading: setIsSavingQuotation,
+      loadingMessage: "Saving quotation…",
+      successMessage: "Quotation saved.",
+      errorMessage: "Could not save quotation.",
+      run: async () => {
+        try {
+          if (draft.id) {
+            const response = await updateQuotation({
+              id: draft.id,
+              body: { ...payload, id: draft.id, referenceNumber: draft.referenceNumber },
+            }).unwrap();
+            const saved = response.data;
+            const nextDraft = normalizeDraft({
+              ...draft,
+              ...quotationDetailToDraft(saved),
+            });
+            setDraft(nextDraft);
+            saveDraftToStorage(getStorageKey(expectedRole, saved.id), nextDraft);
+            return;
+          }
+
+          const response = await createQuotation(payload).unwrap();
+          const saved = response.data;
+          const nextDraft = normalizeDraft(quotationDetailToDraft(saved));
+          setDraft(nextDraft);
+          clearDraftFromStorage(newDraftStorageKey);
+          saveDraftToStorage(getStorageKey(expectedRole, saved.id), nextDraft);
+          router.replace(`${pathname}?id=${encodeURIComponent(saved.id)}`);
+        } catch (error) {
+          throw new Error(
+            extractApiErrorMessage(error, "Could not save quotation."),
+          );
+        }
+      },
     });
-  }, [activeOptions, draft, storageKey]);
+  }, [
+    activeOptions,
+    draft,
+    expectedRole,
+    newDraftStorageKey,
+    pathname,
+    router,
+    createQuotation,
+    updateQuotation,
+  ]);
 
   const exportPdf = useCallback(async () => {
-    if (!previewRef.current) return;
-    try {
-      const name = draft.customerName.trim() || "customer";
-      await exportQuotationAsPdf(
-        previewRef.current,
-        `quotation-${name.replace(/\s+/g, "-").toLowerCase()}.pdf`,
-      );
-      toast.success("PDF downloaded.");
-    } catch {
-      toast.error("Could not export PDF.");
-    }
+    const element = previewRef.current;
+    if (!element) return;
+
+    const filename = `quotation-${(draft.customerName.trim() || "customer").replace(/\s+/g, "-").toLowerCase()}.pdf`;
+
+    await runWithLoadingFeedback({
+      guardRef: isExportingPdfRef,
+      setLoading: setIsExportingPdf,
+      loadingMessage: "Preparing your PDF…",
+      successMessage: "PDF downloaded.",
+      errorMessage: "Could not export PDF.",
+      run: () => exportQuotationAsPdf(element, filename),
+    });
   }, [draft.customerName]);
 
   const shareLink = useCallback(async () => {
@@ -422,6 +557,7 @@ export function useQuotationCalculator({
       await copyQuotationShareLink(draft, activeOptionIndex, {
         name: consultantName,
         whatsapp: consultantWhatsapp,
+        designation: consultantDesignation,
       });
       toast.success("Share link copied to clipboard.", {
         description: "Recipients can open the quotation in their browser.",
@@ -435,7 +571,7 @@ export function useQuotationCalculator({
     } finally {
       setIsSharingLink(false);
     }
-  }, [activeOptionIndex, consultantName, consultantWhatsapp, draft]);
+  }, [activeOptionIndex, consultantDesignation, consultantName, consultantWhatsapp, draft]);
 
   return {
     draft,
@@ -464,5 +600,9 @@ export function useQuotationCalculator({
     exportPdf,
     shareLink,
     isSharingLink,
+    isExportingPdf,
+    isSavingQuotation,
+    isLoadingDetail: Boolean(editId && isLoadingDetail),
+    isInitialized,
   };
 }

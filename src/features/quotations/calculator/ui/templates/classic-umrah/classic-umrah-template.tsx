@@ -21,6 +21,7 @@ export function ClassicUmrahTemplate(props: TQuotationTemplateProps) {
     currency,
     consultantName = "",
     consultantWhatsapp = "",
+    consultantDesignation = "",
   } = props;
   const options = getCalculatorTypeState(draft).options;
 
@@ -47,6 +48,7 @@ export function ClassicUmrahTemplate(props: TQuotationTemplateProps) {
         currency={currency}
         consultantName={consultantName}
         consultantWhatsapp={consultantWhatsapp}
+        consultantDesignation={consultantDesignation}
       />
     </div>
   );

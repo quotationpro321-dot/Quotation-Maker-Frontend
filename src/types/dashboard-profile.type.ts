@@ -9,6 +9,8 @@ export interface IDashboardProfile {
   role: UserRole | string;
   /** Optional WhatsApp contact rendered on the user's quotation PDFs. */
   whatsappNumber: string | null;
+  /** Job title shown under the consultant name on quotation PDFs. */
+  consultantDesignation: string | null;
   profilePhotoUrl: string | null;
 }
 
@@ -17,6 +19,7 @@ export type TUpdateDashboardProfilePayload = {
   email: string;
   /** Omit to keep current; send "" to clear. */
   whatsappNumber?: string;
+  consultantDesignation?: string;
   /** Required by API when the email address is being changed. */
   currentPassword?: string;
 };

@@ -130,6 +130,7 @@ export type TQuotationDetail = TQuotationListItem & {
   customerNumber?: string;
   calculatorType?: TQuotationCalculatorType;
   templateId: TQuotationTemplateId;
+  calculatorStates?: TQuotationCalculatorTypeStates;
   options: TQuotationOption[];
 };
 

@@ -60,11 +60,15 @@ function TrustpilotBadge() {
 export function ClassicUmrahContactFooter({
   consultantName,
   consultantWhatsapp,
+  consultantDesignation,
 }: {
   consultantName: string;
   consultantWhatsapp: string;
+  consultantDesignation: string;
 }) {
   const whatsappText = consultantWhatsapp.trim() || "WhatsApp number not set";
+  const designationText =
+    consultantDesignation.trim() || UMRAH_CONSULTANT.title;
   return (
     <div className="mt-auto">
       <div className="flex items-center justify-between gap-6 px-2 pb-6">
@@ -73,7 +77,7 @@ export function ClassicUmrahContactFooter({
             {consultantName}
           </p>
           <p className="text-[12px] font-semibold tracking-wide text-slate-700">
-            {UMRAH_CONSULTANT.title}
+            {designationText}
           </p>
         </div>
 

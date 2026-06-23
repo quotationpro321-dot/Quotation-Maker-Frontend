@@ -17,6 +17,7 @@ export function profileToFormState(p: IDashboardProfile) {
     name: p.name,
     email: p.email,
     whatsappNumber: p.whatsappNumber ?? "",
+    consultantDesignation: p.consultantDesignation ?? "",
     profilePhotoUrl: p.profilePhotoUrl ?? "",
   };
 }

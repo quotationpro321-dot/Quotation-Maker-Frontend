@@ -45,7 +45,7 @@ export function GdsIntelligencePanel({
         </div>
         <Button
           asChild
-          className="w-full rounded! border-transparent bg-white text-brand-primary hover:bg-white/90 hover:text-brand-primary"
+          className="w-full rounded! border-transparent bg-white text-brand-primary hover:!bg-white hover:!text-brand-primary [a]:hover:!bg-white [a]:hover:!text-brand-primary"
         >
           <Link href={flightConverterHref}>
             Open Flight Converter

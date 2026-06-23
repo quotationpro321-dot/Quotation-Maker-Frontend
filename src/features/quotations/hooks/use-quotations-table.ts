@@ -9,13 +9,13 @@ import {
 } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
 
+import {
+  useListMyQuotationsQuery,
+  useListQuotationsQuery,
+} from "@/redux/api/quotations.api";
 import type { TListQuotationsParams, TQuotationListItem } from "@/types/quotation.type";
 import type { UserRole } from "@/types/user.type";
 
-import {
-  getMockCurrentUserIds,
-  queryMockQuotations,
-} from "@/features/quotations/lib/quotations-mock-data";
 import {
   quotationsTableColumns,
   type TQuotationsTableMeta,
@@ -45,7 +45,6 @@ function sortingToQuery(
 type TUseQuotationsTableOptions = {
   scope: TQuotationsScope;
   role: UserRole;
-  currentUserId?: string;
   search: string;
   statusFilter?: TQuotationListItem["status"];
   onView: (quotation: TQuotationListItem) => void;
@@ -57,7 +56,6 @@ type TUseQuotationsTableOptions = {
 export function useQuotationsTable({
   scope,
   role,
-  currentUserId,
   search,
   statusFilter,
   onView,
@@ -72,13 +70,6 @@ export function useQuotationsTable({
   const [sorting, setSorting] = useState<SortingState>([
     { id: "quotationDate", desc: true },
   ]);
-  const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
-
-  const resolvedUserId = useMemo(() => {
-    if (currentUserId) return currentUserId;
-    const ids = getMockCurrentUserIds();
-    return role === "admin" ? ids.admin : ids.employee;
-  }, [currentUserId, role]);
 
   const queryParams = useMemo<TListQuotationsParams>(() => {
     const sort = sortingToQuery(sorting);
@@ -87,23 +78,25 @@ export function useQuotationsTable({
       limit: pagination.pageSize,
       search: search.trim() || undefined,
       status: statusFilter,
-      createdById: scope === "mine" ? resolvedUserId : undefined,
       ...sort,
     };
   }, [
     pagination.pageIndex,
     pagination.pageSize,
-    resolvedUserId,
-    scope,
     search,
     sorting,
     statusFilter,
   ]);
 
-  const listData = useMemo(
-    () => queryMockQuotations(queryParams, removedIds),
-    [queryParams, removedIds],
-  );
+  const allQuery = useListQuotationsQuery(queryParams, {
+    skip: scope !== "all",
+  });
+  const mineQuery = useListMyQuotationsQuery(queryParams, {
+    skip: scope !== "mine",
+  });
+
+  const activeQuery = scope === "all" ? allQuery : mineQuery;
+  const listData = activeQuery.data?.data;
 
   const meta = useMemo<TQuotationsTableMeta>(
     () => ({ onView, onEdit, onDuplicate, onDelete, role }),
@@ -111,9 +104,9 @@ export function useQuotationsTable({
   );
 
   const table = useReactTable({
-    data: listData.items,
+    data: listData?.items ?? [],
     columns: quotationsTableColumns,
-    pageCount: listData.pagination.totalPages,
+    pageCount: listData?.pagination.totalPages ?? 0,
     state: { sorting, pagination },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
@@ -128,19 +121,14 @@ export function useQuotationsTable({
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, []);
 
-  const removeQuotation = useCallback((id: string) => {
-    setRemovedIds((prev) => new Set(prev).add(id));
-  }, []);
-
   return {
     table,
-    quotations: listData.items,
-    totalRows: listData.pagination.total,
-    isLoading: false,
-    isFetching: false,
-    isError: false,
-    refetch: () => undefined,
+    quotations: listData?.items ?? [],
+    totalRows: listData?.pagination.total ?? 0,
+    isLoading: activeQuery.isLoading,
+    isFetching: activeQuery.isFetching,
+    isError: activeQuery.isError,
+    refetch: activeQuery.refetch,
     resetPage,
-    removeQuotation,
   };
 }

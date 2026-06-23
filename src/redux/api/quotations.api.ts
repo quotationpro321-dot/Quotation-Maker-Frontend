@@ -55,7 +55,7 @@ export const quotationsApi = baseApi.injectEndpoints({
           method: "POST",
           data: body,
         }),
-        invalidatesTags: ["Quotations"],
+        invalidatesTags: ["Quotations", "Dashboard"],
       },
     ),
     updateQuotation: builder.mutation<
@@ -70,6 +70,7 @@ export const quotationsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         "Quotations",
         { type: "Quotations", id },
+        "Dashboard",
       ],
     }),
     deleteQuotation: builder.mutation<IResponse<null>, string>({
@@ -77,7 +78,7 @@ export const quotationsApi = baseApi.injectEndpoints({
         url: `${QUOTATIONS_URL}/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Quotations"],
+      invalidatesTags: ["Quotations", "Dashboard"],
     }),
   }),
 });
@@ -87,6 +88,7 @@ export const {
   useListMyQuotationsQuery,
   useGetQuotationQuery,
   useGetQuotationDetailQuery,
+  useLazyGetQuotationDetailQuery,
   useCreateQuotationMutation,
   useUpdateQuotationMutation,
   useDeleteQuotationMutation,

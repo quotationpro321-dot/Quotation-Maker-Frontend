@@ -24,11 +24,15 @@ function ContactRow({ icon, text }: { icon: React.ReactNode; text: string }) {
 export function HolidaySkyguruContactFooter({
   consultantName,
   consultantWhatsapp,
+  consultantDesignation,
 }: {
   consultantName: string;
   consultantWhatsapp: string;
+  consultantDesignation: string;
 }) {
   const whatsappText = consultantWhatsapp.trim() || SKYGURU_CONTACT.whatsapp;
+  const designationText =
+    consultantDesignation.trim() || SKYGURU_CONTACT.consultantTitle;
 
   return (
     <div className="mt-auto">
@@ -38,7 +42,7 @@ export function HolidaySkyguruContactFooter({
             {consultantName || "SkyGuru Travel"}
           </p>
           <p className="text-[12px] font-semibold tracking-wide text-slate-700">
-            {SKYGURU_CONTACT.consultantTitle}
+            {designationText}
           </p>
         </div>
 

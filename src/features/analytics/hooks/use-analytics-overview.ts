@@ -2,21 +2,25 @@
 
 import type { TAnalyticsOverview, TAnalyticsPeriod } from "@/types/analytics-overview.type";
 
-import { getMockAnalyticsOverview } from "@/features/analytics/lib/analytics-mock-data";
+import { useGetAnalyticsOverviewQuery } from "@/redux/api/dashboard.api";
 
 type TAnalyticsOverviewState = {
   data: TAnalyticsOverview | undefined;
   isLoading: boolean;
   isError: boolean;
+  refetch: () => void;
 };
 
 export function useAnalyticsOverview(
   period: TAnalyticsPeriod,
 ): TAnalyticsOverviewState {
-  // Phase 1: mock data. Swap to useGetAnalyticsOverviewQuery({ period }) when ready.
+  const { data: response, isLoading, isError, refetch } =
+    useGetAnalyticsOverviewQuery({ period });
+
   return {
-    data: getMockAnalyticsOverview(period),
-    isLoading: false,
-    isError: false,
+    data: response?.data,
+    isLoading,
+    isError,
+    refetch,
   };
 }

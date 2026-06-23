@@ -23,10 +23,7 @@ import {
 } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import { formatQuotationMoney } from "@/features/quotations/calculator/lib/calculate-quotation";
 import {
-  HOLIDAY_TRANSFER_FROM_OPTIONS,
-  HOLIDAY_TRANSFER_TO_OPTIONS,
   INCLUDED_SERVICE_OPTIONS,
-  usesHolidayTransferRoutes,
   type TTransferRouteOption,
 } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import {
@@ -34,6 +31,7 @@ import {
   quotationSectionBodyClass,
 } from "@/features/quotations/calculator/ui/quotation-section-header";
 import { VehicleQuantityInput } from "@/features/quotations/calculator/ui/vehicle-quantity-input";
+import type { TCalculatorCatalogType } from "@/redux/api/hotels.api";
 import { useListTransferLocationsQuery } from "@/redux/api/transfer.api";
 import type {
   TQuotationCalculatorType,
@@ -64,6 +62,12 @@ const includedServiceLabelClass =
   "text-xs font-semibold uppercase tracking-wide text-foreground";
 const includedServiceInlineInputClass =
   "min-w-0 flex-1 border-0 bg-transparent p-0 text-xs font-semibold uppercase tracking-wide text-foreground outline-none placeholder:text-muted-foreground/80 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:ring-0";
+
+function toCatalogCalculatorType(
+  calculatorType: TQuotationCalculatorType,
+): TCalculatorCatalogType {
+  return calculatorType === "holiday" ? "holiday" : "umrah";
+}
 
 function RouteLocationSelect({
   label,
@@ -116,33 +120,27 @@ export function QuotationTransferSection({
   const displayTransferCost = option.transferSectionEnabled
     ? option.transferCost
     : 0;
-  const isHolidayRoutes = usesHolidayTransferRoutes(calculatorType);
+  const catalogCalculatorType = toCatalogCalculatorType(calculatorType);
 
   const {
     data: locationsResponse,
     isLoading: locationsLoading,
     isError: locationsError,
-  } = useListTransferLocationsQuery(undefined, {
-    skip: isHolidayRoutes,
-  });
+  } = useListTransferLocationsQuery({ calculatorType: catalogCalculatorType });
 
   const catalogLocations = locationsResponse?.data ?? [];
-  const fromOptions: TTransferRouteOption[] = isHolidayRoutes
-    ? HOLIDAY_TRANSFER_FROM_OPTIONS
-    : catalogLocations.map((location) => ({
-        value: location.name,
-        label: location.name,
-      }));
-  const toOptions: TTransferRouteOption[] = isHolidayRoutes
-    ? HOLIDAY_TRANSFER_TO_OPTIONS
-    : fromOptions;
-  const locationsLoadingState = isHolidayRoutes ? false : locationsLoading;
+  const routeOptions: TTransferRouteOption[] = catalogLocations.map(
+    (location) => ({
+      value: location.name,
+      label: location.name,
+    }),
+  );
 
   useEffect(() => {
-    if (!isHolidayRoutes && locationsError) {
+    if (locationsError) {
       toast.error("Could not load transfer locations.");
     }
-  }, [isHolidayRoutes, locationsError]);
+  }, [locationsError]);
 
   const toggleIncludedService = (key: keyof TQuotationIncludedServices) => {
     onChange({
@@ -328,11 +326,11 @@ export function QuotationTransferSection({
               <RouteLocationSelect
                 label="From"
                 value={route.from}
-                options={fromOptions}
+                options={routeOptions}
                 placeholder={
-                  locationsLoadingState ? "Loading locations…" : "Select location"
+                  locationsLoading ? "Loading locations…" : "Select location"
                 }
-                disabled={sectionDisabled || locationsLoadingState}
+                disabled={sectionDisabled || locationsLoading}
                 onValueChange={(value) =>
                   onUpdateRoute(route.id, { from: value })
                 }
@@ -345,11 +343,11 @@ export function QuotationTransferSection({
               <RouteLocationSelect
                 label="To"
                 value={route.to}
-                options={toOptions}
+                options={routeOptions}
                 placeholder={
-                  locationsLoadingState ? "Loading locations…" : "Select location"
+                  locationsLoading ? "Loading locations…" : "Select location"
                 }
-                disabled={sectionDisabled || locationsLoadingState}
+                disabled={sectionDisabled || locationsLoading}
                 onValueChange={(value) => onUpdateRoute(route.id, { to: value })}
               />
               <div className="flex items-end">

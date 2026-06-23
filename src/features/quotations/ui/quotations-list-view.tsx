@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -8,19 +9,27 @@ import { toast } from "sonner";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import type { TQuotationListItem, TQuotationStatus } from "@/types/quotation.type";
-import type { UserRole } from "@/types/user.type";
-
+import { extractApiErrorMessage } from "@/features/auth/lib/extract-api-error-message";
 import {
   useQuotationsTable,
   type TQuotationsScope,
 } from "@/features/quotations/hooks/use-quotations-table";
-import { getQuotationPaths } from "@/features/quotations/lib/quotation-paths";
+import {
+  prepareDraftForClone,
+  quotationDetailToDraft,
+} from "@/features/quotations/lib/quotation-api-mapper";
+import { getQuotationEditPath, getQuotationPaths, getNewQuotationPath } from "@/features/quotations/lib/quotation-paths";
 import { DeleteQuotationDialog } from "@/features/quotations/ui/delete-quotation-dialog";
 import { QuotationViewDialog } from "@/features/quotations/ui/quotation-view-dialog";
 import { QuotationsLoadingSkeleton } from "@/features/quotations/ui/quotations-loading-skeleton";
 import { QuotationsTableToolbar } from "@/features/quotations/ui/quotations-table-toolbar";
-import { useUser } from "@/hooks/useUser";
+import {
+  useCreateQuotationMutation,
+  useDeleteQuotationMutation,
+  useLazyGetQuotationDetailQuery,
+} from "@/redux/api/quotations.api";
+import type { TQuotationListItem, TQuotationStatus } from "@/types/quotation.type";
+import type { UserRole } from "@/types/user.type";
 
 function useDebouncedValue<T>(value: T, delayMs = 350): T {
   const [debounced, setDebounced] = useState(value);
@@ -44,7 +53,7 @@ export function QuotationsListView({
   title,
   subtitle,
 }: TQuotationsListViewProps) {
-  const { userId } = useUser();
+  const router = useRouter();
   const paths = getQuotationPaths(role);
 
   const [search, setSearch] = useState("");
@@ -53,19 +62,38 @@ export function QuotationsListView({
   const [viewTarget, setViewTarget] = useState<TQuotationListItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TQuotationListItem | null>(null);
 
+  const [deleteQuotation] = useDeleteQuotationMutation();
+  const [createQuotation] = useCreateQuotationMutation();
+  const [fetchQuotationDetail] = useLazyGetQuotationDetailQuery();
+
   const handleView = useCallback((quotation: TQuotationListItem) => {
     setViewTarget(quotation);
   }, []);
 
   const handleEdit = useCallback((_quotation: TQuotationListItem) => {
-    // Navigation handled by row action link; hook reserved for analytics/backend.
+    // Navigation handled by row action link.
   }, []);
 
-  const handleDuplicate = useCallback((_quotation: TQuotationListItem) => {
-    toast.message("Duplicate coming soon", {
-      description: "This will clone the quotation in the calculator.",
-    });
-  }, []);
+  const handleDuplicate = useCallback(
+    async (quotation: TQuotationListItem) => {
+      const toastId = toast.loading("Duplicating quotation…");
+
+      try {
+        const detailResponse = await fetchQuotationDetail(quotation.id).unwrap();
+        const clonedDraft = prepareDraftForClone(
+          quotationDetailToDraft(detailResponse.data),
+        );
+        const createdResponse = await createQuotation(clonedDraft).unwrap();
+        toast.success("Quotation duplicated.", { id: toastId });
+        router.push(getQuotationEditPath(role, createdResponse.data.id));
+      } catch (error) {
+        toast.error(extractApiErrorMessage(error, "Could not duplicate quotation."), {
+          id: toastId,
+        });
+      }
+    },
+    [createQuotation, fetchQuotationDetail, role, router],
+  );
 
   const handleDelete = useCallback((quotation: TQuotationListItem) => {
     setDeleteTarget(quotation);
@@ -78,16 +106,14 @@ export function QuotationsListView({
     isFetching,
     isError,
     resetPage,
-    removeQuotation,
   } = useQuotationsTable({
     scope,
     role,
-    currentUserId: userId,
     search: debouncedSearch,
     statusFilter: statusFilter === "all" ? undefined : statusFilter,
     onView: handleView,
     onEdit: handleEdit,
-    onDuplicate: handleDuplicate,
+    onDuplicate: (quotation) => void handleDuplicate(quotation),
     onDelete: handleDelete,
   });
 
@@ -120,7 +146,7 @@ export function QuotationsListView({
           asChild
           className="rounded! border-transparent bg-brand-primary! font-medium text-white! hover:bg-brand-primary-700!"
         >
-          <Link href={paths.calculator}>
+          <Link href={getNewQuotationPath(role)}>
             <Plus className="size-4" aria-hidden />
             New Quotation
           </Link>
@@ -163,7 +189,7 @@ export function QuotationsListView({
           if (!open) setDeleteTarget(null);
         }}
         onConfirmDelete={async (quotation) => {
-          removeQuotation(quotation.id);
+          await deleteQuotation(quotation.id).unwrap();
         }}
       />
     </div>

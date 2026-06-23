@@ -74,6 +74,7 @@ export function QuotationSharedView() {
           activeOptionIndex={payload.activeOptionIndex}
           consultantName={payload.consultantName}
           consultantWhatsapp={payload.consultantWhatsapp}
+          consultantDesignation={payload.consultantDesignation}
           className="bg-background"
         />
       </main>

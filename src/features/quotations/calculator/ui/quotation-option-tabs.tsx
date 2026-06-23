@@ -37,8 +37,16 @@ export function QuotationOptionTabs({
           {options.length > 1 ? (
             <button
               type="button"
-              className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-destructive"
-              onClick={() => onRemove(index)}
+              className={cn(
+                "absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-0.5 transition-colors",
+                activeIndex === index
+                  ? "text-white/85 hover:bg-white/15 hover:text-white"
+                  : "text-muted-foreground hover:text-destructive",
+              )}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRemove(index);
+              }}
               aria-label={`Remove ${option.title}`}
             >
               <Trash2 className="size-3.5" />

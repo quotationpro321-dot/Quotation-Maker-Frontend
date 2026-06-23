@@ -4,6 +4,8 @@ import { Eye, PlusCircle, Save, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -27,7 +29,8 @@ type TQuotationCustomerHeaderProps = {
   onTemplateChange: (templateId: TQuotationTemplateId) => void;
   onAddOption: () => void;
   onPreview: () => void;
-  onSave: () => void;
+  onSave: () => void | Promise<void>;
+  isSaving?: boolean;
 };
 
 export function QuotationCustomerHeader({
@@ -41,6 +44,7 @@ export function QuotationCustomerHeader({
   onAddOption,
   onPreview,
   onSave,
+  isSaving = false,
 }: TQuotationCustomerHeaderProps) {
   const templates = listQuotationTemplatesForCalculatorType(calculatorType);
 
@@ -101,11 +105,25 @@ export function QuotationCustomerHeader({
         </Button>
         <Button
           type="button"
-          className="h-10 rounded! bg-brand-primary! text-white! hover:bg-brand-primary-700!"
-          onClick={onSave}
+          className={cn(
+            "h-10 min-w-36 rounded! bg-brand-primary! text-white! hover:bg-brand-primary-700! disabled:hover:bg-brand-primary!",
+            isSaving && "disabled:opacity-100",
+          )}
+          onClick={() => void onSave()}
+          disabled={isSaving}
+          aria-busy={isSaving}
         >
-          <Save className="size-4" />
-          Save quotation
+          {isSaving ? (
+            <>
+              <Spinner className="text-white" />
+              Saving…
+            </>
+          ) : (
+            <>
+              <Save className="size-4" />
+              Save quotation
+            </>
+          )}
         </Button>
       </div>
     </div>

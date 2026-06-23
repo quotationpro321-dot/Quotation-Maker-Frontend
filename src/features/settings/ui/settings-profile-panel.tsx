@@ -63,6 +63,7 @@ export function SettingsProfilePanel({
           defaultName={draft.name}
           defaultEmail={draft.email}
           defaultWhatsapp={draft.whatsappNumber}
+          defaultDesignation={draft.consultantDesignation}
           isSaving={isSaving}
           onSubmit={onSaveIdentity}
           onFinalizeEmailChangeSession={onFinalizeEmailChangeSession}

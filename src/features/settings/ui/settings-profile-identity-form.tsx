@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Hash, Loader2, Mail, MessageCircle, Save, UserRound } from "lucide-react";
+import { Hash, Briefcase, Loader2, Mail, MessageCircle, Save, UserRound } from "lucide-react";
 import { useId, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { Resolver } from "react-hook-form";
@@ -30,6 +30,7 @@ type TSettingsProfileIdentityFormProps = {
   defaultName: string;
   defaultEmail: string;
   defaultWhatsapp: string;
+  defaultDesignation: string;
   isSaving: boolean;
   onSubmit: (values: TSettingsProfileSavePayload) => Promise<boolean>;
   onFinalizeEmailChangeSession: () => Promise<void>;
@@ -40,6 +41,7 @@ export function SettingsProfileIdentityForm({
   defaultName,
   defaultEmail,
   defaultWhatsapp,
+  defaultDesignation,
   isSaving,
   onSubmit,
   onFinalizeEmailChangeSession,
@@ -58,11 +60,13 @@ export function SettingsProfileIdentityForm({
       name: defaultName,
       email: defaultEmail,
       whatsappNumber: defaultWhatsapp,
+      consultantDesignation: defaultDesignation,
     },
     values: {
       name: defaultName,
       email: defaultEmail,
       whatsappNumber: defaultWhatsapp,
+      consultantDesignation: defaultDesignation,
     },
   });
 
@@ -152,31 +156,58 @@ export function SettingsProfileIdentityForm({
               />
             </div>
 
-            <Controller
-              name="whatsappNumber"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={`${formId}-whatsapp`}>
-                    WhatsApp Number
-                  </FieldLabel>
-                  <BrandInputShell
-                    {...field}
-                    value={field.value ?? ""}
-                    id={`${formId}-whatsapp`}
-                    leading={<MessageCircle />}
-                    type="tel"
-                    autoComplete="tel"
-                    invalid={fieldState.invalid}
-                    placeholder="e.g. +44 7960 046798"
-                  />
-                  <FieldDescription>
-                    Shown on your quotation PDFs. Leave blank to hide it.
-                  </FieldDescription>
-                  {fieldState.invalid ? <FieldError errors={[fieldState.error]} /> : null}
-                </Field>
-              )}
-            />
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+              <Controller
+                name="whatsappNumber"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={`${formId}-whatsapp`}>
+                      WhatsApp Number
+                    </FieldLabel>
+                    <BrandInputShell
+                      {...field}
+                      value={field.value ?? ""}
+                      id={`${formId}-whatsapp`}
+                      leading={<MessageCircle />}
+                      type="tel"
+                      autoComplete="tel"
+                      invalid={fieldState.invalid}
+                      placeholder="e.g. +44 7960 046798"
+                    />
+                    <FieldDescription>
+                      Shown on your quotation PDFs. Leave blank to hide it.
+                    </FieldDescription>
+                    {fieldState.invalid ? <FieldError errors={[fieldState.error]} /> : null}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="consultantDesignation"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={`${formId}-designation`}>
+                      Designation
+                    </FieldLabel>
+                    <BrandInputShell
+                      {...field}
+                      value={field.value ?? ""}
+                      id={`${formId}-designation`}
+                      leading={<Briefcase />}
+                      autoComplete="organization-title"
+                      invalid={fieldState.invalid}
+                      placeholder="e.g. Umrah Travel Consultant"
+                    />
+                    <FieldDescription>
+                      Shown under your name on quotation PDFs. Leave blank to
+                      use the template default.
+                    </FieldDescription>
+                    {fieldState.invalid ? <FieldError errors={[fieldState.error]} /> : null}
+                  </Field>
+                )}
+              />
+            </div>
           </FieldGroup>
 
           <div className="flex justify-end pt-2">

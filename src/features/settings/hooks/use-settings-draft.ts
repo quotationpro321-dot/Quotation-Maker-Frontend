@@ -11,6 +11,7 @@ export type TSettingsDraft = {
   name: string;
   email: string;
   whatsappNumber: string;
+  consultantDesignation: string;
   profilePhotoUrl: string;
 };
 

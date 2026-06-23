@@ -189,11 +189,9 @@ export function QuotationTemplateContent({
                   key={route.id}
                   className="rounded! border border-border px-3 py-2 text-sm"
                 >
-                  {formatTransferRouteEndpoint(route.from, draft.calculatorType) ||
-                    "—"}{" "}
+                  {formatTransferRouteEndpoint(route.from) || "—"}{" "}
                   →{" "}
-                  {formatTransferRouteEndpoint(route.to, draft.calculatorType) ||
-                    "—"}
+                  {formatTransferRouteEndpoint(route.to) || "—"}
                 </div>
               ))}
           </div>

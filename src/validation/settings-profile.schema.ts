@@ -9,6 +9,12 @@ export const settingsProfileIdentitySchema = z.object({
     .max(30, "WhatsApp number is too long.")
     .optional()
     .default(""),
+  consultantDesignation: z
+    .string()
+    .trim()
+    .max(120, "Designation is too long.")
+    .optional()
+    .default(""),
 });
 
 export type TSettingsProfileIdentityValues = z.infer<typeof settingsProfileIdentitySchema>;

@@ -8,6 +8,7 @@ export type TQuotationSharePayload = {
   activeOptionIndex: number;
   consultantName?: string;
   consultantWhatsapp?: string;
+  consultantDesignation?: string;
 };
 
 /**
@@ -114,7 +115,7 @@ export async function decodeQuotationShareToken(
 export async function buildQuotationShareUrl(
   draft: TQuotationDraft,
   activeOptionIndex: number,
-  consultant?: { name?: string; whatsapp?: string },
+  consultant?: { name?: string; whatsapp?: string; designation?: string },
   origin = typeof window !== "undefined" ? window.location.origin : "",
 ): Promise<string> {
   const token = await encodeQuotationShareToken({
@@ -122,6 +123,7 @@ export async function buildQuotationShareUrl(
     activeOptionIndex,
     consultantName: consultant?.name?.trim() || undefined,
     consultantWhatsapp: consultant?.whatsapp?.trim() || undefined,
+    consultantDesignation: consultant?.designation?.trim() || undefined,
   });
   return `${origin}/quotation/view#${token}`;
 }
@@ -129,7 +131,7 @@ export async function buildQuotationShareUrl(
 export async function copyQuotationShareLink(
   draft: TQuotationDraft,
   activeOptionIndex: number,
-  consultant?: { name?: string; whatsapp?: string },
+  consultant?: { name?: string; whatsapp?: string; designation?: string },
 ): Promise<string> {
   const url = await buildQuotationShareUrl(draft, activeOptionIndex, consultant);
 

@@ -37,11 +37,13 @@ export function ClassicUmrahFinalPage({
   currency,
   consultantName,
   consultantWhatsapp,
+  consultantDesignation,
 }: {
   option: TQuotationOption;
   currency: string;
   consultantName: string;
   consultantWhatsapp: string;
+  consultantDesignation: string;
 }) {
   const totalQuoteValue =
     calculateGross(option, option.flightAdult) * option.numPax;
@@ -106,6 +108,7 @@ export function ClassicUmrahFinalPage({
       <ClassicUmrahContactFooter
         consultantName={consultantName}
         consultantWhatsapp={consultantWhatsapp}
+        consultantDesignation={consultantDesignation}
       />
     </ClassicUmrahPageShell>
   );

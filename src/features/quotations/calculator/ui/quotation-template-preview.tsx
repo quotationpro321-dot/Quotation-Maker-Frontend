@@ -16,6 +16,7 @@ type TQuotationTemplatePreviewProps = {
   /** Embedded in share links; when omitted, fetched from dashboard profile API. */
   consultantName?: string;
   consultantWhatsapp?: string;
+  consultantDesignation?: string;
 };
 
 /** Templates rendered as fixed A4 pages need the paged scaler in the preview. */
@@ -31,13 +32,17 @@ export function QuotationTemplatePreview({
   className,
   consultantName: consultantNameProp,
   consultantWhatsapp: consultantWhatsappProp,
+  consultantDesignation: consultantDesignationProp,
 }: TQuotationTemplatePreviewProps) {
   const {
     consultantName: fetchedConsultantName,
     consultantWhatsapp: fetchedConsultantWhatsapp,
+    consultantDesignation: fetchedConsultantDesignation,
   } = useQuotationConsultantName();
   const consultantName = consultantNameProp ?? fetchedConsultantName;
   const consultantWhatsapp = consultantWhatsappProp ?? fetchedConsultantWhatsapp;
+  const consultantDesignation =
+    consultantDesignationProp ?? fetchedConsultantDesignation;
   const activeCalculatorOptions = getCalculatorTypeState(draft).options;
   const activeOption =
     activeCalculatorOptions[activeOptionIndex] ?? activeCalculatorOptions[0];
@@ -63,6 +68,7 @@ export function QuotationTemplatePreview({
       currency={draft.currency}
       consultantName={consultantName}
       consultantWhatsapp={consultantWhatsapp}
+      consultantDesignation={consultantDesignation}
     />
   );
 

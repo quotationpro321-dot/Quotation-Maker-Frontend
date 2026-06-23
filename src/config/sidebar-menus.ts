@@ -39,7 +39,7 @@ export const sidebarMenus: Record<UserRole, SidebarMenuItem[]> = {
     {
       title: "Calculator",
       icon: Calculator,
-      href: "/dashboard/admin/calculator",
+      href: "/dashboard/admin/calculator?new=1",
     },
     {
       title: "Flight Converter",
@@ -72,7 +72,7 @@ export const sidebarMenus: Record<UserRole, SidebarMenuItem[]> = {
     {
       title: "Calculator",
       icon: Calculator,
-      href: "/dashboard/employee/calculator",
+      href: "/dashboard/employee/calculator?new=1",
     },
     {
       title: "Flight Converter",

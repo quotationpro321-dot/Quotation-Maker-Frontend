@@ -12,4 +12,6 @@ export type TQuotationTemplateProps = {
   consultantName?: string;
   /** Logged-in user's WhatsApp number for the PDF footer (from dashboard profile). */
   consultantWhatsapp?: string;
+  /** Logged-in user's job title for the PDF footer (from dashboard profile). */
+  consultantDesignation?: string;
 };

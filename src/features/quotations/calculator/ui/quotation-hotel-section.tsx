@@ -49,7 +49,11 @@ import {
 } from "@/redux/api/hotels.api";
 import type { TQuotationHotel, TQuotationOption } from "@/types/quotation.type";
 
+import type { TQuotationCalculatorType } from "@/types/quotation.type";
+import type { TCalculatorCatalogType } from "@/redux/api/hotels.api";
+
 type TQuotationHotelSectionProps = {
+  calculatorType: TCalculatorCatalogType;
   option: TQuotationOption;
   currency: string;
   onChange: (patch: Partial<TQuotationOption>) => void;
@@ -62,6 +66,7 @@ type THotelAccommodationRowProps = {
   slotIndex: number;
   hotel: TQuotationHotel;
   areas: THotelAreaDto[];
+  calculatorType: TCalculatorCatalogType;
   areasLoading: boolean;
   disabledAreaSlugs: Set<string>;
   usedCustomLocations: Set<string>;
@@ -75,6 +80,7 @@ function HotelAccommodationRow({
   slotIndex,
   hotel,
   areas,
+  calculatorType,
   areasLoading,
   disabledAreaSlugs,
   usedCustomLocations,
@@ -94,11 +100,23 @@ function HotelAccommodationRow({
     [areas, hotel],
   );
 
+  const selectedArea = useMemo(
+    () => areas.find((area) => area.slug === areaSlug),
+    [areas, areaSlug],
+  );
+
   const {
     data: hotelsResponse,
     isLoading: hotelsLoading,
     isError: hotelsError,
-  } = useListHotelsByAreaQuery({ area: areaSlug ?? "" }, { skip: !areaSlug });
+  } = useListHotelsByAreaQuery(
+    {
+      areaId: selectedArea?.id,
+      area: areaSlug ?? "",
+      calculatorType,
+    },
+    { skip: !selectedArea },
+  );
 
   const hotels = hotelsResponse?.data ?? [];
 
@@ -402,6 +420,7 @@ function HotelAccommodationRow({
 }
 
 export function QuotationHotelSection({
+  calculatorType,
   option,
   currency,
   onChange,
@@ -416,7 +435,7 @@ export function QuotationHotelSection({
     data: areasResponse,
     isLoading: areasLoading,
     isError: areasError,
-  } = useListHotelAreasQuery();
+  } = useListHotelAreasQuery({ calculatorType });
 
   const areas = areasResponse?.data ?? [];
 
@@ -462,6 +481,7 @@ export function QuotationHotelSection({
             slotIndex={slotIndex}
             hotel={hotel}
             areas={areas}
+            calculatorType={calculatorType}
             areasLoading={areasLoading}
             disabledAreaSlugs={getUsedAreaSlugs(option, areas, slotIndex)}
             usedCustomLocations={getUsedCustomLocations(option, areas, slotIndex)}

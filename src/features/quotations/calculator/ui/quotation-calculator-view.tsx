@@ -79,11 +79,26 @@ function QuotationCalculatorContent({
     exportPdf,
     shareLink,
     isSharingLink,
+    isExportingPdf,
+    isSavingQuotation,
+    isLoadingDetail,
+    isInitialized,
   } = useQuotationCalculator({ expectedRole });
   const calculatorMeta = CALCULATOR_TYPE_META[draft.calculatorType];
   const showHotelSection = draft.calculatorType !== "flights";
   const showVisaSection = draft.calculatorType !== "flights";
   const showTransferSection = draft.calculatorType !== "flights";
+
+  if (!isInitialized || isLoadingDetail) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64 rounded!" />
+        <Skeleton className="h-24 w-full rounded!" />
+        <Skeleton className="h-40 w-full rounded!" />
+        <Skeleton className="h-96 w-full rounded!" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -134,6 +149,7 @@ function QuotationCalculatorContent({
         onAddOption={addOption}
         onPreview={openPreview}
         onSave={saveQuotation}
+        isSaving={isSavingQuotation}
       />
 
       <QuotationOptionTabs
@@ -154,6 +170,9 @@ function QuotationCalculatorContent({
           />
           {showHotelSection ? (
             <QuotationHotelSection
+              calculatorType={
+                draft.calculatorType === "holiday" ? "holiday" : "umrah"
+              }
               option={activeOption}
               currency={draft.currency}
               onChange={updateActiveOption}
@@ -209,6 +228,7 @@ function QuotationCalculatorContent({
         onExportPdf={exportPdf}
         onShareLink={() => void shareLink()}
         isSharing={isSharingLink}
+        isExportingPdf={isExportingPdf}
       />
     </div>
   );

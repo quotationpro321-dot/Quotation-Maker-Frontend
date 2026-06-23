@@ -23,3 +23,9 @@ export function getQuotationEditPath(role: UserRole, quotationId: string): strin
   const { calculator } = getQuotationPaths(role);
   return `${calculator}?id=${encodeURIComponent(quotationId)}`;
 }
+
+/** Opens the calculator with a blank draft (new DB record on first save). */
+export function getNewQuotationPath(role: UserRole): string {
+  const { calculator } = getQuotationPaths(role);
+  return `${calculator}?new=1`;
+}

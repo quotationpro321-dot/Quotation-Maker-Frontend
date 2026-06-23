@@ -60,6 +60,7 @@ export function useDashboardSettings() {
         name: values.name.trim(),
         email: values.email.trim(),
         whatsappNumber: values.whatsappNumber?.trim() ?? "",
+        consultantDesignation: values.consultantDesignation?.trim() ?? "",
         ...(emailChanged && values.currentPassword
           ? { currentPassword: values.currentPassword }
           : {}),
@@ -87,6 +88,7 @@ export function useDashboardSettings() {
               name: next.name,
               email: next.email,
               whatsappNumber: next.whatsappNumber ?? "",
+              consultantDesignation: next.consultantDesignation ?? "",
               profilePhotoUrl: next.profilePhotoUrl ?? "",
             }
           : null,

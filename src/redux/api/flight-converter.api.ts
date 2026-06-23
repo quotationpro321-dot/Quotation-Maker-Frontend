@@ -18,6 +18,7 @@ export const flightConverterApi = baseApi.injectEndpoints({
         method: "POST",
         data: body,
       }),
+      invalidatesTags: ["Dashboard"],
     }),
   }),
 });

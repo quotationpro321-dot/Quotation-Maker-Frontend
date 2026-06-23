@@ -18,11 +18,13 @@ export function HolidaySkyguruFinalPage({
   currency,
   consultantName,
   consultantWhatsapp,
+  consultantDesignation,
 }: {
   option: TQuotationOption;
   currency: string;
   consultantName: string;
   consultantWhatsapp: string;
+  consultantDesignation: string;
 }) {
   const totalQuoteValue =
     calculateGross(option, option.flightAdult) * option.numPax;
@@ -90,6 +92,7 @@ export function HolidaySkyguruFinalPage({
       <HolidaySkyguruContactFooter
         consultantName={consultantName}
         consultantWhatsapp={consultantWhatsapp}
+        consultantDesignation={consultantDesignation}
       />
     </HolidaySkyguruPageShell>
   );

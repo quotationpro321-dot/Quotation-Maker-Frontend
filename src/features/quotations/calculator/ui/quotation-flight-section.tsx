@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import {
   copyElementHtml,
@@ -48,6 +49,7 @@ import type {
   TQuotationOption,
 } from "@/types/quotation.type";
 import { cn } from "@/lib/utils";
+import { runWithLoadingFeedback } from "@/lib/run-with-loading-feedback";
 
 type TQuotationFlightSectionProps = {
   option: TQuotationOption;
@@ -102,6 +104,8 @@ export function QuotationFlightSection({
   const itineraryPreviewRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isExportingItineraryPdf, setIsExportingItineraryPdf] = useState(false);
+  const isExportingItineraryPdfRef = useRef(false);
   const itineraryMode = getFlightItineraryMode(option);
   const itineraryImage = getFlightItineraryImage(option);
   const isImageMode = itineraryMode === "image";
@@ -195,18 +199,17 @@ export function QuotationFlightSection({
   }, []);
 
   const handleExportItineraryPdf = useCallback(async () => {
-    if (!itineraryPreviewRef.current) return;
-    try {
-      await exportElementAsPdf(
-        itineraryPreviewRef.current,
-        "flight-itinerary.pdf",
-      );
-      toast.success("PDF downloaded.");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Could not export PDF. Try again.",
-      );
-    }
+    const element = itineraryPreviewRef.current;
+    if (!element) return;
+
+    await runWithLoadingFeedback({
+      guardRef: isExportingItineraryPdfRef,
+      setLoading: setIsExportingItineraryPdf,
+      loadingMessage: "Preparing your PDF…",
+      successMessage: "PDF downloaded.",
+      errorMessage: "Could not export PDF. Try again.",
+      run: () => exportElementAsPdf(element, "flight-itinerary.pdf"),
+    });
   }, []);
 
   return (
@@ -384,11 +387,26 @@ export function QuotationFlightSection({
                   <Button
                     type="button"
                     size="sm"
-                    className="rounded! border-transparent bg-brand-primary! font-medium text-white! shadow-sm hover:bg-brand-primary-700! hover:text-white! focus-visible:ring-brand-primary/35 disabled:hover:bg-brand-primary!"
+                    className={cn(
+                      "min-w-32 rounded! border-transparent bg-brand-primary! font-medium text-white! shadow-sm hover:bg-brand-primary-700! hover:text-white! focus-visible:ring-brand-primary/35 disabled:cursor-not-allowed disabled:hover:bg-brand-primary!",
+                      isExportingItineraryPdf && "disabled:opacity-100",
+                    )}
                     onClick={() => void handleExportItineraryPdf()}
+                    disabled={isExportingItineraryPdf}
+                    aria-busy={isExportingItineraryPdf}
+                    aria-disabled={isExportingItineraryPdf}
                   >
-                    <FileText className="size-4" />
-                    Export PDF
+                    {isExportingItineraryPdf ? (
+                      <>
+                        <Spinner className="text-white" />
+                        Exporting…
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="size-4" />
+                        Export PDF
+                      </>
+                    )}
                   </Button>
                 </div>
               ) : null}

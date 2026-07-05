@@ -19,6 +19,8 @@ type ItineraryPreviewTableProps = {
   segments: NormalizedSegment[];
   layout?: ItineraryTableLayout;
   flightNoHeaderMultiline?: boolean;
+  /** When omitted, duration is hidden by default. */
+  showDuration?: boolean;
   /** Lock export styling (e.g. classic Umrah PDF pages always use light). */
   exportTheme?: "light" | "dark";
 };
@@ -73,14 +75,17 @@ export const ItineraryPreviewTable = forwardRef<
   HTMLDivElement,
   ItineraryPreviewTableProps
 >(function ItineraryPreviewTable(
-  { segments, layout = "converter", flightNoHeaderMultiline, exportTheme: exportThemeProp },
+  { segments, layout = "converter", flightNoHeaderMultiline, showDuration, exportTheme: exportThemeProp },
   ref,
 ) {
   const syncedTheme = useSyncExportThemeAttr();
   const exportTheme = exportThemeProp ?? syncedTheme;
   const isQuotation = layout === "quotation";
+  const displayDuration = showDuration ?? false;
   const useMultilineFlightNo = flightNoHeaderMultiline ?? isQuotation;
   const fonts = isQuotation ? QUOTATION_PREVIEW_TABLE_FONT : EXPORT_TABLE_FONT;
+  const columnWidth = (column: Parameters<typeof itineraryColumnWidthPercent>[0]) =>
+    itineraryColumnWidthPercent(column, layout, displayDuration);
 
   const thClass = cn(
     "border border-border align-middle font-bold text-foreground",
@@ -98,6 +103,8 @@ export const ItineraryPreviewTable = forwardRef<
       ref={ref}
       {...{ [EXPORT_ROOT_ATTR]: "" }}
       data-export-theme={exportTheme}
+      data-show-duration={displayDuration ? "true" : "false"}
+      data-export-layout={layout}
       className="w-full bg-card text-card-foreground"
     >
       <div data-export-scroll className="w-full overflow-x-hidden">
@@ -116,28 +123,18 @@ export const ItineraryPreviewTable = forwardRef<
           }}
         >
           <colgroup>
-            <col style={{ width: itineraryColumnWidthPercent("logo", layout) }} />
-            <col style={{ width: itineraryColumnWidthPercent("date", layout) }} />
-            <col
-              style={{ width: itineraryColumnWidthPercent("operatedBy", layout) }}
-            />
-            <col
-              style={{ width: itineraryColumnWidthPercent("flightNo", layout) }}
-            />
-            <col
-              style={{ width: itineraryColumnWidthPercent("depart", layout) }}
-            />
-            <col style={{ width: itineraryColumnWidthPercent("from", layout) }} />
-            <col
-              style={{ width: itineraryColumnWidthPercent("arrive", layout) }}
-            />
-            <col style={{ width: itineraryColumnWidthPercent("at", layout) }} />
-            <col
-              style={{ width: itineraryColumnWidthPercent("duration", layout) }}
-            />
-            <col
-              style={{ width: itineraryColumnWidthPercent("transit", layout) }}
-            />
+            <col style={{ width: columnWidth("logo") }} />
+            <col style={{ width: columnWidth("date") }} />
+            <col style={{ width: columnWidth("operatedBy") }} />
+            <col style={{ width: columnWidth("flightNo") }} />
+            <col style={{ width: columnWidth("depart") }} />
+            <col style={{ width: columnWidth("from") }} />
+            <col style={{ width: columnWidth("arrive") }} />
+            <col style={{ width: columnWidth("at") }} />
+            {displayDuration && (
+              <col style={{ width: columnWidth("duration") }} />
+            )}
+            <col style={{ width: columnWidth("transit") }} />
           </colgroup>
           <thead>
             <tr>
@@ -192,12 +189,14 @@ export const ItineraryPreviewTable = forwardRef<
               >
                 At
               </th>
-              <th
-                className={thClass}
-                style={{ fontSize: fonts.header, fontWeight: 700 }}
-              >
-                Duration
-              </th>
+              {displayDuration && (
+                <th
+                  className={thClass}
+                  style={{ fontSize: fonts.header, fontWeight: 700 }}
+                >
+                  Duration
+                </th>
+              )}
               <th
                 className={thClass}
                 style={{ fontSize: fonts.header, fontWeight: 700 }}
@@ -253,9 +252,11 @@ export const ItineraryPreviewTable = forwardRef<
                   <td className={tdClass}>
                     {seg.toName} ({seg.toCode})
                   </td>
-                  <td className={cn(tdClass, "whitespace-nowrap")}>
-                    {seg.durationDisplay}
-                  </td>
+                  {displayDuration && (
+                    <td className={cn(tdClass, "whitespace-nowrap")}>
+                      {seg.durationDisplay}
+                    </td>
+                  )}
                   <td className={cn(tdClass, "whitespace-nowrap")}>
                     {seg.transitDisplay}
                   </td>

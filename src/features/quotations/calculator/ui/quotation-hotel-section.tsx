@@ -29,8 +29,6 @@ import {
   getHotelStayHeading,
   getCustomHotelValue,
   getCustomLocationValue,
-  getUsedAreaSlugs,
-  getUsedCustomLocations,
   isCatalogArea,
   isCatalogHotel,
   resolveHotelAreaSlug,
@@ -68,8 +66,6 @@ type THotelAccommodationRowProps = {
   areas: THotelAreaDto[];
   calculatorType: TCalculatorCatalogType;
   areasLoading: boolean;
-  disabledAreaSlugs: Set<string>;
-  usedCustomLocations: Set<string>;
   disabled: boolean;
   canRemove: boolean;
   onHotelChange: (hotel: TQuotationHotel) => void;
@@ -82,8 +78,6 @@ function HotelAccommodationRow({
   areas,
   calculatorType,
   areasLoading,
-  disabledAreaSlugs,
-  usedCustomLocations,
   disabled,
   canRemove,
   onHotelChange,
@@ -183,9 +177,6 @@ function HotelAccommodationRow({
   const customLocationValue = getCustomLocationValue(hotel, areas);
   const customHotelValue = getCustomHotelValue(hotel, hotels);
   const catalogHotelSelected = isCatalogHotel(hotel, hotels);
-  const customLocationKey = customLocationValue.trim().toLowerCase();
-  const isDuplicateCustomLocation =
-    customLocationKey.length > 0 && usedCustomLocations.has(customLocationKey);
   const hasLocation = Boolean(hotel.location.trim());
 
   const distanceLabel = showsHotelDistance(areaSlug)
@@ -228,22 +219,11 @@ function HotelAccommodationRow({
               />
             </SelectTrigger>
             <SelectContent>
-              {areas.map((area) => {
-                const isTakenElsewhere =
-                  disabledAreaSlugs.has(area.slug) &&
-                  area.id !== selectedAreaId;
-
-                return (
-                  <SelectItem
-                    key={area.id}
-                    value={area.id}
-                    disabled={isTakenElsewhere}
-                  >
-                    {area.name}
-                    {isTakenElsewhere ? " (already selected)" : ""}
-                  </SelectItem>
-                );
-              })}
+              {areas.map((area) => (
+                <SelectItem key={area.id} value={area.id}>
+                  {area.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Input
@@ -251,14 +231,8 @@ function HotelAccommodationRow({
             onChange={(e) => handleCustomLocationChange(e.target.value)}
             placeholder="Or enter custom location"
             disabled={disabled}
-            aria-invalid={isDuplicateCustomLocation}
             className={hotelInputClass}
           />
-          {isDuplicateCustomLocation ? (
-            <p className="text-xs text-destructive">
-              This location is already used in another stay.
-            </p>
-          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -483,8 +457,6 @@ export function QuotationHotelSection({
             areas={areas}
             calculatorType={calculatorType}
             areasLoading={areasLoading}
-            disabledAreaSlugs={getUsedAreaSlugs(option, areas, slotIndex)}
-            usedCustomLocations={getUsedCustomLocations(option, areas, slotIndex)}
             disabled={sectionDisabled}
             canRemove={canRemoveHotel}
             onHotelChange={(nextHotel) => handleHotelChange(slotIndex, nextHotel)}

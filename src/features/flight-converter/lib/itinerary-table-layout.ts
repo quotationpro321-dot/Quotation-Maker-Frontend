@@ -34,9 +34,46 @@ export type ItineraryTableColumn = keyof typeof ITINERARY_TABLE_COLUMNS;
 
 export type ItineraryTableLayout = "converter" | "quotation";
 
+/** Column order used by the preview table and export capture. */
+export const ITINERARY_TABLE_DISPLAY_COLUMNS: ItineraryTableColumn[] = [
+  "logo",
+  "date",
+  "operatedBy",
+  "flightNo",
+  "depart",
+  "from",
+  "arrive",
+  "at",
+  "duration",
+  "transit",
+];
+
 export const ITINERARY_TABLE_COLUMN_KEYS = Object.keys(
   ITINERARY_TABLE_COLUMNS,
 ) as ItineraryTableColumn[];
+
+export function getItineraryTableColumns(
+  showDuration = true,
+): ItineraryTableColumn[] {
+  return ITINERARY_TABLE_DISPLAY_COLUMNS.filter(
+    (column) => showDuration || column !== "duration",
+  );
+}
+
+export function getItineraryTableTotalWidth(
+  layout: ItineraryTableLayout = "converter",
+  showDuration = true,
+): number {
+  const columns =
+    layout === "quotation"
+      ? ITINERARY_TABLE_COLUMNS_QUOTATION
+      : ITINERARY_TABLE_COLUMNS;
+
+  return getItineraryTableColumns(showDuration).reduce(
+    (sum, key) => sum + columns[key],
+    0,
+  );
+}
 
 /** Cell padding (px) — matches `px-3` in preview table cells. */
 export const ITINERARY_TABLE_CELL_PADDING_X = 24;
@@ -45,12 +82,13 @@ export const ITINERARY_TABLE_CELL_PADDING_X = 24;
 export function itineraryColumnWidthPercent(
   column: ItineraryTableColumn,
   layout: ItineraryTableLayout = "converter",
+  showDuration = true,
 ): string {
   const columns =
     layout === "quotation"
       ? ITINERARY_TABLE_COLUMNS_QUOTATION
       : ITINERARY_TABLE_COLUMNS;
-  const total = Object.values(columns).reduce((sum, width) => sum + width, 0);
+  const total = getItineraryTableTotalWidth(layout, showDuration);
   return `${((columns[column] / total) * 100).toFixed(4)}%`;
 }
 

@@ -48,7 +48,7 @@ export function QuotationTemplatePreview({
     activeCalculatorOptions[activeOptionIndex] ?? activeCalculatorOptions[0];
   const template = getQuotationTemplate(draft.templateId);
   const TemplateComponent = template?.component;
-  const totals = calculateOptionTotals(activeOption);
+  const totals = calculateOptionTotals(activeOption, draft.calculatorType);
   const usePagedPreview = isPagedClassicPreview(draft);
 
   if (!TemplateComponent || !activeOption) {

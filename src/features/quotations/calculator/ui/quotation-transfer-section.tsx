@@ -23,7 +23,7 @@ import {
 } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import { formatQuotationMoney } from "@/features/quotations/calculator/lib/calculate-quotation";
 import {
-  INCLUDED_SERVICE_OPTIONS,
+  getIncludedServiceOptionsForCalculatorType,
   type TTransferRouteOption,
 } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import {
@@ -121,6 +121,8 @@ export function QuotationTransferSection({
     ? option.transferCost
     : 0;
   const catalogCalculatorType = toCatalogCalculatorType(calculatorType);
+  const includedServiceOptions =
+    getIncludedServiceOptionsForCalculatorType(calculatorType);
 
   const {
     data: locationsResponse,
@@ -222,7 +224,7 @@ export function QuotationTransferSection({
         </div>
 
         <div className="grid gap-3 border-b border-border pb-6 sm:grid-cols-2 lg:grid-cols-4">
-          {INCLUDED_SERVICE_OPTIONS.map((service) => (
+          {includedServiceOptions.map((service) => (
             <label
               key={service.id}
               className={cn(includedServiceCellClass, "cursor-pointer")}

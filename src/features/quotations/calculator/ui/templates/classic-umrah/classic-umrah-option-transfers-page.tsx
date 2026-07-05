@@ -1,4 +1,7 @@
-import { calculateGross } from "@/features/quotations/calculator/lib/calculate-quotation";
+import {
+  calculateTotalQuoteValue,
+  listQuotationPricingRows,
+} from "@/features/quotations/calculator/lib/calculate-quotation";
 import { normalizeCustomIncludedServices } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import {
   UMRAH_PDF_RED,
@@ -68,8 +71,8 @@ export function ClassicUmrahOptionTransfersPage({
 }) {
   const showTransfers = isTransferSectionExported(option);
   const showVisa = isVisaSectionExported(option);
-  const grossPerPerson = calculateGross(option, option.flightAdult);
-  const totalQuoteValue = grossPerPerson * option.numPax;
+  const pricingRows = listQuotationPricingRows(option);
+  const totalQuoteValue = calculateTotalQuoteValue(option);
   const customIncludedServices = normalizeCustomIncludedServices(
     option.customIncludedServices,
   ).filter((service) => service.label.trim());
@@ -161,14 +164,19 @@ export function ClassicUmrahOptionTransfersPage({
         >
           Pricing Information:
         </div>
-        <div className="flex border border-t-0 border-slate-900">
-          <div className="flex-1 border-r border-slate-900 px-3 py-1 text-[13px] font-bold">
-            Adult
+        {pricingRows.map((row) => (
+          <div
+            key={row.label}
+            className="flex border border-t-0 border-slate-900"
+          >
+            <div className="flex-1 border-r border-slate-900 px-3 py-1 text-[13px] font-bold">
+              {row.label}
+            </div>
+            <div className="w-[160px] px-3 py-1 text-[13px]">
+              {formatWholeMoney(row.grossPerPerson, currency)} PP x {row.quantity}
+            </div>
           </div>
-          <div className="w-[160px] px-3 py-1 text-[13px]">
-            {formatWholeMoney(grossPerPerson, currency)} PP x {option.numPax}
-          </div>
-        </div>
+        ))}
         <div className="flex border border-t-0 border-slate-900">
           <div className="flex-1 border-r border-slate-900 px-3 py-1 text-right text-[13px] font-bold">
             Total Quote Value

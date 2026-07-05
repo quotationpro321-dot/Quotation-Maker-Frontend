@@ -4,23 +4,48 @@ import { jsPDF } from "jspdf";
 import {
   AIRLINE_LOGO_MAX_HEIGHT,
   EXPORT_TABLE_FONT_FAMILY,
+  getItineraryTableColumns,
+  getItineraryTableTotalWidth,
   ITINERARY_EXPORT_CANVAS_SCALE,
   ITINERARY_EXPORT_PADDING,
   ITINERARY_EXPORT_THEME,
   ITINERARY_TABLE_CELL_PADDING_X,
-  ITINERARY_TABLE_COLUMN_KEYS,
   ITINERARY_TABLE_COLUMNS,
-  ITINERARY_TABLE_MIN_WIDTH,
+  ITINERARY_TABLE_COLUMNS_QUOTATION,
   type ItineraryExportTheme,
+  type ItineraryTableColumn,
+  type ItineraryTableLayout,
 } from "./itinerary-table-layout";
 
 const EXPORT_ROOT_ATTR = "data-export-root";
 
-const EXPORT_CAPTURE_WIDTH =
-  ITINERARY_TABLE_MIN_WIDTH + ITINERARY_EXPORT_PADDING * 2;
-
 /** Columns that stay on one line during export capture. */
-const EXPORT_NOWRAP_COLUMN_INDEXES = new Set([1, 2, 4, 8, 9]);
+const EXPORT_NOWRAP_COLUMNS = new Set<ItineraryTableColumn>([
+  "date",
+  "operatedBy",
+  "flightNo",
+  "depart",
+  "duration",
+  "transit",
+]);
+
+function readExportLayout(root: HTMLElement): ItineraryTableLayout {
+  return root.dataset.exportLayout === "quotation" ? "quotation" : "converter";
+}
+
+function readShowDuration(root: HTMLElement): boolean {
+  return root.dataset.showDuration !== "false";
+}
+
+function getExportCaptureWidth(
+  layout: ItineraryTableLayout,
+  showDuration: boolean,
+): number {
+  return (
+    getItineraryTableTotalWidth(layout, showDuration) +
+    ITINERARY_EXPORT_PADDING * 2
+  );
+}
 
 const CSS_PX_PER_MM = 96 / 25.4;
 
@@ -151,10 +176,17 @@ function applyCellTheme(
   }
 }
 
-function applyFixedColumnWidths(table: HTMLElement) {
-  const widths = ITINERARY_TABLE_COLUMN_KEYS.map(
-    (key) => ITINERARY_TABLE_COLUMNS[key],
-  );
+function applyFixedColumnWidths(
+  table: HTMLElement,
+  layout: ItineraryTableLayout,
+  showDuration: boolean,
+) {
+  const columns =
+    layout === "quotation"
+      ? ITINERARY_TABLE_COLUMNS_QUOTATION
+      : ITINERARY_TABLE_COLUMNS;
+  const keys = getItineraryTableColumns(showDuration);
+  const widths = keys.map((key) => columns[key]);
 
   table.querySelectorAll("col").forEach((col, index) => {
     if (!(col instanceof HTMLElement)) return;
@@ -185,7 +217,9 @@ function applyFixedColumnWidths(table: HTMLElement) {
       cell.style.setProperty("overflow-wrap", "break-word", "important");
       cell.style.setProperty(
         "white-space",
-        EXPORT_NOWRAP_COLUMN_INDEXES.has(index) ? "nowrap" : "normal",
+        keys[index] && EXPORT_NOWRAP_COLUMNS.has(keys[index])
+          ? "nowrap"
+          : "normal",
         "important",
       );
       cell.style.setProperty("vertical-align", "middle", "important");
@@ -199,9 +233,15 @@ function sanitizeCloneForCanvas(
   theme: ItineraryExportTheme,
   captureHeight?: number,
 ) {
+  const layout = readExportLayout(root);
+  const showDuration = readShowDuration(root);
+  const tableMinWidth = getItineraryTableTotalWidth(layout, showDuration);
+  const captureWidth = getExportCaptureWidth(layout, showDuration);
   const p = ITINERARY_EXPORT_THEME[theme];
   const logoMaxWidth =
-    ITINERARY_TABLE_COLUMNS.logo - ITINERARY_TABLE_CELL_PADDING_X;
+    (layout === "quotation"
+      ? ITINERARY_TABLE_COLUMNS_QUOTATION.logo
+      : ITINERARY_TABLE_COLUMNS.logo) - ITINERARY_TABLE_CELL_PADDING_X;
 
   root.style.setProperty("background-color", p.bg, "important");
   root.style.setProperty("color", p.fg, "important");
@@ -212,9 +252,9 @@ function sanitizeCloneForCanvas(
   root.style.setProperty("-webkit-font-smoothing", "antialiased", "important");
   root.style.setProperty("overflow", "hidden", "important");
   root.style.setProperty("box-sizing", "border-box", "important");
-  root.style.setProperty("width", `${EXPORT_CAPTURE_WIDTH}px`, "important");
-  root.style.setProperty("min-width", `${EXPORT_CAPTURE_WIDTH}px`, "important");
-  root.style.setProperty("max-width", `${EXPORT_CAPTURE_WIDTH}px`, "important");
+  root.style.setProperty("width", `${captureWidth}px`, "important");
+  root.style.setProperty("min-width", `${captureWidth}px`, "important");
+  root.style.setProperty("max-width", `${captureWidth}px`, "important");
   root.style.setProperty("min-height", "0", "important");
   root.style.setProperty("margin", "0", "important");
   root.style.setProperty(
@@ -238,25 +278,13 @@ function sanitizeCloneForCanvas(
 
   const table = root.querySelector("table");
   if (table instanceof HTMLElement) {
-    table.style.setProperty(
-      "width",
-      `${ITINERARY_TABLE_MIN_WIDTH}px`,
-      "important",
-    );
-    table.style.setProperty(
-      "min-width",
-      `${ITINERARY_TABLE_MIN_WIDTH}px`,
-      "important",
-    );
-    table.style.setProperty(
-      "max-width",
-      `${ITINERARY_TABLE_MIN_WIDTH}px`,
-      "important",
-    );
+    table.style.setProperty("width", `${tableMinWidth}px`, "important");
+    table.style.setProperty("min-width", `${tableMinWidth}px`, "important");
+    table.style.setProperty("max-width", `${tableMinWidth}px`, "important");
     table.style.setProperty("table-layout", "fixed", "important");
     table.style.setProperty("border-collapse", "collapse", "important");
     table.style.setProperty("overflow", "hidden", "important");
-    applyFixedColumnWidths(table);
+    applyFixedColumnWidths(table, layout, showDuration);
   }
 
   root.querySelectorAll("*").forEach((node) => {
@@ -408,6 +436,9 @@ async function captureElementCanvas(
 
   const theme = getActiveExportTheme();
   const palette = ITINERARY_EXPORT_THEME[theme];
+  const layout = readExportLayout(element);
+  const showDuration = readShowDuration(element);
+  const captureWidth = getExportCaptureWidth(layout, showDuration);
   const tableHeight = await measureExportCaptureHeight(element, theme);
   const captureHeight = tableHeight + ITINERARY_EXPORT_PADDING * 2;
 
@@ -417,9 +448,9 @@ async function captureElementCanvas(
     useCORS: true,
     allowTaint: true,
     logging: false,
-    width: EXPORT_CAPTURE_WIDTH,
+    width: captureWidth,
     height: captureHeight,
-    windowWidth: EXPORT_CAPTURE_WIDTH,
+    windowWidth: captureWidth,
     windowHeight: captureHeight,
     scrollX: 0,
     scrollY: 0,

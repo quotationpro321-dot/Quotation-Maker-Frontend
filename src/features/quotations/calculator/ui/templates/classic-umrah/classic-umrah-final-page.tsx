@@ -1,4 +1,4 @@
-import { calculateGross } from "@/features/quotations/calculator/lib/calculate-quotation";
+import { calculateTotalQuoteValue } from "@/features/quotations/calculator/lib/calculate-quotation";
 import {
   UMRAH_BANK_DETAILS,
   UMRAH_CANCELLATION_NOTES,
@@ -45,8 +45,7 @@ export function ClassicUmrahFinalPage({
   consultantWhatsapp: string;
   consultantDesignation: string;
 }) {
-  const totalQuoteValue =
-    calculateGross(option, option.flightAdult) * option.numPax;
+  const totalQuoteValue = calculateTotalQuoteValue(option);
   const zero = formatWholeMoney(0, currency);
 
   return (

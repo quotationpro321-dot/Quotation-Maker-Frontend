@@ -13,18 +13,20 @@ export const QUOTATION_CALCULATOR_TYPES: TQuotationCalculatorType[] = [
   "flights",
 ];
 
-export function createEmptyCalculatorTypeState(): TQuotationCalculatorTypeState {
+export function createEmptyCalculatorTypeState(
+  calculatorType: TQuotationCalculatorType = "umrah",
+): TQuotationCalculatorTypeState {
   return {
-    options: [createInitialOption()],
+    options: [createInitialOption("Option 1", calculatorType)],
     activeOptionIndex: 0,
   };
 }
 
 export function createEmptyCalculatorStates(): TQuotationCalculatorTypeStates {
   return {
-    umrah: createEmptyCalculatorTypeState(),
-    holiday: createEmptyCalculatorTypeState(),
-    flights: createEmptyCalculatorTypeState(),
+    umrah: createEmptyCalculatorTypeState("umrah"),
+    holiday: createEmptyCalculatorTypeState("holiday"),
+    flights: createEmptyCalculatorTypeState("flights"),
   };
 }
 

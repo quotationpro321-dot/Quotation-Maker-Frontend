@@ -31,9 +31,12 @@ export function QuotationTemplateContent({
   variant = "classic",
 }: TQuotationTemplateContentProps) {
   const issuedDate = format(new Date(draft.quotationDate), "d MMMM yyyy");
-  const adultGross = calculateGross(option, option.flightAdult);
+  const adultGross = calculateGross(option, option.flightAdult, draft.calculatorType);
   const isCompact = variant === "compact";
-  const includedServiceLabels = listCheckedIncludedServiceLabels(option);
+  const includedServiceLabels = listCheckedIncludedServiceLabels(
+    option,
+    draft.calculatorType,
+  );
   const hasTransferContent =
     isTransferSectionExported(option) &&
     (option.vehicleName ||

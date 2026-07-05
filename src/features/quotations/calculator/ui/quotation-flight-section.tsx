@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState, type ChangeEvent } from "react";
 import {
   Check,
+  Clock,
   Copy,
   Download,
   FileText,
@@ -104,6 +105,7 @@ export function QuotationFlightSection({
   const itineraryPreviewRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showDuration, setShowDuration] = useState(false);
   const [isExportingItineraryPdf, setIsExportingItineraryPdf] = useState(false);
   const isExportingItineraryPdfRef = useRef(false);
   const itineraryMode = getFlightItineraryMode(option);
@@ -366,6 +368,17 @@ export function QuotationFlightSection({
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     type="button"
+                    variant={showDuration ? "default" : "outline"}
+                    size="sm"
+                    className="rounded!"
+                    aria-pressed={showDuration}
+                    onClick={() => setShowDuration((current) => !current)}
+                  >
+                    <Clock className="size-4" />
+                    Duration {showDuration ? "On" : "Off"}
+                  </Button>
+                  <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     className="rounded!"
@@ -421,6 +434,7 @@ export function QuotationFlightSection({
                   ref={itineraryPreviewRef}
                   segments={option.flightSegments}
                   layout="quotation"
+                  showDuration={showDuration}
                 />
               )}
             </div>

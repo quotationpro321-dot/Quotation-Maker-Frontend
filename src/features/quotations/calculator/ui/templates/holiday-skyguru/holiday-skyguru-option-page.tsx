@@ -1,4 +1,7 @@
-import { calculateGross } from "@/features/quotations/calculator/lib/calculate-quotation";
+import {
+  calculateTotalQuoteValue,
+  listQuotationPricingRows,
+} from "@/features/quotations/calculator/lib/calculate-quotation";
 import { hasExportableCustomerNote } from "@/features/quotations/calculator/lib/quotation-customer-note";
 import {
   HOLIDAY_PDF_BLUE,
@@ -61,7 +64,7 @@ export function HolidaySkyguruOptionPage({
   const hotels = isHotelSectionExported(option)
     ? listFilledHotelStays(option)
     : [];
-  const adultPrice = calculateGross(option, option.flightAdult);
+  const pricingRows = listQuotationPricingRows(option, "holiday");
   const showNote = hasExportableCustomerNote(option);
 
   return (
@@ -90,11 +93,14 @@ export function HolidaySkyguruOptionPage({
 
       <div className="pt-6">
         <HolidaySectionHeading>Pricing Information</HolidaySectionHeading>
-        <HolidayInfoRow
-          label="Adult"
-          value={`${formatHolidayWholeMoney(adultPrice, currency)} pp x ${option.numPax}`}
-          emphasis
-        />
+        {pricingRows.map((row) => (
+          <HolidayInfoRow
+            key={row.label}
+            label={row.label}
+            value={`${formatHolidayWholeMoney(row.grossPerPerson, currency)} pp x ${row.quantity}`}
+            emphasis={row.label === "Adult"}
+          />
+        ))}
         <p
           className="border border-t-0 border-slate-300 px-3 py-1.5 text-[11px] italic"
           style={{ color: HOLIDAY_PDF_RED }}

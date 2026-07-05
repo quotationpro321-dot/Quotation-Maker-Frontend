@@ -1,8 +1,9 @@
 import { createEmptyCalculatorStates } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
 import { normalizeCustomIncludedServices } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import { DEFAULT_HOTEL_STAY_COUNT } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
-import { DEFAULT_INCLUDED_SERVICES } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
+import { getDefaultIncludedServices } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import type {
+  TQuotationCalculatorType,
   TQuotationDraft,
   TQuotationHotel,
   TQuotationOption,
@@ -48,7 +49,10 @@ function createRoute(): TQuotationRoute {
   return { id: crypto.randomUUID(), from: "", to: "" };
 }
 
-export function createInitialOption(title = "Option 1"): TQuotationOption {
+export function createInitialOption(
+  title = "Option 1",
+  calculatorType: TQuotationCalculatorType = "umrah",
+): TQuotationOption {
   return {
     id: crypto.randomUUID(),
     title,
@@ -61,7 +65,7 @@ export function createInitialOption(title = "Option 1"): TQuotationOption {
     visaEVW: { pax: 0, cost: 0 },
     visaHoliday: { pax: 0, cost: 0 },
     transferCost: 0,
-    includedServices: { ...DEFAULT_INCLUDED_SERVICES },
+    includedServices: getDefaultIncludedServices(calculatorType),
     customIncludedServices: [],
     vehicleName: "",
     vehicleQuantity: 1,

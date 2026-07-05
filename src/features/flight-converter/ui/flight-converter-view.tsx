@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Copy, Download, FileText } from "lucide-react";
+import { Check, Clock, Copy, Download, FileText } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { PnrInputPanel } from "@/features/flight-converter/ui/pnr-input-panel";
 import { SegmentEditCard } from "@/features/flight-converter/ui/segment-edit-card";
 
 export function FlightConverterView() {
+  const [showDuration, setShowDuration] = useState(false);
   const {
     rawText,
     setRawText,
@@ -67,6 +69,17 @@ export function FlightConverterView() {
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
+                    variant={showDuration ? "default" : "outline"}
+                    size="sm"
+                    className="rounded!"
+                    aria-pressed={showDuration}
+                    onClick={() => setShowDuration((current) => !current)}
+                  >
+                    <Clock className="size-4" />
+                    Duration {showDuration ? "On" : "Off"}
+                  </Button>
+                  <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     className="rounded!"
@@ -103,6 +116,7 @@ export function FlightConverterView() {
                 <ItineraryPreviewTable
                   ref={previewRef}
                   segments={editableSegments}
+                  showDuration={showDuration}
                 />
               </CardContent>
             </Card>

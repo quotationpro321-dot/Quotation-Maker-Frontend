@@ -1,5 +1,6 @@
 import { INCLUDED_SERVICE_OPTIONS } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import type {
+  TQuotationCalculatorType,
   TQuotationCustomIncludedService,
   TQuotationOption,
 } from "@/types/quotation.type";
@@ -40,10 +41,14 @@ export function canAddCustomIncludedService(
 
 export function listCheckedIncludedServiceLabels(
   option: TQuotationOption,
+  calculatorType: TQuotationCalculatorType = "umrah",
 ): string[] {
-  const defaultLabels = INCLUDED_SERVICE_OPTIONS.filter(
-    (service) => option.includedServices?.[service.id],
-  ).map((service) => service.label);
+  const defaultLabels =
+    calculatorType === "holiday"
+      ? []
+      : INCLUDED_SERVICE_OPTIONS.filter(
+          (service) => option.includedServices?.[service.id],
+        ).map((service) => service.label);
 
   const customLabels = normalizeCustomIncludedServices(
     option.customIncludedServices,

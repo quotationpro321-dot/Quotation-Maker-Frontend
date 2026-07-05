@@ -8,31 +8,40 @@ import { Label } from "@/components/ui/label";
 import {
   calculateVisaTotal,
   formatQuotationMoney,
+  getVisaFieldsForCalculatorType,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
 import {
   QuotationSectionHeader,
   quotationSectionBodyClass,
 } from "@/features/quotations/calculator/ui/quotation-section-header";
-import type { TQuotationOption, TQuotationVisaLine } from "@/types/quotation.type";
+import type {
+  TQuotationCalculatorType,
+  TQuotationOption,
+  TQuotationVisaLine,
+} from "@/types/quotation.type";
+import { cn } from "@/lib/utils";
 
 type TQuotationVisaSectionProps = {
+  calculatorType: TQuotationCalculatorType;
   option: TQuotationOption;
   currency: string;
   onChange: (patch: Partial<TQuotationOption>) => void;
 };
 
-const VISA_FIELDS = [
-  { label: "Umrah visa", field: "visaUmrah" },
-  { label: "EVW visa", field: "visaEVW" },
-  { label: "Holiday visa", field: "visaHoliday" },
-] as const;
+const visaGridClassByCount: Record<number, string> = {
+  1: "md:grid-cols-1",
+  2: "md:grid-cols-2",
+  3: "md:grid-cols-3",
+};
 
 export function QuotationVisaSection({
+  calculatorType,
   option,
   currency,
   onChange,
 }: TQuotationVisaSectionProps) {
-  const visaTotal = calculateVisaTotal(option);
+  const visaFields = getVisaFieldsForCalculatorType(calculatorType);
+  const visaTotal = calculateVisaTotal(option, calculatorType);
   const displayVisaTotal = option.visaSectionEnabled ? visaTotal : 0;
 
   return (
@@ -45,9 +54,13 @@ export function QuotationVisaSection({
         priceLabel={formatQuotationMoney(displayVisaTotal, currency)}
       />
       <CardContent
-        className={`grid gap-4 md:grid-cols-3 ${quotationSectionBodyClass(option.visaSectionEnabled)}`}
+        className={cn(
+          "grid gap-4",
+          visaGridClassByCount[visaFields.length] ?? "md:grid-cols-1",
+          quotationSectionBodyClass(option.visaSectionEnabled),
+        )}
       >
-        {VISA_FIELDS.map(({ label, field }) => {
+        {visaFields.map(({ label, field }) => {
           const visa = option[field] as TQuotationVisaLine;
           return (
             <div key={field} className="space-y-3 rounded! border border-border p-3">

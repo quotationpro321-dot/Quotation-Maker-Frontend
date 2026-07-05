@@ -180,6 +180,7 @@ function QuotationCalculatorContent({
           ) : null}
           {showVisaSection ? (
             <QuotationVisaSection
+              calculatorType={draft.calculatorType}
               option={activeOption}
               currency={draft.currency}
               onChange={updateActiveOption}
@@ -204,6 +205,7 @@ function QuotationCalculatorContent({
 
         <div className="lg:col-span-3">
           <QuotationSummaryPanel
+            calculatorType={draft.calculatorType}
             option={activeOption}
             totals={activeTotals}
             currency={draft.currency}
@@ -213,6 +215,7 @@ function QuotationCalculatorContent({
       </div>
 
       <QuotationComparisonTable
+        calculatorType={draft.calculatorType}
         options={activeOptions}
         activeIndex={activeOptionIndex}
         currency={draft.currency}

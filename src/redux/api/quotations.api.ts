@@ -6,6 +6,7 @@ import type {
   TQuotationDraft,
   TQuotationListItem,
   TQuotationsListData,
+  TUpdateQuotationStatusPayload,
 } from "@/types/quotation.type";
 
 const QUOTATIONS_URL = "/quotations";
@@ -29,6 +30,17 @@ export const quotationsApi = baseApi.injectEndpoints({
     >({
       query: (params) => ({
         url: `${QUOTATIONS_URL}/mine`,
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Quotations"],
+    }),
+    listDeletedQuotations: builder.query<
+      IResponse<TQuotationsListData>,
+      TListQuotationsParams
+    >({
+      query: (params) => ({
+        url: `${QUOTATIONS_URL}/bin`,
         method: "GET",
         params,
       }),
@@ -73,10 +85,32 @@ export const quotationsApi = baseApi.injectEndpoints({
         "Dashboard",
       ],
     }),
+    updateQuotationStatus: builder.mutation<
+      IResponse<TQuotationDetail>,
+      { id: string; body: TUpdateQuotationStatusPayload }
+    >({
+      query: ({ id, body }) => ({
+        url: `${QUOTATIONS_URL}/${id}/status`,
+        method: "PATCH",
+        data: body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        "Quotations",
+        { type: "Quotations", id },
+        "Dashboard",
+      ],
+    }),
     deleteQuotation: builder.mutation<IResponse<null>, string>({
       query: (id) => ({
         url: `${QUOTATIONS_URL}/${id}`,
         method: "DELETE",
+      }),
+      invalidatesTags: ["Quotations", "Dashboard"],
+    }),
+    restoreQuotation: builder.mutation<IResponse<TQuotationListItem>, string>({
+      query: (id) => ({
+        url: `${QUOTATIONS_URL}/${id}/restore`,
+        method: "POST",
       }),
       invalidatesTags: ["Quotations", "Dashboard"],
     }),
@@ -86,10 +120,13 @@ export const quotationsApi = baseApi.injectEndpoints({
 export const {
   useListQuotationsQuery,
   useListMyQuotationsQuery,
+  useListDeletedQuotationsQuery,
   useGetQuotationQuery,
   useGetQuotationDetailQuery,
   useLazyGetQuotationDetailQuery,
   useCreateQuotationMutation,
   useUpdateQuotationMutation,
+  useUpdateQuotationStatusMutation,
   useDeleteQuotationMutation,
+  useRestoreQuotationMutation,
 } = quotationsApi;

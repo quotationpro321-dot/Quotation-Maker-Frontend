@@ -23,6 +23,7 @@ import { DeleteQuotationDialog } from "@/features/quotations/ui/delete-quotation
 import { QuotationViewDialog } from "@/features/quotations/ui/quotation-view-dialog";
 import { QuotationsLoadingSkeleton } from "@/features/quotations/ui/quotations-loading-skeleton";
 import { QuotationsTableToolbar } from "@/features/quotations/ui/quotations-table-toolbar";
+import { UpdateQuotationStatusDialog } from "@/features/quotations/ui/update-quotation-status-dialog";
 import {
   useCreateQuotationMutation,
   useDeleteQuotationMutation,
@@ -60,6 +61,7 @@ export function QuotationsListView({
   const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState<TQuotationStatus | "all">("all");
   const [viewTarget, setViewTarget] = useState<TQuotationListItem | null>(null);
+  const [statusTarget, setStatusTarget] = useState<TQuotationListItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TQuotationListItem | null>(null);
 
   const [deleteQuotation] = useDeleteQuotationMutation();
@@ -95,6 +97,10 @@ export function QuotationsListView({
     [createQuotation, fetchQuotationDetail, role, router],
   );
 
+  const handleUpdateStatus = useCallback((quotation: TQuotationListItem) => {
+    setStatusTarget(quotation);
+  }, []);
+
   const handleDelete = useCallback((quotation: TQuotationListItem) => {
     setDeleteTarget(quotation);
   }, []);
@@ -114,6 +120,7 @@ export function QuotationsListView({
     onView: handleView,
     onEdit: handleEdit,
     onDuplicate: (quotation) => void handleDuplicate(quotation),
+    onUpdateStatus: handleUpdateStatus,
     onDelete: handleDelete,
   });
 
@@ -179,6 +186,14 @@ export function QuotationsListView({
         open={Boolean(viewTarget)}
         onOpenChange={(open) => {
           if (!open) setViewTarget(null);
+        }}
+      />
+
+      <UpdateQuotationStatusDialog
+        quotation={statusTarget}
+        open={Boolean(statusTarget)}
+        onOpenChange={(open) => {
+          if (!open) setStatusTarget(null);
         }}
       />
 

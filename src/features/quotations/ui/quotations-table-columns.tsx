@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Calendar, Hash, Hotel, UserRound } from "lucide-react";
+import { Calendar, Hash, Hotel, Layers, UserRound } from "lucide-react";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import type { TQuotationListItem } from "@/types/quotation.type";
@@ -9,7 +9,8 @@ import type { UserRole } from "@/types/user.type";
 
 import {
   formatQuotationDate,
-  formatQuotationReference,
+  formatQuotationRefId,
+  formatQuotationType,
 } from "@/features/quotations/lib/format-quotation";
 import { QuotationRowActions } from "@/features/quotations/ui/quotation-row-actions";
 import { QuotationStatusBadge } from "@/features/dashboard/ui/quotation-status-badge";
@@ -18,23 +19,47 @@ export type TQuotationsTableMeta = {
   onView: (quotation: TQuotationListItem) => void;
   onEdit: (quotation: TQuotationListItem) => void;
   onDuplicate: (quotation: TQuotationListItem) => void;
+  onUpdateStatus: (quotation: TQuotationListItem) => void;
   onDelete: (quotation: TQuotationListItem) => void;
   role: UserRole;
 };
 
 export const quotationsTableColumns: ColumnDef<TQuotationListItem>[] = [
   {
-    accessorKey: "referenceNumber",
+    accessorKey: "refId",
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
-        title="ID"
+        title="Ref ID"
         icon={<Hash className="size-4" aria-hidden />}
       />
     ),
     cell: ({ row }) => (
-      <span className="font-mono font-medium">
-        {formatQuotationReference(row.original.referenceNumber)}
+      <div className="min-w-0 max-w-[280px]">
+        <span className="font-mono font-medium">
+          {formatQuotationRefId(row.original.refId)}
+        </span>
+        <p
+          className="truncate text-xs text-muted-foreground"
+          title={row.original.readableId}
+        >
+          {row.original.readableId}
+        </p>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "calculatorType",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title="Quotation Type"
+        icon={<Layers className="size-4" aria-hidden />}
+      />
+    ),
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {formatQuotationType(row.original.calculatorType)}
       </span>
     ),
   },
@@ -121,6 +146,7 @@ export const quotationsTableColumns: ColumnDef<TQuotationListItem>[] = [
           onView={meta.onView}
           onEdit={meta.onEdit}
           onDuplicate={meta.onDuplicate}
+          onUpdateStatus={meta.onUpdateStatus}
           onDelete={meta.onDelete}
         />
       );

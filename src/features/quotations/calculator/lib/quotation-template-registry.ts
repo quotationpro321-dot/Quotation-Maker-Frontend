@@ -28,12 +28,12 @@ const TEMPLATE_NAMES_BY_CALCULATOR_TYPE: Record<
     compact: "Agent 2",
   },
   holiday: {
-    classic: "Skyguru",
+    classic: "Sky Guru",
     modern: "Agent 1",
     compact: "Agent 2",
   },
   flights: {
-    classic: "Skyguru",
+    classic: "Sky Guru",
     modern: "Agent 1",
     compact: "Agent 2",
   },

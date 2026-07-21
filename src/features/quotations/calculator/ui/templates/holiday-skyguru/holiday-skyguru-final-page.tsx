@@ -1,4 +1,4 @@
-import { calculateGross } from "@/features/quotations/calculator/lib/calculate-quotation";
+import { calculateTotalQuoteValue } from "@/features/quotations/calculator/lib/calculate-quotation";
 import {
   HOLIDAY_BANK_DETAILS,
   HOLIDAY_CANCELLATION_ROWS,
@@ -26,8 +26,7 @@ export function HolidaySkyguruFinalPage({
   consultantWhatsapp: string;
   consultantDesignation: string;
 }) {
-  const totalQuoteValue =
-    calculateGross(option, option.flightAdult) * option.numPax;
+  const totalQuoteValue = calculateTotalQuoteValue(option, "holiday");
   const zero = formatHolidayWholeMoney(0, currency);
 
   return (

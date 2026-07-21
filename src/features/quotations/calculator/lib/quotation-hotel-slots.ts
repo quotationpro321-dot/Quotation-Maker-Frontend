@@ -87,22 +87,6 @@ export function resolveHotelAreaSlug(
   return matched?.slug;
 }
 
-export function getUsedAreaSlugs(
-  option: TQuotationOption,
-  areas: THotelAreaDto[],
-  excludeIndex: number,
-): Set<string> {
-  const used = new Set<string>();
-
-  for (const { index, hotel } of listHotelSlots(option)) {
-    if (index === excludeIndex) continue;
-    const slug = resolveHotelAreaSlug(hotel, areas);
-    if (slug) used.add(slug);
-  }
-
-  return used;
-}
-
 export function isCatalogArea(
   hotel: TQuotationHotel,
   areas: THotelAreaDto[],
@@ -133,23 +117,6 @@ export function getCustomHotelValue(
 ): string {
   if (isCatalogHotel(hotel, hotels)) return "";
   return hotel.name;
-}
-
-export function getUsedCustomLocations(
-  option: TQuotationOption,
-  areas: THotelAreaDto[],
-  excludeIndex: number,
-): Set<string> {
-  const used = new Set<string>();
-
-  for (const { index, hotel } of listHotelSlots(option)) {
-    if (index === excludeIndex) continue;
-    if (isCatalogArea(hotel, areas)) continue;
-    const key = hotel.location.trim().toLowerCase();
-    if (key) used.add(key);
-  }
-
-  return used;
 }
 
 export function showsHotelDistance(areaSlug: string | undefined): boolean {

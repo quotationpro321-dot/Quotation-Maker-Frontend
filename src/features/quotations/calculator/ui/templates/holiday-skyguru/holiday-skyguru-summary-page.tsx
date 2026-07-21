@@ -26,9 +26,7 @@ export function HolidaySkyguruSummaryPage({
   option,
 }: THolidaySkyguruSummaryPageProps) {
   const quoteDate = format(new Date(draft.quotationDate), "dd-MM-yyyy");
-  const referenceNo = draft.referenceNumber
-    ? String(draft.referenceNumber)
-    : "—";
+  const referenceNo = draft.refId || "—";
   const highlights = getHolidayPackageHighlights(option);
 
   return (

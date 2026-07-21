@@ -13,15 +13,27 @@ export type TQuotationCreator = {
 export type TQuotationListItem = {
   id: string;
   referenceNumber: number;
+  refId: string;
+  readableId: string;
+  calculatorType: TQuotationCalculatorType;
   customerName: string;
   customerPhone?: string;
   quotationDate: string;
   makkahHotel: string;
   madinahHotel: string;
   status: TQuotationStatus;
+  completedOptionId?: string;
+  completedOptionTitle?: string;
+  deletedAt?: string;
   createdBy: TQuotationCreator;
   totalValue?: number;
   currency: string;
+};
+
+export type TUpdateQuotationStatusPayload = {
+  status: TQuotationStatus;
+  /** Required when status is confirmed; exactly one option. */
+  completedOptionId?: string;
 };
 
 export type TQuotationHotel = {
@@ -116,6 +128,8 @@ export type TQuotationCalculatorTypeStates = Record<
 export type TQuotationDraft = {
   id?: string;
   referenceNumber?: number;
+  refId?: string;
+  readableId?: string;
   customerName: string;
   customerNumber: string;
   calculatorType: TQuotationCalculatorType;
@@ -128,7 +142,6 @@ export type TQuotationDraft = {
 
 export type TQuotationDetail = TQuotationListItem & {
   customerNumber?: string;
-  calculatorType?: TQuotationCalculatorType;
   templateId: TQuotationTemplateId;
   calculatorStates?: TQuotationCalculatorTypeStates;
   options: TQuotationOption[];

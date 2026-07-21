@@ -33,6 +33,8 @@ function sortingToQuery(
 
   const allowed = new Set([
     "referenceNumber",
+    "refId",
+    "calculatorType",
     "customerName",
     "quotationDate",
     "status",
@@ -50,6 +52,7 @@ type TUseQuotationsTableOptions = {
   onView: (quotation: TQuotationListItem) => void;
   onEdit: (quotation: TQuotationListItem) => void;
   onDuplicate: (quotation: TQuotationListItem) => void;
+  onUpdateStatus: (quotation: TQuotationListItem) => void;
   onDelete: (quotation: TQuotationListItem) => void;
 };
 
@@ -61,6 +64,7 @@ export function useQuotationsTable({
   onView,
   onEdit,
   onDuplicate,
+  onUpdateStatus,
   onDelete,
 }: TUseQuotationsTableOptions) {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -99,8 +103,8 @@ export function useQuotationsTable({
   const listData = activeQuery.data?.data;
 
   const meta = useMemo<TQuotationsTableMeta>(
-    () => ({ onView, onEdit, onDuplicate, onDelete, role }),
-    [onDelete, onDuplicate, onEdit, onView, role],
+    () => ({ onView, onEdit, onDuplicate, onUpdateStatus, onDelete, role }),
+    [onDelete, onDuplicate, onEdit, onUpdateStatus, onView, role],
   );
 
   const table = useReactTable({

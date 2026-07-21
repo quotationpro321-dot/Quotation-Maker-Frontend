@@ -21,6 +21,8 @@ export function quotationDetailToDraft(detail: TQuotationDetail): TQuotationDraf
   return {
     id: detail.id,
     referenceNumber: detail.referenceNumber,
+    refId: detail.refId,
+    readableId: detail.readableId,
     customerName: detail.customerName,
     customerNumber: detail.customerNumber ?? detail.customerPhone ?? "",
     calculatorType,
@@ -33,7 +35,8 @@ export function quotationDetailToDraft(detail: TQuotationDetail): TQuotationDraf
 }
 
 export function prepareDraftForSave(draft: TQuotationDraft): TQuotationDraft {
-  const { id: _id, referenceNumber: _ref, ...rest } = draft;
+  const { id: _id, referenceNumber: _ref, refId: _refId, readableId: _readableId, ...rest } =
+    draft;
   return rest;
 }
 

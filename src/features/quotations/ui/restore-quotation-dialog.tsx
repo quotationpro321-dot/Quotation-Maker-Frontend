@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,38 +13,35 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { extractApiErrorMessage } from "@/features/auth/lib/extract-api-error-message";
+import { useRestoreQuotationMutation } from "@/redux/api/quotations.api";
 import type { TQuotationListItem } from "@/types/quotation.type";
 
-type TDeleteQuotationDialogProps = {
+type TRestoreQuotationDialogProps = {
   quotation: TQuotationListItem | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirmDelete: (quotation: TQuotationListItem) => void | Promise<void>;
 };
 
-export function DeleteQuotationDialog({
+export function RestoreQuotationDialog({
   quotation,
   open,
   onOpenChange,
-  onConfirmDelete,
-}: TDeleteQuotationDialogProps) {
-  const [isLoading, setIsLoading] = useState(false);
+}: TRestoreQuotationDialogProps) {
+  const [restoreQuotation, { isLoading }] = useRestoreQuotationMutation();
 
-  const handleDelete = async () => {
+  const handleRestore = async () => {
     if (!quotation) return;
-    setIsLoading(true);
     try {
-      await onConfirmDelete(quotation);
-      toast.success("Quotation moved to bin", {
-        description: `${quotation.refId} can be restored by an admin for 60 days.`,
+      await restoreQuotation(quotation.id).unwrap();
+      toast.success("Quotation restored", {
+        description: `${quotation.refId} is available again.`,
       });
       onOpenChange(false);
-    } catch {
-      toast.error("Could not delete quotation", {
-        description: "Please try again.",
+    } catch (error) {
+      toast.error("Could not restore quotation", {
+        description: extractApiErrorMessage(error, "Please try again."),
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -53,24 +49,23 @@ export function DeleteQuotationDialog({
     <AlertDialog open={open} onOpenChange={(next) => !isLoading && onOpenChange(next)}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete quotation?</AlertDialogTitle>
+          <AlertDialogTitle>Restore quotation?</AlertDialogTitle>
           <AlertDialogDescription>
             {quotation
-              ? `${quotation.refId} for ${quotation.customerName} will move to the admin-only bin. It can be restored for 60 days before automatic permanent deletion.`
-              : "This quotation will move to the bin for 60 days."}
+              ? `${quotation.refId} for ${quotation.customerName} will return to the quotation lists.`
+              : "This quotation will return to the active list."}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
           <Button
             type="button"
-            variant="destructive"
             disabled={isLoading}
-            className="gap-2 rounded!"
-            onClick={() => void handleDelete()}
+            className="gap-2 rounded! bg-brand-primary! text-white!"
+            onClick={() => void handleRestore()}
           >
             {isLoading ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
-            Delete
+            Restore
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

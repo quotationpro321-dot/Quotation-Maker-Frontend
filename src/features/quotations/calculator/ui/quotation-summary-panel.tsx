@@ -10,9 +10,13 @@ import {
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
 import type { TOptionTotals } from "@/features/quotations/calculator/lib/calculate-quotation";
-import type { TQuotationOption } from "@/types/quotation.type";
+import type {
+  TQuotationCalculatorType,
+  TQuotationOption,
+} from "@/types/quotation.type";
 
 type TQuotationSummaryPanelProps = {
+  calculatorType: TQuotationCalculatorType;
   option: TQuotationOption;
   totals: TOptionTotals;
   currency: string;
@@ -20,6 +24,7 @@ type TQuotationSummaryPanelProps = {
 };
 
 export function QuotationSummaryPanel({
+  calculatorType,
   option,
   totals,
   currency,
@@ -96,7 +101,10 @@ export function QuotationSummaryPanel({
                 </p>
               </div>
               <p className="text-lg font-bold text-brand-primary">
-                {formatQuotationMoney(calculateGross(option, row.cost), currency)}
+                {formatQuotationMoney(
+                  calculateGross(option, row.cost, calculatorType),
+                  currency,
+                )}
               </p>
             </div>
           ))}

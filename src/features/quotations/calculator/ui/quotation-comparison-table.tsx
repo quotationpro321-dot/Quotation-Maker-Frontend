@@ -8,9 +8,13 @@ import {
   formatQuotationMoney,
 } from "@/features/quotations/calculator/lib/calculate-quotation";
 import { getMaxHotelStayCount } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
-import type { TQuotationOption } from "@/types/quotation.type";
+import type {
+  TQuotationCalculatorType,
+  TQuotationOption,
+} from "@/types/quotation.type";
 
 type TQuotationComparisonTableProps = {
+  calculatorType: TQuotationCalculatorType;
   options: TQuotationOption[];
   activeIndex: number;
   currency: string;
@@ -18,6 +22,7 @@ type TQuotationComparisonTableProps = {
 };
 
 export function QuotationComparisonTable({
+  calculatorType,
   options,
   activeIndex,
   currency,
@@ -65,8 +70,8 @@ export function QuotationComparisonTable({
             <tr className="border-b">
               <td className="px-3 py-2 font-medium">Final gross (adult)</td>
               {options.map((option, index) => {
-                const totals = calculateOptionTotals(option);
-                const gross = calculateGross(option, option.flightAdult);
+                const totals = calculateOptionTotals(option, calculatorType);
+                const gross = calculateGross(option, option.flightAdult, calculatorType);
                 return (
                   <td key={`${option.id}-gross`} className="px-3 py-2">
                     <p className="font-bold text-brand-primary">

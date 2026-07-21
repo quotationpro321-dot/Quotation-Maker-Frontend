@@ -16,7 +16,7 @@ import {
 } from "@/features/quotations/calculator/lib/quotation-calculator-defaults";
 import { normalizeCustomIncludedServices } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
 import { getFlightItineraryMode } from "@/features/quotations/calculator/lib/quotation-flight-itinerary";
-import { DEFAULT_INCLUDED_SERVICES } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
+import { getDefaultIncludedServices } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import {
   getStorageKey,
   clearDraftFromStorage,
@@ -134,21 +134,34 @@ function resolveHotels(option: TLegacyQuotationOption): TQuotationHotel[] {
 
 function normalizeIncludedServices(
   services: Partial<TQuotationOption["includedServices"]> | undefined,
+  calculatorType: TQuotationCalculatorType,
 ): TQuotationOption["includedServices"] {
+  const defaults = getDefaultIncludedServices(calculatorType);
+
+  if (calculatorType === "holiday") {
+    return { ...defaults };
+  }
+
   return {
-    guide: services?.guide ?? DEFAULT_INCLUDED_SERVICES.guide,
-    ziyarah: services?.ziyarah ?? DEFAULT_INCLUDED_SERVICES.ziyarah,
-    train: services?.train ?? DEFAULT_INCLUDED_SERVICES.train,
-    manager: services?.manager ?? DEFAULT_INCLUDED_SERVICES.manager,
-    esim: services?.esim ?? DEFAULT_INCLUDED_SERVICES.esim,
+    guide: services?.guide ?? defaults.guide,
+    ziyarah: services?.ziyarah ?? defaults.ziyarah,
+    train: services?.train ?? defaults.train,
+    manager: services?.manager ?? defaults.manager,
+    esim: services?.esim ?? defaults.esim,
   };
 }
 
-function normalizeOption(option: TQuotationOption): TQuotationOption {
+function normalizeOption(
+  option: TQuotationOption,
+  calculatorType: TQuotationCalculatorType,
+): TQuotationOption {
   return {
     ...option,
     flightSegments: option.flightSegments.map(normalizeFlightSegment),
-    includedServices: normalizeIncludedServices(option.includedServices),
+    includedServices: normalizeIncludedServices(
+      option.includedServices,
+      calculatorType,
+    ),
     customIncludedServices: normalizeCustomIncludedServices(
       option.customIncludedServices,
     ),
@@ -170,10 +183,13 @@ function normalizeOption(option: TQuotationOption): TQuotationOption {
 
 function normalizeCalculatorTypeState(
   state: TQuotationCalculatorTypeState,
+  calculatorType: TQuotationCalculatorType,
 ): TQuotationCalculatorTypeState {
   return {
     activeOptionIndex: state.activeOptionIndex ?? 0,
-    options: withSequentialOptionTitles(state.options).map(normalizeOption),
+    options: withSequentialOptionTitles(state.options).map((option) =>
+      normalizeOption(option, calculatorType),
+    ),
   };
 }
 
@@ -188,9 +204,9 @@ function normalizeDraft(draft: TQuotationDraft): TQuotationDraft {
       };
 
   const normalizedStates = {
-    umrah: normalizeCalculatorTypeState(calculatorStates.umrah),
-    holiday: normalizeCalculatorTypeState(calculatorStates.holiday),
-    flights: normalizeCalculatorTypeState(calculatorStates.flights),
+    umrah: normalizeCalculatorTypeState(calculatorStates.umrah, "umrah"),
+    holiday: normalizeCalculatorTypeState(calculatorStates.holiday, "holiday"),
+    flights: normalizeCalculatorTypeState(calculatorStates.flights, "flights"),
   };
 
   const calculatorType = draft.calculatorType ?? "umrah";
@@ -322,8 +338,8 @@ export function useQuotationCalculator({
 
   const activeOption = activeOptions[activeOptionIndex] ?? activeOptions[0];
   const activeTotals = useMemo(
-    () => calculateOptionTotals(activeOption),
-    [activeOption],
+    () => calculateOptionTotals(activeOption, draft.calculatorType),
+    [activeOption, draft.calculatorType],
   );
 
   const updateDraft = useCallback((patch: Partial<TQuotationDraft>) => {
@@ -358,7 +374,7 @@ export function useQuotationCalculator({
           state.options[state.options.length - 1];
         const newOption = source
           ? createOptionFromPrevious(source)
-          : createInitialOption();
+          : createInitialOption("Option 1", prev.calculatorType);
         const options = withSequentialOptionTitles([...state.options, newOption]);
         return {
           options,
@@ -402,8 +418,15 @@ export function useQuotationCalculator({
   }, []);
 
   const addRoute = useCallback(() => {
+    const lastRoute = activeOption.routes.at(-1);
+    const nextRoute = createRouteRow();
+
+    if (lastRoute?.to) {
+      nextRoute.from = lastRoute.to;
+    }
+
     updateActiveOption({
-      routes: [...activeOption.routes, createRouteRow()],
+      routes: [...activeOption.routes, nextRoute],
     });
   }, [activeOption.routes, updateActiveOption]);
 
@@ -419,11 +442,24 @@ export function useQuotationCalculator({
 
   const updateRoute = useCallback(
     (routeId: string, patch: Partial<TQuotationRoute>) => {
-      updateActiveOption({
-        routes: activeOption.routes.map((route) =>
-          route.id === routeId ? { ...route, ...patch } : route,
-        ),
+      const routeIndex = activeOption.routes.findIndex(
+        (route) => route.id === routeId,
+      );
+      if (routeIndex === -1) return;
+
+      const routes = activeOption.routes.map((route, index) => {
+        if (route.id === routeId) {
+          return { ...route, ...patch };
+        }
+
+        if (patch.to !== undefined && index === routeIndex + 1) {
+          return { ...route, from: patch.to };
+        }
+
+        return route;
       });
+
+      updateActiveOption({ routes });
     },
     [activeOption.routes, updateActiveOption],
   );

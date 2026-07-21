@@ -17,7 +17,7 @@ import type { UserRole } from "@/types/user.type";
 
 import {
   formatQuotationDate,
-  formatQuotationReference,
+  formatQuotationRefId,
   formatQuotationTotal,
 } from "@/features/quotations/lib/format-quotation";
 import { getQuotationEditPath } from "@/features/quotations/lib/quotation-paths";
@@ -62,10 +62,15 @@ export function QuotationViewDialog({
       <DialogContent className="rounded! sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-brand-primary">
-            Quotation #{formatQuotationReference(quotation.referenceNumber)}
+            Quotation {formatQuotationRefId(quotation.refId)}
           </DialogTitle>
-          <DialogDescription>
-            Read-only summary. Open the calculator to edit full package details.
+          <DialogDescription className="space-y-1">
+            <span className="block break-all font-mono text-xs text-foreground">
+              {quotation.readableId}
+            </span>
+            <span className="block">
+              Read-only summary. Open the calculator to edit full package details.
+            </span>
           </DialogDescription>
         </DialogHeader>
 
@@ -81,6 +86,12 @@ export function QuotationViewDialog({
             </p>
             <QuotationStatusBadge status={quotation.status} />
           </div>
+          {quotation.status === "confirmed" && quotation.completedOptionTitle ? (
+            <DetailRow
+              label="Completed Option"
+              value={quotation.completedOptionTitle}
+            />
+          ) : null}
           <DetailRow
             label="Estimated Total"
             value={formatQuotationTotal(quotation.totalValue, quotation.currency)}

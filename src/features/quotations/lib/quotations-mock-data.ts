@@ -7,10 +7,21 @@ import type {
 const MOCK_CURRENT_USER_ID = "user-admin-1";
 const MOCK_EMPLOYEE_USER_ID = "user-employee-1";
 
+
+function mockIdentity(referenceNumber: number, id: string) {
+  const sequence = String(referenceNumber).padStart(6, "0");
+  return {
+    refId: `ASASUM${sequence}`,
+    readableId: `Alsama > Alsama > umrah ${id}`,
+    calculatorType: "umrah" as const,
+  };
+}
+
 const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-1",
     referenceNumber: 1,
+    ...mockIdentity(1, "q-1"),
     customerName: "Abdullah Rahman",
     customerPhone: "+44 7700 900101",
     quotationDate: "2025-11-10T10:00:00.000Z",
@@ -24,6 +35,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-2",
     referenceNumber: 2,
+    ...mockIdentity(2, "q-2"),
     customerName: "Fatima Noor",
     customerPhone: "+44 7700 900102",
     quotationDate: "2025-11-09T14:30:00.000Z",
@@ -37,6 +49,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-3",
     referenceNumber: 3,
+    ...mockIdentity(3, "q-3"),
     customerName: "Mohammed Iqbal",
     customerPhone: "+44 7700 900103",
     quotationDate: "2025-11-08T09:15:00.000Z",
@@ -50,6 +63,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-4",
     referenceNumber: 4,
+    ...mockIdentity(4, "q-4"),
     customerName: "Sarah Ahmed",
     quotationDate: "2025-11-07T11:00:00.000Z",
     makkahHotel: "Pullman Zamzam Makkah",
@@ -62,6 +76,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-5",
     referenceNumber: 5,
+    ...mockIdentity(5, "q-5"),
     customerName: "James Wilson",
     quotationDate: "2025-11-06T16:45:00.000Z",
     makkahHotel: "Movenpick Hajar Tower Makkah",
@@ -74,6 +89,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-6",
     referenceNumber: 6,
+    ...mockIdentity(6, "q-6"),
     customerName: "Emma Thompson",
     quotationDate: "2025-11-05T08:20:00.000Z",
     makkahHotel: "Adnan Hotel Makkah",
@@ -86,6 +102,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-7",
     referenceNumber: 7,
+    ...mockIdentity(7, "q-7"),
     customerName: "Ali Hassan",
     quotationDate: "2025-11-04T13:10:00.000Z",
     makkahHotel: "Hilton Makkah Convention Hotel",
@@ -98,6 +115,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-8",
     referenceNumber: 8,
+    ...mockIdentity(8, "q-8"),
     customerName: "Aisha Khan",
     quotationDate: "2025-11-03T10:30:00.000Z",
     makkahHotel: "Swissôtel Makkah",
@@ -110,6 +128,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-9",
     referenceNumber: 9,
+    ...mockIdentity(9, "q-9"),
     customerName: "Omar Farooq",
     quotationDate: "2025-11-02T15:00:00.000Z",
     makkahHotel: "Fairmont Makkah",
@@ -122,6 +141,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-10",
     referenceNumber: 10,
+    ...mockIdentity(10, "q-10"),
     customerName: "Zainab Malik",
     quotationDate: "2025-11-01T12:00:00.000Z",
     makkahHotel: "Pullman Zamzam Makkah",
@@ -134,6 +154,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-11",
     referenceNumber: 11,
+    ...mockIdentity(11, "q-11"),
     customerName: "Yusuf Ahmed",
     quotationDate: "2025-10-31T09:45:00.000Z",
     makkahHotel: "Movenpick Hajar Tower Makkah",
@@ -146,6 +167,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-12",
     referenceNumber: 12,
+    ...mockIdentity(12, "q-12"),
     customerName: "Hannah Lee",
     quotationDate: "2025-10-30T17:20:00.000Z",
     makkahHotel: "Adnan Hotel Makkah",
@@ -158,6 +180,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-13",
     referenceNumber: 13,
+    ...mockIdentity(13, "q-13"),
     customerName: "Imran Shah",
     quotationDate: "2025-10-29T11:30:00.000Z",
     makkahHotel: "Hilton Makkah Convention Hotel",
@@ -170,6 +193,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-14",
     referenceNumber: 14,
+    ...mockIdentity(14, "q-14"),
     customerName: "Layla Hassan",
     quotationDate: "2025-10-28T14:00:00.000Z",
     makkahHotel: "Swissôtel Makkah",
@@ -182,6 +206,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-15",
     referenceNumber: 15,
+    ...mockIdentity(15, "q-15"),
     customerName: "David Chen",
     quotationDate: "2025-10-27T10:15:00.000Z",
     makkahHotel: "Fairmont Makkah",
@@ -194,6 +219,7 @@ const BASE_QUOTATIONS: TQuotationListItem[] = [
   {
     id: "q-16",
     referenceNumber: 16,
+    ...mockIdentity(16, "q-16"),
     customerName: "Mariam Siddiqui",
     quotationDate: "2025-10-26T08:50:00.000Z",
     makkahHotel: "Pullman Zamzam Makkah",
@@ -223,6 +249,12 @@ function sortQuotations(
     switch (sortBy) {
       case "referenceNumber":
         comparison = a.referenceNumber - b.referenceNumber;
+        break;
+      case "refId":
+        comparison = a.refId.localeCompare(b.refId);
+        break;
+      case "calculatorType":
+        comparison = a.calculatorType.localeCompare(b.calculatorType);
         break;
       case "customerName":
         comparison = a.customerName.localeCompare(b.customerName);
@@ -272,6 +304,8 @@ export function queryMockQuotations(
         item.makkahHotel.toLowerCase().includes(query) ||
         item.madinahHotel.toLowerCase().includes(query) ||
         item.createdBy.name.toLowerCase().includes(query) ||
+        item.refId.toLowerCase().includes(query) ||
+        item.readableId.toLowerCase().includes(query) ||
         String(item.referenceNumber).includes(query),
     );
   }

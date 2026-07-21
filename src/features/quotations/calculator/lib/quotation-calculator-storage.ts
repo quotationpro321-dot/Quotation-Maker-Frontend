@@ -7,6 +7,9 @@ const MOCK_DETAILS: Record<string, TQuotationDetail> = {
   "q-1": {
     id: "q-1",
     referenceNumber: 1,
+    refId: "ASASUM000001",
+    readableId: "Alsama > Alsama > umrah q-1",
+    calculatorType: "umrah",
     customerName: "Abdullah Rahman",
     customerPhone: "+44 7700 900101",
     customerNumber: "+44 7700 900101",
@@ -74,6 +77,9 @@ const MOCK_DETAILS: Record<string, TQuotationDetail> = {
   "q-4": {
     id: "q-4",
     referenceNumber: 4,
+    refId: "ASA1UM000004",
+    readableId: "Alsama > Agent 1 > umrah q-4",
+    calculatorType: "umrah",
     customerName: "Sarah Ahmed",
     customerNumber: "",
     quotationDate: "2025-11-07T11:00:00.000Z",
@@ -138,6 +144,8 @@ export function loadMockQuotationDetail(id: string): TQuotationDraft | null {
   return {
     id: detail.id,
     referenceNumber: detail.referenceNumber,
+    refId: detail.refId,
+    readableId: detail.readableId,
     customerName: detail.customerName,
     customerNumber: detail.customerNumber ?? detail.customerPhone ?? "",
     calculatorType,

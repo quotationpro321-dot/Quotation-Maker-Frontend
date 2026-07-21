@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Plane,
   Settings,
+  Trash2,
   UserCog,
   Users,
 } from "lucide-react";
@@ -50,6 +51,11 @@ export const sidebarMenus: Record<UserRole, SidebarMenuItem[]> = {
       title: "My Quotation",
       icon: FileText,
       href: "/dashboard/admin/my-quotation",
+    },
+    {
+      title: "Quotation Bin",
+      icon: Trash2,
+      href: "/dashboard/admin/quotation-bin",
     },
     {
       title: "Users",

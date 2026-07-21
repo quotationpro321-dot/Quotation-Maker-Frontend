@@ -1,4 +1,11 @@
 import { formatCurrency } from "@/features/dashboard/lib/format-dashboard";
+import type { TQuotationCalculatorType } from "@/types/quotation.type";
+
+const QUOTATION_TYPE_LABELS: Record<TQuotationCalculatorType, string> = {
+  umrah: "Umrah",
+  holiday: "Holiday",
+  flights: "Flights",
+};
 
 export function formatQuotationDate(isoDate: string): string {
   const date = new Date(isoDate);
@@ -6,8 +13,12 @@ export function formatQuotationDate(isoDate: string): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function formatQuotationReference(referenceNumber: number): string {
-  return String(referenceNumber);
+export function formatQuotationRefId(refId: string): string {
+  return refId;
+}
+
+export function formatQuotationType(calculatorType: TQuotationCalculatorType): string {
+  return QUOTATION_TYPE_LABELS[calculatorType];
 }
 
 export function formatQuotationTotal(

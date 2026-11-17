@@ -1,5 +1,10 @@
 import { createEmptyCalculatorStates } from "@/features/quotations/calculator/lib/quotation-calculator-type-state";
 import { normalizeCustomIncludedServices } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
+import {
+  createEmptyFlightFamily,
+  resolveFlightFamilies,
+  syncOptionFromFlightFamilies,
+} from "@/features/quotations/calculator/lib/quotation-flight-families";
 import { DEFAULT_HOTEL_STAY_COUNT } from "@/features/quotations/calculator/lib/quotation-hotel-slots";
 import { getDefaultIncludedServices } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import type {
@@ -53,18 +58,19 @@ export function createInitialOption(
   title = "Option 1",
   calculatorType: TQuotationCalculatorType = "umrah",
 ): TQuotationOption {
+  const flightFamily = createEmptyFlightFamily();
+
   return {
     id: crypto.randomUUID(),
     title,
-    flightAdult: 0,
-    flightYouth: 0,
-    flightChild: 0,
-    flightInfant: 0,
+    ...syncOptionFromFlightFamilies([flightFamily]),
     hotels: createDefaultHotels(),
     visaUmrah: { pax: 0, cost: 0 },
     visaEVW: { pax: 0, cost: 0 },
     visaHoliday: { pax: 0, cost: 0 },
+    visaSaudiTourist: { pax: 0, cost: 0 },
     transferCost: 0,
+    ziyarahCost: 0,
     includedServices: getDefaultIncludedServices(calculatorType),
     customIncludedServices: [],
     vehicleName: "",
@@ -74,12 +80,6 @@ export function createInitialOption(
     customerNote: "",
     numPax: 1,
     markupPerPerson: 0,
-    rawItinerary: "",
-    flightSegments: [],
-    flightItineraryMode: "text",
-    flightItineraryImage: "",
-    holdLuggage: "",
-    cabinLuggage: "",
     flightSectionEnabled: true,
     hotelSectionEnabled: true,
     visaSectionEnabled: true,
@@ -93,6 +93,8 @@ export function createEmptyDraft(): TQuotationDraft {
   return {
     customerName: "",
     customerNumber: "",
+    customerEmail: "",
+    customerSource: "",
     calculatorType: "umrah",
     quotationDate: new Date().toISOString(),
     status: "draft",
@@ -111,14 +113,17 @@ export function createOptionFromPrevious(
   source: TQuotationOption,
 ): TQuotationOption {
   const copy = JSON.parse(JSON.stringify(source)) as TQuotationOption;
+  const flightFamilies = resolveFlightFamilies(copy).map((family) => ({
+    ...family,
+    id: crypto.randomUUID(),
+  }));
+
   return {
     ...copy,
     id: crypto.randomUUID(),
     title: "",
     hotels: createDefaultHotels(),
-    flightItineraryMode:
-      copy.flightItineraryMode === "image" ? "image" : "text",
-    flightItineraryImage: copy.flightItineraryImage ?? "",
+    ...syncOptionFromFlightFamilies(flightFamilies),
     customIncludedServices: normalizeCustomIncludedServices(
       copy.customIncludedServices,
     ),

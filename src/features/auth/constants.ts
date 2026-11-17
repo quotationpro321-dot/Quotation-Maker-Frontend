@@ -1,7 +1,7 @@
 /** Theme-aware logos for auth layout only. */
 export const AUTH_LOGO = {
-  light: "/qodest-light.png",
-  dark: "/qodest-dark.png",
+  light: "/Alsama-logo-light-mode.png",
+  dark: "/Alsama-logo-dark-mode.png",
 } as const;
 
 /** Auth routes — single source for links between login, forgot, and reset flows. */

@@ -78,6 +78,17 @@ export function QuotationTemplateContent({
             >
               {draft.customerNumber || "N/A"}
             </p>
+            {draft.customerEmail.trim() ? (
+              <p
+                className={
+                  variant === "modern"
+                    ? "text-sm text-white/90"
+                    : "text-sm text-muted-foreground"
+                }
+              >
+                {draft.customerEmail.trim()}
+              </p>
+            ) : null}
           </div>
           <div className="text-right">
             <p
@@ -201,6 +212,12 @@ export function QuotationTemplateContent({
           {option.transferCost > 0 ? (
             <p className="text-sm font-medium">
               Transfer cost: {formatQuotationMoney(option.transferCost, currency)}
+            </p>
+          ) : null}
+          {option.includedServices.ziyarah && (option.ziyarahCost ?? 0) > 0 ? (
+            <p className="text-sm font-medium">
+              Ziyarah cost:{" "}
+              {formatQuotationMoney(option.ziyarahCost ?? 0, currency)}
             </p>
           ) : null}
         </section>

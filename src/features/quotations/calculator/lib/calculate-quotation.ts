@@ -1,3 +1,7 @@
+import {
+  calculateFlightFamiliesTotal,
+  resolveFlightFamilies,
+} from "@/features/quotations/calculator/lib/quotation-flight-families";
 import type {
   TQuotationCalculatorType,
   TQuotationOption,
@@ -6,7 +10,7 @@ import type {
 
 export type TVisaFieldKey = keyof Pick<
   TQuotationOption,
-  "visaUmrah" | "visaEVW" | "visaHoliday"
+  "visaUmrah" | "visaEVW" | "visaHoliday" | "visaSaudiTourist"
 >;
 
 export type TVisaFieldDefinition = {
@@ -23,6 +27,11 @@ export const VISA_FIELD_DEFINITIONS: TVisaFieldDefinition[] = [
     field: "visaHoliday",
     calculatorTypes: ["umrah", "holiday"],
   },
+  {
+    label: "Saudi Tourist Visa",
+    field: "visaSaudiTourist",
+    calculatorTypes: ["umrah", "holiday"],
+  },
 ];
 
 export function getVisaFieldsForCalculatorType(
@@ -36,10 +45,21 @@ export function getVisaFieldsForCalculatorType(
 export type TOptionTotals = {
   hotelTotal: number;
   visaTotal: number;
+  transferCost: number;
+  ziyarahCost: number;
+  /** Hotel + visa + transfer (excludes ziyarah). */
   serviceTotal: number;
   perPersonServiceCost: number;
+  /** Hotel + visa + transfer + ziyarah when ziyarah is included. */
+  serviceTotalWithZiyarah: number;
+  perPersonServiceCostWithZiyarah: number;
+  hasZiyarahPricing: boolean;
   flightTotal: number;
   totalMarkup: number;
+};
+
+export type TCalculateGrossOptions = {
+  includeZiyarah?: boolean;
 };
 
 export function calculateHotelTotal(option: TQuotationOption): number {
@@ -54,7 +74,10 @@ export function calculateVisaTotal(
 
   return getVisaFieldsForCalculatorType(calculatorType).reduce(
     (total, { field }) => {
-      const visa = option[field] as TQuotationVisaLine;
+      const visa = (option[field] as TQuotationVisaLine | undefined) ?? {
+        pax: 0,
+        cost: 0,
+      };
       return total + visa.pax * visa.cost;
     },
     0,
@@ -70,22 +93,30 @@ export function calculateOptionTotals(
     ? calculateVisaTotal(option, calculatorType)
     : 0;
   const transferCost = option.transferSectionEnabled ? option.transferCost : 0;
+  const hasZiyarahPricing =
+    option.transferSectionEnabled && Boolean(option.includedServices.ziyarah);
+  const ziyarahCost = hasZiyarahPricing ? (option.ziyarahCost ?? 0) : 0;
   const serviceTotal = hotelTotal + visaTotal + transferCost;
+  const serviceTotalWithZiyarah = serviceTotal + ziyarahCost;
   const perPersonServiceCost =
     option.numPax > 0 ? serviceTotal / option.numPax : 0;
+  const perPersonServiceCostWithZiyarah =
+    option.numPax > 0 ? serviceTotalWithZiyarah / option.numPax : 0;
   const flightTotal = option.flightSectionEnabled
-    ? option.flightAdult +
-      option.flightYouth +
-      option.flightChild +
-      option.flightInfant
+    ? calculateFlightFamiliesTotal(resolveFlightFamilies(option))
     : 0;
   const totalMarkup = option.numPax * option.markupPerPerson;
 
   return {
     hotelTotal,
     visaTotal,
+    transferCost,
+    ziyarahCost,
     serviceTotal,
     perPersonServiceCost,
+    serviceTotalWithZiyarah,
+    perPersonServiceCostWithZiyarah,
+    hasZiyarahPricing,
     flightTotal,
     totalMarkup,
   };
@@ -95,8 +126,12 @@ export function calculateGross(
   option: TQuotationOption,
   flightCost: number,
   calculatorType: TQuotationCalculatorType = "umrah",
+  grossOptions: TCalculateGrossOptions = {},
 ): number {
-  const { perPersonServiceCost } = calculateOptionTotals(option, calculatorType);
+  const totals = calculateOptionTotals(option, calculatorType);
+  const perPersonServiceCost = grossOptions.includeZiyarah
+    ? totals.perPersonServiceCostWithZiyarah
+    : totals.perPersonServiceCost;
   const effectiveFlightCost = option.flightSectionEnabled ? flightCost : 0;
   return effectiveFlightCost + perPersonServiceCost + option.markupPerPerson;
 }
@@ -119,15 +154,18 @@ const OPTIONAL_PRICING_CATEGORIES: Array<{
   { label: "Infant", flightCostKey: "flightInfant" },
 ];
 
-/** Pricing rows for PDF export — Adult always; other categories when priced. */
-export function listQuotationPricingRows(
+function buildPricingRows(
   option: TQuotationOption,
-  calculatorType: TQuotationCalculatorType = "umrah",
+  calculatorType: TQuotationCalculatorType,
+  includeZiyarah: boolean,
+  labelSuffix: string,
 ): TQuotationPricingRow[] {
   const rows: TQuotationPricingRow[] = [
     {
-      label: "Adult",
-      grossPerPerson: calculateGross(option, option.flightAdult, calculatorType),
+      label: `Adult${labelSuffix}`,
+      grossPerPerson: calculateGross(option, option.flightAdult, calculatorType, {
+        includeZiyarah,
+      }),
       quantity: Math.max(1, option.numPax),
     },
   ];
@@ -136,14 +174,36 @@ export function listQuotationPricingRows(
     const flightCost = option[category.flightCostKey];
     if (flightCost > 0) {
       rows.push({
-        label: category.label,
-        grossPerPerson: calculateGross(option, flightCost, calculatorType),
+        label: `${category.label}${labelSuffix}`,
+        grossPerPerson: calculateGross(option, flightCost, calculatorType, {
+          includeZiyarah,
+        }),
         quantity: 1,
       });
     }
   }
 
   return rows;
+}
+
+/**
+ * Pricing rows for PDF/live export.
+ * When ziyarah is included, returns without-ziyarah rows then with-ziyarah rows.
+ */
+export function listQuotationPricingRows(
+  option: TQuotationOption,
+  calculatorType: TQuotationCalculatorType = "umrah",
+): TQuotationPricingRow[] {
+  const totals = calculateOptionTotals(option, calculatorType);
+
+  if (!totals.hasZiyarahPricing) {
+    return buildPricingRows(option, calculatorType, false, "");
+  }
+
+  return [
+    ...buildPricingRows(option, calculatorType, false, " (without ziyarah)"),
+    ...buildPricingRows(option, calculatorType, true, " (with ziyarah)"),
+  ];
 }
 
 export function calculateTotalQuoteValue(

@@ -117,6 +117,8 @@ export function QuotationTransferSection({
   onUpdateRoute,
 }: TQuotationTransferSectionProps) {
   const sectionDisabled = !option.transferSectionEnabled;
+  const isZiyarahIncluded = option.includedServices.ziyarah;
+  const currencyPrefix = currency === "GBP" ? "£" : currency;
   const displayTransferCost = option.transferSectionEnabled
     ? option.transferCost
     : 0;
@@ -200,10 +202,32 @@ export function QuotationTransferSection({
       <CardContent
         className={`space-y-6 ${quotationSectionBodyClass(option.transferSectionEnabled)}`}
       >
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-3">
+          {isZiyarahIncluded ? (
+            <div className="relative w-full max-w-[180px]">
+              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                {currencyPrefix}
+              </span>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={option.ziyarahCost || ""}
+                onChange={(e) =>
+                  onChange({
+                    ziyarahCost: Number.parseFloat(e.target.value) || 0,
+                  })
+                }
+                placeholder="Ziyarah cost"
+                disabled={sectionDisabled}
+                className={`${transferInputClass} pl-8`}
+                aria-label="Ziyarah cost"
+              />
+            </div>
+          ) : null}
           <div className="relative w-full max-w-[180px]">
             <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
-              {currency === "GBP" ? "£" : currency}
+              {currencyPrefix}
             </span>
             <Input
               type="number"

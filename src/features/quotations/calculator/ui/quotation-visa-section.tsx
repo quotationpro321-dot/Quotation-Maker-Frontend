@@ -32,6 +32,7 @@ const visaGridClassByCount: Record<number, string> = {
   1: "md:grid-cols-1",
   2: "md:grid-cols-2",
   3: "md:grid-cols-3",
+  4: "md:grid-cols-2 xl:grid-cols-4",
 };
 
 export function QuotationVisaSection({
@@ -61,7 +62,10 @@ export function QuotationVisaSection({
         )}
       >
         {visaFields.map(({ label, field }) => {
-          const visa = option[field] as TQuotationVisaLine;
+          const visa = (option[field] as TQuotationVisaLine | undefined) ?? {
+            pax: 0,
+            cost: 0,
+          };
           return (
             <div key={field} className="space-y-3 rounded! border border-border p-3">
               <p className="text-sm font-semibold">{label}</p>

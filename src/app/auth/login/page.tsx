@@ -32,8 +32,7 @@ export default async function LoginPage() {
           Welcome, <span className="text-brand-secondary">Dashboard</span>
         </h1>
         <p className="text-base leading-7 text-muted-foreground">
-          Log in to manage Umrah bookings, package availability, team schedules, and
-          pilgrim inquiries, all from one dashboard.
+          Log in to manage Umrah bookings, packages, and inquiries.
         </p>
       </div>
 

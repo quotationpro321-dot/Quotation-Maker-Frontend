@@ -1,10 +1,23 @@
 import { z } from "zod";
 
+import { QUOTATION_CUSTOMER_SOURCE_VALUES } from "@/features/quotations/lib/quotation-customer-source";
+
 const moneyField = z.coerce.number().min(0, "Must be zero or greater");
 
 export const quotationCalculatorSaveSchema = z.object({
   customerName: z.string().trim().min(1, "Customer name is required"),
   customerNumber: z.string().trim().optional(),
+  customerEmail: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) => !value || z.string().email().safeParse(value).success,
+      "Enter a valid customer email address",
+    ),
+  customerSource: z
+    .union([z.enum(QUOTATION_CUSTOMER_SOURCE_VALUES), z.literal("")])
+    .optional(),
   options: z
     .array(
       z.object({

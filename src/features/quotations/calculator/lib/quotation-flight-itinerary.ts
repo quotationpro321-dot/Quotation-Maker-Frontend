@@ -1,3 +1,4 @@
+import { resolveFlightFamilies } from "@/features/quotations/calculator/lib/quotation-flight-families";
 import type {
   TFlightItineraryInputMode,
   TQuotationOption,
@@ -48,10 +49,12 @@ export function getFlightItineraryImage(
 }
 
 export function hasFlightItineraryContent(option: TQuotationOption): boolean {
-  if (getFlightItineraryMode(option) === "image") {
-    return Boolean(getFlightItineraryImage(option).trim());
-  }
-  return (option.flightSegments ?? []).length > 0;
+  return resolveFlightFamilies(option).some((family) => {
+    if (family.flightItineraryMode === "image") {
+      return Boolean(family.flightItineraryImage?.trim());
+    }
+    return (family.flightSegments ?? []).length > 0;
+  });
 }
 
 export function isFlightItineraryImageMode(

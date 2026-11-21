@@ -86,6 +86,8 @@ export type TFlightItineraryInputMode = "text" | "image";
 /** Independent flight block (itinerary + fares) for one family group. */
 export type TQuotationFlightFamily = {
   id: string;
+  /** Editable display name, e.g. "Family 1". */
+  title: string;
   flightAdult: number;
   flightYouth: number;
   flightChild: number;

@@ -9,17 +9,11 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_API_BASE: z.string().url(),
     NEXT_PUBLIC_SITE_URL: z.string().url(),
-    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().min(1),
-    NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: z.string().min(1),
   },
   runtimeEnv: {
     API_UPSTREAM_ORIGIN: process.env.API_UPSTREAM_ORIGIN,
     NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:
-      process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-    NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET:
-      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
   },
 
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

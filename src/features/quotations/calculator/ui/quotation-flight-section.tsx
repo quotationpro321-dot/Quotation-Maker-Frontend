@@ -37,6 +37,7 @@ import { formatQuotationMoney } from "@/features/quotations/calculator/lib/calcu
 import {
   calculateFlightFamiliesTotal,
   createEmptyFlightFamily,
+  getDefaultFlightFamilyTitle,
   getFlightFamilyHeading,
   getFlightFamilyMode,
   hasFlightFamilyItineraryContent,
@@ -239,7 +240,14 @@ function FlightFamilyBlock({
   return (
     <div className="space-y-4 rounded! border border-border p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold">{getFlightFamilyHeading(index)}</p>
+        <Input
+          value={family.title}
+          onChange={(e) => onFamilyChange({ title: e.target.value })}
+          placeholder={getDefaultFlightFamilyTitle(index)}
+          disabled={disabled}
+          className="h-9 max-w-[220px] rounded! border-transparent bg-transparent px-2 text-sm font-semibold shadow-none focus-visible:border-input focus-visible:bg-background"
+          aria-label={`Family ${index + 1} name`}
+        />
         <Button
           type="button"
           variant="ghost"
@@ -247,7 +255,7 @@ function FlightFamilyBlock({
           className="rounded!"
           disabled={disabled || !canRemove}
           onClick={onRemove}
-          aria-label={`Remove ${getFlightFamilyHeading(index)}`}
+          aria-label={`Remove ${getFlightFamilyHeading(family, index)}`}
         >
           <Trash2 className="size-4" />
         </Button>
@@ -524,7 +532,7 @@ export function QuotationFlightSection({
 
   const handleAddFamily = () => {
     if (!canAddFamily) return;
-    commitFamilies([...families, createEmptyFlightFamily()]);
+    commitFamilies([...families, createEmptyFlightFamily(families.length)]);
   };
 
   const handleRemoveFamily = (familyId: string) => {

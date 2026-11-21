@@ -8,13 +8,24 @@ import type {
 export const MIN_FLIGHT_FAMILIES = 1;
 export const MAX_FLIGHT_FAMILIES = 8;
 
-export function getFlightFamilyHeading(index: number): string {
+export function getDefaultFlightFamilyTitle(index: number): string {
   return `Family ${index + 1}`;
 }
 
-export function createEmptyFlightFamily(): TQuotationFlightFamily {
+export function getFlightFamilyHeading(
+  family: Pick<TQuotationFlightFamily, "title">,
+  index: number,
+): string {
+  const title = family.title?.trim();
+  return title || getDefaultFlightFamilyTitle(index);
+}
+
+export function createEmptyFlightFamily(
+  index = 0,
+): TQuotationFlightFamily {
   return {
     id: crypto.randomUUID(),
+    title: getDefaultFlightFamilyTitle(index),
     flightAdult: 0,
     flightYouth: 0,
     flightChild: 0,
@@ -45,6 +56,7 @@ function createFlightFamilyFromLegacy(
 ): TQuotationFlightFamily {
   return {
     id: crypto.randomUUID(),
+    title: getDefaultFlightFamilyTitle(0),
     flightAdult: option.flightAdult ?? 0,
     flightYouth: option.flightYouth ?? 0,
     flightChild: option.flightChild ?? 0,
@@ -63,10 +75,11 @@ export function resolveFlightFamilies(
   option: TQuotationOption,
 ): TQuotationFlightFamily[] {
   if (option.flightFamilies?.length) {
-    return option.flightFamilies.map((family) => ({
-      ...createEmptyFlightFamily(),
+    return option.flightFamilies.map((family, index) => ({
+      ...createEmptyFlightFamily(index),
       ...family,
       id: family.id || crypto.randomUUID(),
+      title: family.title?.trim() || getDefaultFlightFamilyTitle(index),
       flightItineraryMode:
         family.flightItineraryMode === "image" ? "image" : "text",
       flightSegments: family.flightSegments ?? [],

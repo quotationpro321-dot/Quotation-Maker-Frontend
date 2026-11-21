@@ -64,9 +64,17 @@ function buildShareDraft(draft: TQuotationDraft): TQuotationDraft {
       options: activeState.options.map((option) => ({
         ...option,
         rawItinerary: "",
-        flightSegments: option.flightSegments.map((segment) => ({
+        flightSegments: (option.flightSegments ?? []).map((segment) => ({
           ...segment,
           sourceLine: "",
+        })),
+        flightFamilies: (option.flightFamilies ?? []).map((family) => ({
+          ...family,
+          rawItinerary: "",
+          flightSegments: (family.flightSegments ?? []).map((segment) => ({
+            ...segment,
+            sourceLine: "",
+          })),
         })),
       })),
     },

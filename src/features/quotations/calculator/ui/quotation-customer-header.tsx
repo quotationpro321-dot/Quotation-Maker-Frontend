@@ -1,11 +1,9 @@
 "use client";
 
-import { Eye, PlusCircle, Save, User } from "lucide-react";
+import { Eye, Mail, PlusCircle, Save, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -13,20 +11,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { listQuotationTemplatesForCalculatorType } from "@/features/quotations/calculator/lib/quotation-template-registry";
-import type {
-  TQuotationCalculatorType,
-  TQuotationTemplateId,
-} from "@/types/quotation.type";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  QUOTATION_CUSTOMER_SOURCES,
+  type TQuotationCustomerSource,
+} from "@/features/quotations/lib/quotation-customer-source";
+import { cn } from "@/lib/utils";
 
 type TQuotationCustomerHeaderProps = {
   customerName: string;
   customerNumber: string;
-  calculatorType: TQuotationCalculatorType;
-  templateId: TQuotationTemplateId;
+  customerEmail: string;
+  customerSource: TQuotationCustomerSource | "";
   onCustomerNameChange: (value: string) => void;
   onCustomerNumberChange: (value: string) => void;
-  onTemplateChange: (templateId: TQuotationTemplateId) => void;
+  onCustomerEmailChange: (value: string) => void;
+  onCustomerSourceChange: (value: TQuotationCustomerSource | "") => void;
   onAddOption: () => void;
   onPreview: () => void;
   onSave: () => void | Promise<void>;
@@ -36,21 +36,20 @@ type TQuotationCustomerHeaderProps = {
 export function QuotationCustomerHeader({
   customerName,
   customerNumber,
-  calculatorType,
-  templateId,
+  customerEmail,
+  customerSource,
   onCustomerNameChange,
   onCustomerNumberChange,
-  onTemplateChange,
+  onCustomerEmailChange,
+  onCustomerSourceChange,
   onAddOption,
   onPreview,
   onSave,
   isSaving = false,
 }: TQuotationCustomerHeaderProps) {
-  const templates = listQuotationTemplatesForCalculatorType(calculatorType);
-
   return (
     <div className="flex flex-col gap-4 rounded! border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-      <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-[minmax(0,340px)_minmax(0,340px)]">
+      <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-[minmax(0,200px)_minmax(0,200px)_minmax(0,260px)]">
         <div className="relative">
           <User className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -66,21 +65,32 @@ export function QuotationCustomerHeader({
           placeholder="Customer number"
           className="h-10 rounded!"
         />
+        <div className="relative">
+          <Mail className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="email"
+            value={customerEmail}
+            onChange={(e) => onCustomerEmailChange(e.target.value)}
+            placeholder="email address"
+            className="h-10 rounded! pl-9"
+            autoComplete="email"
+          />
+        </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Select
-          value={templateId}
+          value={customerSource || undefined}
           onValueChange={(value) =>
-            onTemplateChange(value as TQuotationTemplateId)
+            onCustomerSourceChange(value as TQuotationCustomerSource)
           }
         >
-          <SelectTrigger className="h-10! min-w-[180px] rounded!">
-            <SelectValue placeholder="Template" />
+          <SelectTrigger className="h-10! min-w-[200px] rounded!">
+            <SelectValue placeholder="Customer source" />
           </SelectTrigger>
           <SelectContent>
-            {templates.map((template) => (
-              <SelectItem key={template.id} value={template.id}>
-                {template.name}
+            {QUOTATION_CUSTOMER_SOURCES.map((source) => (
+              <SelectItem key={source.value} value={source.value}>
+                {source.label}
               </SelectItem>
             ))}
           </SelectContent>

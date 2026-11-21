@@ -20,6 +20,7 @@ import {
   formatQuotationRefId,
   formatQuotationTotal,
 } from "@/features/quotations/lib/format-quotation";
+import { getQuotationCustomerSourceLabel } from "@/features/quotations/lib/quotation-customer-source";
 import { getQuotationEditPath } from "@/features/quotations/lib/quotation-paths";
 import { QuotationStatusBadge } from "@/features/dashboard/ui/quotation-status-badge";
 
@@ -98,6 +99,15 @@ export function QuotationViewDialog({
           />
           {quotation.customerPhone ? (
             <DetailRow label="Phone" value={quotation.customerPhone} />
+          ) : null}
+          {quotation.customerEmail ? (
+            <DetailRow label="Email" value={quotation.customerEmail} />
+          ) : null}
+          {quotation.customerSource ? (
+            <DetailRow
+              label="Source"
+              value={getQuotationCustomerSourceLabel(quotation.customerSource)}
+            />
           ) : null}
         </div>
 

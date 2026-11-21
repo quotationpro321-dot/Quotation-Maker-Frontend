@@ -25,6 +25,8 @@ export function quotationDetailToDraft(detail: TQuotationDetail): TQuotationDraf
     readableId: detail.readableId,
     customerName: detail.customerName,
     customerNumber: detail.customerNumber ?? detail.customerPhone ?? "",
+    customerEmail: detail.customerEmail ?? "",
+    customerSource: detail.customerSource ?? "",
     calculatorType,
     quotationDate: detail.quotationDate,
     status: detail.status,

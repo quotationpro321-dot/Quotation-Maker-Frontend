@@ -13,6 +13,7 @@ interface DecodedToken {
  * Each role is mapped to the path prefix it is allowed to enter.
  * Add a new entry here to grant a role its own dashboard area.
  */
+
 export const ROLE_HOME_PATH = {
   admin: "/dashboard/admin",
   employee: "/dashboard/employee",

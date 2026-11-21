@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuotationCalculator } from "@/features/quotations/calculator/hooks/use-quotation-calculator";
+import { listQuotationTemplatesForCalculatorType } from "@/features/quotations/calculator/lib/quotation-template-registry";
 import { QuotationComparisonTable } from "@/features/quotations/calculator/ui/quotation-comparison-table";
 import { QuotationCustomerHeader } from "@/features/quotations/calculator/ui/quotation-customer-header";
 import { QuotationFlightSection } from "@/features/quotations/calculator/ui/quotation-flight-section";
@@ -22,7 +23,10 @@ import { QuotationPreviewDialog } from "@/features/quotations/calculator/ui/quot
 import { QuotationSummaryPanel } from "@/features/quotations/calculator/ui/quotation-summary-panel";
 import { QuotationTransferSection } from "@/features/quotations/calculator/ui/quotation-transfer-section";
 import { QuotationVisaSection } from "@/features/quotations/calculator/ui/quotation-visa-section";
-import type { TQuotationCalculatorType } from "@/types/quotation.type";
+import type {
+  TQuotationCalculatorType,
+  TQuotationTemplateId,
+} from "@/types/quotation.type";
 import type { UserRole } from "@/types/user.type";
 
 type TQuotationCalculatorViewProps = {
@@ -112,40 +116,71 @@ function QuotationCalculatorContent({
             {calculatorMeta.description}
           </p>
         </div>
-        <div className="w-full md:w-[220px]">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">
-            Quotation type
-          </p>
-          <Select
-            value={draft.calculatorType}
-            onValueChange={(value) =>
-              setCalculatorType(value as TQuotationCalculatorType)
-            }
-          >
-            <SelectTrigger className="h-10 w-full rounded!">
-              <SelectValue placeholder="Select calculator" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(CALCULATOR_TYPE_META).map(([value, meta]) => (
-                <SelectItem key={value} value={value}>
-                  {meta.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end md:w-auto">
+          <div className="w-full sm:w-[220px]">
+            <p className="mb-1 text-xs font-medium text-muted-foreground">
+              Quotation type
+            </p>
+            <Select
+              value={draft.calculatorType}
+              onValueChange={(value) =>
+                setCalculatorType(value as TQuotationCalculatorType)
+              }
+            >
+              <SelectTrigger className="h-10 w-full rounded!">
+                <SelectValue placeholder="Select calculator" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(CALCULATOR_TYPE_META).map(([value, meta]) => (
+                  <SelectItem key={value} value={value}>
+                    {meta.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-[220px]">
+            <p className="mb-1 text-xs font-medium text-muted-foreground">
+              Template
+            </p>
+            <Select
+              value={draft.templateId}
+              onValueChange={(value) =>
+                setTemplateId(value as TQuotationTemplateId)
+              }
+            >
+              <SelectTrigger className="h-10 w-full rounded!">
+                <SelectValue placeholder="Template" />
+              </SelectTrigger>
+              <SelectContent>
+                {listQuotationTemplatesForCalculatorType(
+                  draft.calculatorType,
+                ).map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       <QuotationCustomerHeader
         customerName={draft.customerName}
         customerNumber={draft.customerNumber}
-        calculatorType={draft.calculatorType}
-        templateId={draft.templateId}
+        customerEmail={draft.customerEmail}
+        customerSource={draft.customerSource}
         onCustomerNameChange={(value) => updateDraft({ customerName: value })}
         onCustomerNumberChange={(value) =>
           updateDraft({ customerNumber: value })
         }
-        onTemplateChange={setTemplateId}
+        onCustomerEmailChange={(value) =>
+          updateDraft({ customerEmail: value })
+        }
+        onCustomerSourceChange={(value) =>
+          updateDraft({ customerSource: value })
+        }
         onAddOption={addOption}
         onPreview={openPreview}
         onSave={saveQuotation}
@@ -166,7 +201,7 @@ function QuotationCalculatorContent({
             currency={draft.currency}
             isParsing={isParsingFlight}
             onChange={updateActiveOption}
-            onParse={() => void parseFlightItinerary()}
+            onParse={(familyId) => void parseFlightItinerary(familyId)}
           />
           {showHotelSection ? (
             <QuotationHotelSection

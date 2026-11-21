@@ -1,9 +1,11 @@
 import type { NormalizedSegment } from "@/features/flight-converter/types/flight-converter.types";
+import type { TQuotationCustomerSource } from "@/features/quotations/lib/quotation-customer-source";
 
 export type TQuotationStatus = "draft" | "pending" | "confirmed" | "cancelled";
 
 export type TQuotationTemplateId = "classic" | "modern" | "compact";
 export type TQuotationCalculatorType = "umrah" | "holiday" | "flights";
+export type { TQuotationCustomerSource };
 
 export type TQuotationCreator = {
   id: string;
@@ -18,6 +20,8 @@ export type TQuotationListItem = {
   calculatorType: TQuotationCalculatorType;
   customerName: string;
   customerPhone?: string;
+  customerEmail?: string;
+  customerSource?: TQuotationCustomerSource;
   quotationDate: string;
   makkahHotel: string;
   madinahHotel: string;
@@ -79,18 +83,42 @@ export type TQuotationFlightSegment = NormalizedSegment;
 
 export type TFlightItineraryInputMode = "text" | "image";
 
-export type TQuotationOption = {
+/** Independent flight block (itinerary + fares) for one family group. */
+export type TQuotationFlightFamily = {
   id: string;
-  title: string;
   flightAdult: number;
   flightYouth: number;
   flightChild: number;
   flightInfant: number;
+  rawItinerary: string;
+  flightSegments: TQuotationFlightSegment[];
+  flightItineraryMode: TFlightItineraryInputMode;
+  flightItineraryImage: string;
+  holdLuggage: string;
+  cabinLuggage: string;
+};
+
+export type TQuotationOption = {
+  id: string;
+  title: string;
+  /** @deprecated Prefer `flightFamilies[0]`; kept for templates/API sync. */
+  flightAdult: number;
+  /** @deprecated Prefer `flightFamilies[0]`; kept for templates/API sync. */
+  flightYouth: number;
+  /** @deprecated Prefer `flightFamilies[0]`; kept for templates/API sync. */
+  flightChild: number;
+  /** @deprecated Prefer `flightFamilies[0]`; kept for templates/API sync. */
+  flightInfant: number;
+  /** One or more independent flight sections (Add Family). */
+  flightFamilies: TQuotationFlightFamily[];
   hotels: TQuotationHotel[];
   visaUmrah: TQuotationVisaLine;
   visaEVW: TQuotationVisaLine;
   visaHoliday: TQuotationVisaLine;
+  visaSaudiTourist: TQuotationVisaLine;
   transferCost: number;
+  /** Cost applied when `includedServices.ziyarah` is true. */
+  ziyarahCost: number;
   includedServices: TQuotationIncludedServices;
   customIncludedServices: TQuotationCustomIncludedService[];
   vehicleName: string;
@@ -132,6 +160,8 @@ export type TQuotationDraft = {
   readableId?: string;
   customerName: string;
   customerNumber: string;
+  customerEmail: string;
+  customerSource: TQuotationCustomerSource | "";
   calculatorType: TQuotationCalculatorType;
   quotationDate: string;
   status: TQuotationStatus;

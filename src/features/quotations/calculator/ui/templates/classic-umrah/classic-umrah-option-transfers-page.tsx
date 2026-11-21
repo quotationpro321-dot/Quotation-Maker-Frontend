@@ -79,6 +79,10 @@ export function ClassicUmrahOptionTransfersPage({
   const visaLines = [
     { pax: option.visaEVW.pax, label: "Saudi EVW Visa" },
     { pax: option.visaUmrah.pax, label: "Saudi Umrah Visa" },
+    {
+      pax: option.visaSaudiTourist?.pax ?? 0,
+      label: "Saudi Tourist Visa",
+    },
   ].filter((line) => line.pax > 0);
 
   return (

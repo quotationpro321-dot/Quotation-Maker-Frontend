@@ -15,14 +15,19 @@ import {
   createRouteRow,
 } from "@/features/quotations/calculator/lib/quotation-calculator-defaults";
 import { normalizeCustomIncludedServices } from "@/features/quotations/calculator/lib/quotation-custom-included-services";
-import { getFlightItineraryMode } from "@/features/quotations/calculator/lib/quotation-flight-itinerary";
-import { getDefaultIncludedServices } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
+import {
+  getFlightFamilyMode,
+  resolveFlightFamilies,
+  syncOptionFromFlightFamilies,
+  updateFlightFamilyInList,
+} from "@/features/quotations/calculator/lib/quotation-flight-families";
 import {
   getStorageKey,
   clearDraftFromStorage,
   loadDraftFromStorage,
   saveDraftToStorage,
 } from "@/features/quotations/calculator/lib/quotation-calculator-storage";
+import { getDefaultIncludedServices } from "@/features/quotations/calculator/lib/quotation-transfer.constants";
 import {
   prepareDraftForSave,
   quotationDetailToDraft,
@@ -155,9 +160,14 @@ function normalizeOption(
   option: TQuotationOption,
   calculatorType: TQuotationCalculatorType,
 ): TQuotationOption {
+  const flightFamilies = resolveFlightFamilies(option).map((family) => ({
+    ...family,
+    flightSegments: (family.flightSegments ?? []).map(normalizeFlightSegment),
+  }));
+
   return {
     ...option,
-    flightSegments: option.flightSegments.map(normalizeFlightSegment),
+    ...syncOptionFromFlightFamilies(flightFamilies),
     includedServices: normalizeIncludedServices(
       option.includedServices,
       calculatorType,
@@ -169,15 +179,14 @@ function normalizeOption(
     vehicleQuantity:
       (option.vehicleQuantity ?? 0) > 0 ? option.vehicleQuantity : 1,
     hotels: resolveHotels(option),
+    visaSaudiTourist: option.visaSaudiTourist ?? { pax: 0, cost: 0 },
+    ziyarahCost: option.ziyarahCost ?? 0,
     flightSectionEnabled: option.flightSectionEnabled ?? true,
     hotelSectionEnabled: option.hotelSectionEnabled ?? true,
     visaSectionEnabled: option.visaSectionEnabled ?? true,
     transferSectionEnabled: option.transferSectionEnabled ?? true,
     officeNoteSectionEnabled: option.officeNoteSectionEnabled ?? true,
     customerNoteSectionEnabled: option.customerNoteSectionEnabled ?? true,
-    flightItineraryMode:
-      option.flightItineraryMode === "image" ? "image" : "text",
-    flightItineraryImage: option.flightItineraryImage ?? "",
   };
 }
 
@@ -213,6 +222,8 @@ function normalizeDraft(draft: TQuotationDraft): TQuotationDraft {
 
   return {
     ...draft,
+    customerEmail: draft.customerEmail ?? "",
+    customerSource: draft.customerSource ?? "",
     calculatorType,
     calculatorStates: normalizedStates,
   };
@@ -464,39 +475,52 @@ export function useQuotationCalculator({
     [activeOption.routes, updateActiveOption],
   );
 
-  const parseFlightItinerary = useCallback(async () => {
-    if (getFlightItineraryMode(activeOption) === "image") return;
+  const parseFlightItinerary = useCallback(
+    async (familyId?: string) => {
+      const families = resolveFlightFamilies(activeOption);
+      const targetFamily =
+        families.find((family) => family.id === familyId) ?? families[0];
 
-    const rawText = activeOption.rawItinerary.trim();
-    if (!rawText) {
-      updateActiveOption({ flightSegments: [] });
-      return;
-    }
+      if (!targetFamily) return;
+      if (getFlightFamilyMode(targetFamily) === "image") return;
 
-    try {
-      const res = await parseItinerary({
-        rawText,
-        options: { timeFormat: "24h", showOperatedBy: true },
-      }).unwrap();
-
-      updateActiveOption({
-        flightSegments: mapSegmentsToQuotation(res.data.segments),
-      });
-
-      if (res.data.errors.length > 0) {
-        toast.error(res.data.errors[0]?.message ?? "Could not parse itinerary.");
-      } else if (res.data.warnings.length > 0) {
-        toast.warning(`Parsed with ${res.data.warnings.length} warning(s).`);
+      const rawText = targetFamily.rawItinerary.trim();
+      if (!rawText) {
+        const cleared = updateFlightFamilyInList(families, targetFamily.id, {
+          flightSegments: [],
+        });
+        updateActiveOption(syncOptionFromFlightFamilies(cleared));
+        return;
       }
-    } catch (err) {
-      toast.error(extractApiErrorMessage(err, "Could not parse itinerary."));
-    }
-  }, [
-    activeOption.flightItineraryMode,
-    activeOption.rawItinerary,
-    parseItinerary,
-    updateActiveOption,
-  ]);
+
+      try {
+        const res = await parseItinerary({
+          rawText,
+          options: { timeFormat: "24h", showOperatedBy: true },
+        }).unwrap();
+
+        const nextFamilies = updateFlightFamilyInList(
+          families,
+          targetFamily.id,
+          {
+            flightSegments: mapSegmentsToQuotation(res.data.segments),
+          },
+        );
+        updateActiveOption(syncOptionFromFlightFamilies(nextFamilies));
+
+        if (res.data.errors.length > 0) {
+          toast.error(
+            res.data.errors[0]?.message ?? "Could not parse itinerary.",
+          );
+        } else if (res.data.warnings.length > 0) {
+          toast.warning(`Parsed with ${res.data.warnings.length} warning(s).`);
+        }
+      } catch (err) {
+        toast.error(extractApiErrorMessage(err, "Could not parse itinerary."));
+      }
+    },
+    [activeOption, parseItinerary, updateActiveOption],
+  );
 
   const setTemplateId = useCallback((templateId: TQuotationTemplateId) => {
     updateDraft({ templateId });
@@ -513,6 +537,8 @@ export function useQuotationCalculator({
     const parsed = quotationCalculatorSaveSchema.safeParse({
       customerName: draft.customerName,
       customerNumber: draft.customerNumber,
+      customerEmail: draft.customerEmail,
+      customerSource: draft.customerSource,
       options: activeOptions,
     });
 

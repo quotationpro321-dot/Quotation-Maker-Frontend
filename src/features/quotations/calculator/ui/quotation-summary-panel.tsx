@@ -23,6 +23,51 @@ type TQuotationSummaryPanelProps = {
   onChange: (patch: Partial<TQuotationOption>) => void;
 };
 
+const GROSS_ROWS = [
+  { label: "Adult gross", costKey: "flightAdult" },
+  { label: "Youth gross", costKey: "flightYouth" },
+  { label: "Child gross", costKey: "flightChild" },
+  { label: "Infant gross", costKey: "flightInfant" },
+] as const;
+
+function GrossRows({
+  option,
+  calculatorType,
+  currency,
+  includeZiyarah,
+}: {
+  option: TQuotationOption;
+  calculatorType: TQuotationCalculatorType;
+  currency: string;
+  includeZiyarah: boolean;
+}) {
+  return (
+    <div className="space-y-3">
+      {GROSS_ROWS.map((row) => (
+        <div key={row.label} className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">
+              {row.label}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Flight + service + markup
+              {includeZiyarah ? " + ziyarah" : ""}
+            </p>
+          </div>
+          <p className="text-lg font-bold text-brand-primary">
+            {formatQuotationMoney(
+              calculateGross(option, option[row.costKey], calculatorType, {
+                includeZiyarah,
+              }),
+              currency,
+            )}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function QuotationSummaryPanel({
   calculatorType,
   option,
@@ -30,13 +75,6 @@ export function QuotationSummaryPanel({
   currency,
   onChange,
 }: TQuotationSummaryPanelProps) {
-  const rows = [
-    { label: "Adult gross", cost: option.flightAdult },
-    { label: "Youth gross", cost: option.flightYouth },
-    { label: "Child gross", cost: option.flightChild },
-    { label: "Infant gross", cost: option.flightInfant },
-  ];
-
   return (
     <Card className="sticky top-24 rounded! border-border bg-card shadow-sm">
       <CardHeader className="border-b">
@@ -77,6 +115,11 @@ export function QuotationSummaryPanel({
         </div>
 
         <div className="space-y-2 text-sm">
+          {totals.hasZiyarahPricing ? (
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Without ziyarah
+            </p>
+          ) : null}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Service total</span>
             <span>{formatQuotationMoney(totals.serviceTotal, currency)}</span>
@@ -89,26 +132,53 @@ export function QuotationSummaryPanel({
           </div>
         </div>
 
-        <div className="space-y-3">
-          {rows.map((row) => (
-            <div key={row.label} className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase text-muted-foreground">
-                  {row.label}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Flight + service + markup
-                </p>
-              </div>
-              <p className="text-lg font-bold text-brand-primary">
-                {formatQuotationMoney(
-                  calculateGross(option, row.cost, calculatorType),
-                  currency,
-                )}
+        <GrossRows
+          option={option}
+          calculatorType={calculatorType}
+          currency={currency}
+          includeZiyarah={false}
+        />
+
+        {totals.hasZiyarahPricing ? (
+          <div className="space-y-4 border-t border-border pt-4">
+            <div className="space-y-2 text-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                With ziyarah
               </p>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Ziyarah cost</span>
+                <span>
+                  {formatQuotationMoney(totals.ziyarahCost, currency)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Service total</span>
+                <span>
+                  {formatQuotationMoney(
+                    totals.serviceTotalWithZiyarah,
+                    currency,
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-border pb-2">
+                <span className="text-muted-foreground">Per person service</span>
+                <span>
+                  {formatQuotationMoney(
+                    totals.perPersonServiceCostWithZiyarah,
+                    currency,
+                  )}
+                </span>
+              </div>
             </div>
-          ))}
-        </div>
+
+            <GrossRows
+              option={option}
+              calculatorType={calculatorType}
+              currency={currency}
+              includeZiyarah
+            />
+          </div>
+        ) : null}
 
         <p className="rounded! bg-muted/40 p-3 text-xs text-muted-foreground">
           Total markup across all pax:{" "}
